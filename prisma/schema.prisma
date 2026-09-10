@@ -21,6 +21,8 @@ model Organization {
   updatedAt DateTime @updatedAt
 
   memberships Membership[]
+  customers Customer[]
+  proofs Proof[]
 }
 
 model User {
@@ -48,4 +50,51 @@ model Membership {
   @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
+}
+
+model Customer {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  name           String
+  email          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  proofs Proof[]
+}
+
+model Proof {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  customerId     String   @db.Uuid
+  title          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([customerId])
+  revisions Revision[]
+}
+
+model Revision {
+  id        String   @id @default(uuid()) @db.Uuid
+  proofId   String   @db.Uuid
+  number    Int
+  fileKey   String
+  fileName  String
+  fileType  String
+  fileSize  Int
+  fileHash  String
+  createdAt DateTime @default(now())
+
+  proof Proof @relation(fields: [proofId], references: [id], onDelete: Cascade)
+
+  @@unique([proofId, number])
+  @@index([proofId])
 }
