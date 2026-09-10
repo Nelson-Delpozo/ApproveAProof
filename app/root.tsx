@@ -8,7 +8,14 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { env } from "./services/env.server";
 import "./app.css";
+
+export function loader() {
+  void env;
+
+  return null;
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
