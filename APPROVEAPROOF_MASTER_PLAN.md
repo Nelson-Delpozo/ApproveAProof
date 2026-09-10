@@ -1,12 +1,12 @@
 # ApproveAProof — Master Product & Engineering Plan
 
-**Document purpose:** Canonical product, architecture, security, and development reference
+**Document purpose:** Canonical product, architecture, security, development, and implementation-status reference
 **Project:** ApproveAProof
 **Primary marketing domain:** `approveaproof.com`
 **Application domain:** `approveaproof.app`
 **Initial market:** Small custom-production businesses, beginning with local print shops
-**Status:** Pre-MVP development
-**Last major checkpoint:** September 9, 2026
+**Status:** MVP development
+**Last major checkpoint:** September 10, 2026
 
 ---
 
@@ -16,12 +16,12 @@ This document is the source of truth for the direction of ApproveAProof.
 
 It exists to prevent:
 
-- architectural drift
-- forgotten decisions
-- accidental scope creep
-- inconsistent security decisions
-- rebuilding previously solved problems
-- losing track of development progress between sessions
+* architectural drift
+* forgotten decisions
+* accidental scope creep
+* inconsistent security decisions
+* rebuilding previously solved problems
+* losing track of development progress between sessions
 
 Before making a major architectural or product decision, check this document.
 
@@ -51,38 +51,133 @@ Do not build it merely because it appears in this document.
 
 # 2. Project Status
 
-## Current checkpoint — September 9, 2026
+## Current checkpoint — September 10, 2026
+
+### Product and architecture
 
 Completed:
 
-- Product pivot from SmartLynx established.
-- Initial market research completed.
-- Small custom-production businesses selected as the broader market.
-- Local commercial/digital print shops selected as the initial wedge.
-- Core proof-approval problem identified.
-- Product architecture designed.
-- Security and scalability requirements established.
-- `approveaproof.com` selected for the marketing site.
-- `approveaproof.app` selected for the application.
-- New ApproveAProof repository created.
-- Clean application scaffold created using React Router Framework Mode.
-- Initial boilerplate successfully runs locally.
-- Initial working scaffold pushed to the new repository.
-- SmartLynx retained as a frozen reference implementation.
+* Product pivot from SmartLynx established.
+* Initial market research completed.
+* Small custom-production businesses selected as the broader market.
+* Local commercial/digital print shops selected as the initial wedge.
+* Core proof-approval problem identified.
+* Product architecture designed.
+* Security and scalability requirements established.
+* `approveaproof.com` selected for the marketing site.
+* `approveaproof.app` selected for the application.
+* New ApproveAProof repository created.
+* SmartLynx retained as a frozen reference implementation.
 
-## Exact next development task
+### Phase 0 — Foundation
 
-**Do not jump directly into product features.**
+**Status: COMPLETE**
 
-Next session begins by:
+Completed:
 
-1. inspecting the generated React Router project structure;
-2. removing unnecessary starter boilerplate;
-3. establishing the application shell and folder conventions;
-4. establishing environment-variable validation;
-5. establishing formatting/linting/testing conventions;
-6. confirming development and production configuration;
-7. only then beginning PostgreSQL/Prisma setup.
+* React Router Framework Mode application scaffold created.
+* Starter boilerplate removed.
+* Minimal ApproveAProof application shell established.
+* React Router server/client boundary understood and documented.
+* Environment-variable validation established with Zod.
+* ESLint configured.
+* Prettier configured.
+* Vitest configured.
+* Testing Library baseline installed.
+* Smoke test established.
+* Type checking established.
+* Production build verified.
+* Full quality gate passed:
+
+  * format
+  * lint
+  * typecheck
+  * test
+  * build
+* Foundation committed and pushed.
+
+### Phase 1 — Database
+
+**Status: IN PROGRESS**
+
+Completed:
+
+* Prisma selected and pinned to stable `7.10.0`.
+* Prisma 8 release candidate deliberately rejected for production development.
+* Neon selected as the managed PostgreSQL provider.
+* Fresh ApproveAProof Neon database created.
+* Prisma-to-Neon connectivity verified.
+* Prisma schema-first migration workflow established.
+* `prisma.config.ts` established.
+* Generated Prisma client directory excluded from Git.
+* Initial identity/tenant schema created.
+* Initial identity migration applied.
+* Customer, Proof, and Revision schema created.
+* Customer/Proof/Revision migration applied.
+* Database synchronized with current Prisma schema.
+
+Current implemented models:
+
+```text
+Organization
+User
+Membership
+Customer
+Proof
+Revision
+```
+
+Current implemented enum:
+
+```text
+MembershipRole
+```
+
+Current migration history:
+
+```text
+20260910064511_init_identity
+20260910065333_add_customer_proof_revision
+```
+
+Current development branch:
+
+```text
+phase-1-database
+```
+
+Current pushed database checkpoints include:
+
+```text
+chore: initialize Prisma database tooling
+
+feat: add identity and tenant database foundation
+
+feat: add customer proof and revision models
+```
+
+### Exact next development task
+
+Do not jump to Auth0, S3, UI, or approval routes yet.
+
+Continue Phase 1 by deliberately finalizing the core database architecture around:
+
+1. proof lifecycle/status;
+2. current-revision relationship;
+3. tenant-query implications of revision records;
+4. response/change-request records;
+5. authoritative approval records;
+6. activity records;
+7. dispatch/outbox records;
+8. important constraints and indexes;
+9. final Phase 1 database validation;
+10. full Phase 1 quality gate.
+
+The next immediate architectural decision is:
+
+> **How should Proof state and currentRevision be represented while preserving revision immutability and exact-revision approval integrity?**
+
+Do not treat `APPROVED` as merely a boolean or casually add a current-revision pointer without considering the complete relationship.
 
 ---
 
@@ -98,13 +193,13 @@ Its central purpose is to answer:
 
 The product replaces fragile approval workflows such as:
 
-- emailing PDFs back and forth;
-- customers replying "looks good";
-- text-message approvals;
-- screenshots;
-- verbal approvals;
-- employees searching old email threads;
-- uncertainty about which revision was approved.
+* emailing PDFs back and forth;
+* customers replying "looks good";
+* text-message approvals;
+* screenshots;
+* verbal approvals;
+* employees searching old email threads;
+* uncertainty about which revision was approved.
 
 ApproveAProof creates a simple, explicit, documented approval workflow without requiring the business to replace its existing operating systems.
 
@@ -132,11 +227,11 @@ Initial target:
 
 Particularly attractive prospects are shops where proof approval currently happens through:
 
-- emailed PDFs;
-- email attachments;
-- text messages;
-- screenshots;
-- informal email replies.
+* emailed PDFs;
+* email attachments;
+* text messages;
+* screenshots;
+* informal email replies.
 
 Ideal discovery question:
 
@@ -166,17 +261,17 @@ Weak prospect answers:
 
 The same approval workflow may later serve:
 
-- sign shops;
-- screen printing;
-- DTF/DTG businesses;
-- embroidery shops;
-- vehicle wraps;
-- stickers and decals;
-- promotional products;
-- engraving and awards;
-- packaging;
-- personalized-product manufacturers;
-- other custom-production businesses.
+* sign shops;
+* screen printing;
+* DTF/DTG businesses;
+* embroidery shops;
+* vehicle wraps;
+* stickers and decals;
+* promotional products;
+* engraving and awards;
+* packaging;
+* personalized-product manufacturers;
+* other custom-production businesses.
 
 The architecture should support these industries.
 
@@ -198,12 +293,12 @@ It is:
 
 The positioning should emphasize:
 
-- clear approval;
-- exact revision identity;
-- fewer misunderstandings;
-- documented customer decisions;
-- easier revision cycles;
-- knowing when production can proceed.
+* clear approval;
+* exact revision identity;
+* fewer misunderstandings;
+* documented customer decisions;
+* easier revision cycles;
+* knowing when production can proceed.
 
 ---
 
@@ -213,18 +308,18 @@ The positioning should emphasize:
 
 ApproveAProof is not becoming:
 
-- a CRM;
-- print MIS;
-- ERP;
-- quoting software;
-- invoicing software;
-- accounting software;
-- inventory software;
-- production scheduling software;
-- online storefront;
-- project-management platform;
-- Adobe replacement;
-- graphic-design editor.
+* a CRM;
+* print MIS;
+* ERP;
+* quoting software;
+* invoicing software;
+* accounting software;
+* inventory software;
+* production scheduling software;
+* online storefront;
+* project-management platform;
+* Adobe replacement;
+* graphic-design editor.
 
 The positioning is:
 
@@ -319,10 +414,14 @@ The most important relationship in the application is:
 ```text
 Proof
   ↓
-Immutable ProofRevision
+Immutable Revision
   ↓
 ProofResponse
 ```
+
+Implementation naming may use `Revision` rather than `ProofRevision` where the surrounding domain already makes its meaning unambiguous.
+
+The invariant is more important than the model name.
 
 ---
 
@@ -352,7 +451,7 @@ Example:
 Johnson Dental Brochure
 ```
 
-A `ProofRevision` represents a specific artifact presented to the customer.
+A `Revision` represents a specific artifact presented to the customer.
 
 Example:
 
@@ -400,6 +499,10 @@ Revision 3 → S3 object C
 
 This preserves exactly what the customer saw.
 
+The current database design reinforces this by treating Revision records as immutable artifacts rather than ordinary editable records.
+
+Revision currently has no `updatedAt` field by design.
+
 ---
 
 # 14. Multi-Tenant Architecture
@@ -444,55 +547,69 @@ Organization
 
 Even if initial customers have one employee, this prevents a difficult migration when teams are introduced.
 
+Tenant isolation must remain explicit in application queries and domain operations.
+
 ---
 
 # 15. Technology Stack
 
-## CURRENT PLAN
+## CURRENT IMPLEMENTATION
 
 Application:
 
-- React Router Framework Mode
-- React
-- TypeScript
+* React Router Framework Mode `^8`
+* React `^19.2.7`
+* TypeScript `^5.9.3`
+* Vite `^8.0.3`
 
 Database:
 
-- PostgreSQL
-- Prisma
+* PostgreSQL
+* Neon managed PostgreSQL
+* Prisma `7.10.0`
 
 Authentication:
 
-- Auth0
+* Auth0 planned for Phase 2
 
 Object storage:
 
-- AWS S3
+* AWS S3 planned
 
 Email:
 
-- SendGrid
+* SendGrid planned
 
 Billing:
 
-- Stripe
+* Stripe planned
 
 Styling:
 
-- Tailwind CSS
+* Tailwind CSS `^4.2.2`
+
+Validation:
+
+* Zod
 
 Testing:
 
-- Vitest
-- React Testing Library where appropriate
+* Vitest
+* jsdom
+* Testing Library where appropriate
+
+Runtime during current local development:
+
+* Node.js `v24.14.1`
+* macOS arm64
 
 Hosting:
 
-- likely Vercel or equivalent
+* likely Vercel or equivalent; not yet finalized
 
 Architecture:
 
-- modular monolith
+* modular monolith
 
 ---
 
@@ -529,11 +646,17 @@ We will earn distributed-system complexity rather than inventing it.
 
 Use one primary PostgreSQL database.
 
+Current provider:
+
+```text
+Neon
+```
+
 Do not reproduce SmartLynx's separate analytics database.
 
 Approval information is operational business data, not optional analytics.
 
-Core tables/models:
+Core models ultimately expected:
 
 ```text
 User
@@ -541,10 +664,21 @@ Organization
 Membership
 Customer
 Proof
-ProofRevision
+Revision
 ProofResponse
 ProofActivity
 ProofDispatch
+```
+
+Current implemented subset:
+
+```text
+User
+Organization
+Membership
+Customer
+Proof
+Revision
 ```
 
 Potential later models:
@@ -558,23 +692,48 @@ WebhookEndpoint
 
 Do not create them until needed.
 
+Development follows a schema-first migration workflow:
+
+```text
+define Prisma schema
+        ↓
+validate schema
+        ↓
+create migration
+        ↓
+apply migration to Neon
+        ↓
+commit migration with schema change
+```
+
+Do not use database introspection as the normal development workflow for this project.
+
 ---
 
 # 18. Core Models
+
+This section describes both the intended domain and the implementation reached so far.
+
+Where the implemented Phase 1 schema is intentionally smaller than the eventual model, future fields should be added deliberately as their corresponding architecture is finalized.
 
 ## User
 
 Identity only.
 
-Important fields:
+Current implemented fields:
 
 ```text
 id
-auth0Sub
+auth0Subject
 email
+name
 createdAt
 updatedAt
 ```
+
+Current implementation uses UUID primary keys.
+
+`auth0Subject` is intended to store the stable Auth0 `sub`.
 
 Billing does not belong to User.
 
@@ -586,12 +745,27 @@ Branding does not belong to User.
 
 Represents the business using ApproveAProof.
 
-Important fields:
+Current implemented fields:
 
 ```text
 id
 name
+slug
+createdAt
+updatedAt
+```
 
+Current relationships:
+
+```text
+memberships
+customers
+proofs
+```
+
+Future organization-level fields may include:
+
+```text
 branding settings
 
 default approval statement
@@ -602,9 +776,6 @@ subscription status
 
 Stripe customer ID
 Stripe subscription ID
-
-createdAt
-updatedAt
 ```
 
 Billing belongs to Organization.
@@ -617,13 +788,36 @@ Branding belongs to Organization.
 
 Connects users and organizations.
 
-Roles:
+Current implemented roles:
 
 ```text
 OWNER
 ADMIN
-STAFF
+MEMBER
 ```
+
+Current implemented fields:
+
+```text
+id
+organizationId
+userId
+role
+createdAt
+updatedAt
+```
+
+Current database constraints include:
+
+```text
+unique organizationId + userId
+index organizationId
+index userId
+```
+
+`MEMBER` currently represents an ordinary non-administrative organization member.
+
+Role naming may be revisited only if actual authorization requirements make a different name materially clearer.
 
 ---
 
@@ -631,17 +825,39 @@ STAFF
 
 Intentionally lightweight.
 
-Fields:
+Current implemented fields:
+
+```text
+id
+organizationId
+name
+email
+createdAt
+updatedAt
+```
+
+Current relationship:
+
+```text
+Organization → Customers
+Customer → Proofs
+```
+
+Current index:
 
 ```text
 organizationId
+```
+
+Potential later customer fields remain:
+
+```text
 companyName
 contactName
-email
 phone
 ```
 
-This is not a CRM.
+Do not expand Customer into a CRM.
 
 ---
 
@@ -649,15 +865,36 @@ This is not a CRM.
 
 Represents the overall approval workflow.
 
-Important fields:
+Current implemented fields:
+
+```text
+id
+organizationId
+customerId
+title
+createdAt
+updatedAt
+```
+
+Current relationships:
+
+```text
+Organization → Proofs
+Customer → Proofs
+Proof → Revisions
+```
+
+Current indexes:
 
 ```text
 organizationId
 customerId
+```
 
-title
+Planned fields still requiring deliberate Phase 1 design include:
+
+```text
 jobNumber
-
 status
 
 recipientName
@@ -676,26 +913,62 @@ canceledAt
 createdByUserId
 ```
 
+Do not add these mechanically. Their constraints and historical behavior must match the state machine and approval invariants.
+
 ---
 
-## ProofRevision
+## Revision
 
-Represents one immutable version.
+Represents one immutable version of a Proof.
 
-Important fields:
+Current implemented fields:
 
 ```text
+id
 proofId
-revisionNumber
+number
+fileKey
+fileName
+fileType
+fileSize
+fileHash
+createdAt
+```
 
+Current database constraints:
+
+```text
+unique proofId + number
+index proofId
+```
+
+Current relationship:
+
+```text
+Proof → Revisions
+```
+
+Current implementation intentionally has no `updatedAt`.
+
+The revision number is unique within its Proof.
+
+`fileKey` is intended to identify the private S3 object.
+
+`fileName` preserves the original filename as metadata.
+
+`fileType` represents file/MIME type metadata.
+
+`fileSize` is currently an integer. This is acceptable while v1 upload limits remain far below PostgreSQL integer limits.
+
+`fileHash` is intended to contain the durable cryptographic fingerprint of the exact uploaded bytes.
+
+Before further schema expansion, we must deliberately evaluate whether Revision should also carry `organizationId` to make tenant-scoped direct queries safer and more explicit.
+
+Potential later fields include:
+
+```text
 status
 
-originalFilename
-storageKey
-mimeType
-fileSizeBytes
-
-sha256
 s3ETag
 s3VersionId
 
@@ -708,20 +981,15 @@ createdByUserId
 readyAt
 sentAt
 supersededAt
-createdAt
-```
-
-Unique constraint:
-
-```text
-proofId + revisionNumber
 ```
 
 ---
 
 ## ProofResponse
 
-Authoritative customer decision.
+**Not yet implemented.**
+
+This will represent an authoritative customer decision.
 
 Types:
 
@@ -730,7 +998,7 @@ APPROVED
 CHANGES_REQUESTED
 ```
 
-Important fields:
+Expected important fields:
 
 ```text
 proofId
@@ -753,9 +1021,13 @@ reviewFingerprintSnapshot
 occurredAt
 ```
 
+The exact schema will be finalized during Phase 1 before migration.
+
 ---
 
 ## ProofActivity
+
+**Not yet implemented.**
 
 Human-readable operational timeline.
 
@@ -782,6 +1054,8 @@ ProofResponse remains authoritative for customer decisions.
 ---
 
 ## ProofDispatch
+
+**Not yet implemented.**
 
 Tracks transactional communication.
 
@@ -859,6 +1133,8 @@ State transitions belong in domain logic.
 
 Routes must not arbitrarily set statuses.
 
+**Implementation status:** The state machine is architecturally locked but has not yet been added to the Prisma schema. This is the next major Phase 1 database decision.
+
 ---
 
 # 20. Revision Allocation
@@ -879,10 +1155,14 @@ Concurrent revision creation must not create duplicate numbers.
 
 Use:
 
-- database transaction/locking;
-- unique `(proofId, revisionNumber)` constraint.
+* database transaction/locking;
+* unique `(proofId, revisionNumber)` constraint.
 
 The database constraint is final protection.
+
+**Implementation status:** The unique `(proofId, number)` database constraint now exists.
+
+Transactional server-side allocation will be implemented when revision creation behavior is built.
 
 ---
 
@@ -890,15 +1170,21 @@ The database constraint is final protection.
 
 ## CURRENT PLAN
 
-Each revision should store SHA-256 for the uploaded file.
+Each revision stores a cryptographic file fingerprint.
+
+Current implemented field:
 
 ```text
-ProofRevision.sha256
+Revision.fileHash
 ```
+
+The intended algorithm is SHA-256.
 
 Do not treat S3 ETag as equivalent to a cryptographic file hash.
 
 The hash identifies the exact approved file.
+
+Naming may later be changed to `sha256` if that materially improves clarity before the upload implementation stabilizes.
 
 ---
 
@@ -967,6 +1253,20 @@ proofs/
 Never place customer-provided filenames directly into object paths.
 
 Original filenames are stored in PostgreSQL.
+
+Current Revision schema already separates:
+
+```text
+fileKey
+```
+
+from:
+
+```text
+fileName
+```
+
+which supports this architecture.
 
 ---
 
@@ -1069,10 +1369,10 @@ Office documents
 
 Do not trust:
 
-- extension alone;
-- browser MIME type alone;
-- browser-provided S3 key;
-- browser-provided organization ID.
+* extension alone;
+* browser MIME type alone;
+* browser-provided S3 key;
+* browser-provided organization ID.
 
 Validate before presigning and again after upload.
 
@@ -1111,12 +1411,12 @@ Risk is constrained by accepting only PDF/JPEG/PNG and never executing uploads.
 
 Requirements:
 
-- keep PDF.js current;
-- disable PDF JavaScript;
-- do not render arbitrary HTML;
-- reject SVG initially;
-- serve files from private S3;
-- use strong Content Security Policy.
+* keep PDF.js current;
+* disable PDF JavaScript;
+* do not render arbitrary HTML;
+* reject SVG initially;
+* serve files from private S3;
+* use strong Content Security Policy.
 
 Architecture should permit later malware scanning.
 
@@ -1153,8 +1453,8 @@ hash incoming token
 
 Never log:
 
-- raw review tokens;
-- signed S3 URLs.
+* raw review tokens;
+* signed S3 URLs.
 
 Review links must be regeneratable.
 
@@ -1217,11 +1517,11 @@ Use PDF.js.
 
 Security requirements:
 
-- current maintained release;
-- no embedded PDF JavaScript execution;
-- strict CSP;
-- no unrestricted uploaded-content iframe behavior;
-- external links treated as untrusted.
+* current maintained release;
+* no embedded PDF JavaScript execution;
+* strict CSP;
+* no unrestricted uploaded-content iframe behavior;
+* external links treated as untrusted.
 
 JPEG and PNG can use signed S3 URLs.
 
@@ -1272,16 +1572,16 @@ The proof is the visual focus.
 
 Reasons:
 
-- print proofs often assume white viewing context;
-- dramatic backgrounds may affect perceived color;
-- nontechnical customers need clarity;
-- document review should feel trustworthy.
+* print proofs often assume white viewing context;
+* dramatic backgrounds may affect perceived color;
+* nontechnical customers need clarity;
+* document review should feel trustworthy.
 
 Shop branding may control:
 
-- logo;
-- business name;
-- accent color.
+* logo;
+* business name;
+* accent color.
 
 Do not allow arbitrary custom CSS/HTML.
 
@@ -1295,12 +1595,12 @@ The customer review workflow must work extremely well on phones.
 
 Requirements:
 
-- large tap targets;
-- readable without zooming;
-- easy PDF navigation;
-- obvious revision number;
-- obvious approval/change controls;
-- no hover-only interaction.
+* large tap targets;
+* readable without zooming;
+* easy PDF navigation;
+* obvious revision number;
+* obvious approval/change controls;
+* no hover-only interaction.
 
 Customer mobile UX has higher priority than perfect dashboard mobile UX.
 
@@ -1633,7 +1933,7 @@ auth routes
 /internal/jobs/upload-cleanup
 ```
 
-Exact React Router filenames will be determined against the generated scaffold.
+Exact React Router route filenames should follow Framework Mode conventions rather than legacy Remix assumptions.
 
 ---
 
@@ -1664,6 +1964,24 @@ app/
 ├── services/
 └── components/
 ```
+
+Current server-only environment module:
+
+```text
+app/services/env.server.ts
+```
+
+Server-only modules must flow only through React Router server execution paths such as:
+
+```text
+loader
+action
+middleware
+headers
+server modules
+```
+
+They must not be imported into browser/client bundle paths.
 
 Routes should be thin.
 
@@ -1737,54 +2055,60 @@ when organization access matters.
 
 A user from Organization A must never access Organization B through:
 
-- URL manipulation;
-- API calls;
-- customer IDs;
-- proof IDs;
-- revision IDs;
-- upload endpoints;
-- billing endpoints.
+* URL manipulation;
+* API calls;
+* customer IDs;
+* proof IDs;
+* revision IDs;
+* upload endpoints;
+* billing endpoints.
 
 Tenant isolation receives dedicated automated tests.
+
+During Phase 1 schema design, favor relationships and indexes that make correct tenant-scoped queries straightforward rather than relying on developers to remember complex ownership joins everywhere.
 
 ---
 
 # 50. Roles
 
-## CURRENT PLAN
+## CURRENT IMPLEMENTATION
 
-Roles:
+Current database roles:
 
 ```text
 OWNER
 ADMIN
-STAFF
+MEMBER
 ```
+
+Conceptual authorization direction:
 
 OWNER:
 
-- all operations;
-- billing;
-- organization administration;
-- team management.
+* all operations;
+* billing;
+* organization administration;
+* team management.
 
 ADMIN:
 
-- proofs;
-- customers;
-- most settings;
-- team management except ownership/billing where appropriate.
+* proofs;
+* customers;
+* most settings;
+* team management except ownership/billing where appropriate.
 
-STAFF:
+MEMBER:
 
-- proofs;
-- customers;
-- revisions;
-- operational workflow.
+* proofs;
+* customers;
+* revisions;
+* operational workflow as permitted.
 
 The MVP UI may initially expose only OWNER.
 
 The server architecture should still understand roles.
+
+Exact role capabilities will be finalized during Phase 2.
 
 ---
 
@@ -1796,17 +2120,17 @@ Use Auth0 initially.
 
 Reason:
 
-- already understood from SmartLynx;
-- mature authentication infrastructure;
-- authentication is not product differentiation;
-- reduces unnecessary simultaneous infrastructure changes.
+* already understood from SmartLynx;
+* mature authentication infrastructure;
+* authentication is not product differentiation;
+* reduces unnecessary simultaneous infrastructure changes.
 
 Flow:
 
 ```text
 Auth0 identity
      ↓
-User.auth0Sub
+User.auth0Subject
      ↓
 ApproveAProof User
      ↓
@@ -1816,6 +2140,8 @@ Organization
 ```
 
 Organization permissions and subscription state belong in PostgreSQL, not solely Auth0 metadata.
+
+**Implementation status:** Database identity models exist. Auth0 behavior has not yet been implemented and belongs to Phase 2.
 
 ---
 
@@ -1895,6 +2221,8 @@ Do not allow arbitrary HTML.
 
 Avoid `dangerouslySetInnerHTML` for customer data.
 
+Zod is already installed and used for environment validation and is the preferred validation tool unless a specific implementation requires otherwise.
+
 ---
 
 # 55. Content Security Policy
@@ -1971,6 +2299,7 @@ session secrets
 Stripe secrets
 SendGrid keys
 AWS secrets
+database credentials
 ```
 
 Use request correlation IDs.
@@ -2007,6 +2336,24 @@ credentials.
 
 Any credential copied from old SmartLynx should be considered for rotation rather than blindly reused.
 
+Current repository contains:
+
+```text
+.env.example
+```
+
+for variable names only.
+
+Local:
+
+```text
+.env
+```
+
+is Git-ignored.
+
+The local Neon `DATABASE_URL` must never be pasted into documentation, chat output intended for publication, source code, or Git.
+
 ---
 
 # 59. Stripe Architecture
@@ -2021,10 +2368,10 @@ PostgreSQL stores cached subscription/entitlement state.
 
 Webhook requirements:
 
-- verify Stripe signature;
-- idempotently process events;
-- never trust client subscription state;
-- protect against duplicate events.
+* verify Stripe signature;
+* idempotently process events;
+* never trust client subscription state;
+* protect against duplicate events.
 
 ---
 
@@ -2126,7 +2473,7 @@ Historical approval evidence must survive ordinary customer/contact changes.
 
 Deleting a Customer should not automatically destroy Proof history.
 
-Proof stores recipient snapshots:
+Proof should ultimately store recipient snapshots:
 
 ```text
 recipientName
@@ -2155,6 +2502,8 @@ fingerprint
 ```
 
 Normal application APIs do not rewrite historical decisions.
+
+**Implementation note:** The current first-pass `Proof.customerId` relationship is required and uses restrictive deletion behavior. Historical deletion semantics must be revisited deliberately before Phase 1 is considered complete.
 
 ---
 
@@ -2328,10 +2677,10 @@ Goal:
 
 Customer records remain intentionally small.
 
-Display:
+Display may ultimately include:
 
 ```text
-company
+company/name
 contact
 email
 phone
@@ -2350,6 +2699,8 @@ quotes
 campaigns
 ```
 
+The current database model intentionally begins smaller than this.
+
 ---
 
 # 70. Accessibility
@@ -2360,13 +2711,13 @@ Target solid WCAG AA fundamentals.
 
 Requirements:
 
-- semantic controls;
-- keyboard accessibility;
-- visible focus states;
-- adequate contrast;
-- form labels;
-- associated errors;
-- status never conveyed by color alone.
+* semantic controls;
+* keyboard accessibility;
+* visible focus states;
+* adequate contrast;
+* form labels;
+* associated errors;
+* status never conveyed by color alone.
 
 This is particularly important because customers reviewing proofs may not be technically sophisticated.
 
@@ -2407,7 +2758,7 @@ Response
 
 Use PostgreSQL indexes around real access patterns.
 
-Important indexes:
+Important anticipated indexes:
 
 ```text
 Proof:
@@ -2427,7 +2778,29 @@ Dispatch:
 status + scheduledAt
 ```
 
+Current indexes already established include:
+
+```text
+Membership:
+organizationId
+userId
+unique organizationId + userId
+
+Customer:
+organizationId
+
+Proof:
+organizationId
+customerId
+
+Revision:
+proofId
+unique proofId + number
+```
+
 Use appropriate connection pooling for the hosting environment.
+
+Neon's pooled connection architecture is the current database deployment choice.
 
 Avoid N+1 queries.
 
@@ -2484,16 +2857,22 @@ job infrastructure
 
 PostgreSQL:
 
-- automatic backups;
-- point-in-time recovery where available;
-- documented restore process;
-- actual restore testing.
+* automatic backups;
+* point-in-time recovery where available;
+* documented restore process;
+* actual restore testing.
+
+Current managed database provider:
+
+```text
+Neon
+```
 
 S3:
 
-- encryption;
-- versioning where economically reasonable;
-- lifecycle rules.
+* encryption;
+* versioning where economically reasonable;
+* lifecycle rules.
 
 A backup is not proven until restoration has been tested.
 
@@ -2557,27 +2936,27 @@ scheduled jobs not executing
 
 Automated tests should verify:
 
-- User cannot access another organization.
-- User cannot presign upload for another organization.
-- Browser cannot choose arbitrary S3 storage keys.
-- Customer cannot access another proof by changing an ID.
-- Raw review token is not leaked through internal APIs.
-- Regenerated review link invalidates previous token.
-- Customer cannot approve a stale revision.
-- Customer cannot approve a canceled proof.
-- Customer cannot approve an unsent revision.
-- Approved revision cannot be overwritten.
-- Concurrent revision creation cannot duplicate revision numbers.
-- Duplicate approval request does not duplicate the approval.
-- SendGrid failure does not erase approval.
-- Plan UI cannot be bypassed through direct API requests.
-- Free account cannot abuse presigned uploads.
-- Malicious filename cannot manipulate storage paths.
-- HTML/SVG uploads are rejected.
-- Oversized files are rejected.
-- Cross-tenant customer IDs are rejected.
-- Reminder cannot send after approval.
-- Internal scheduled endpoints require authentication.
+* User cannot access another organization.
+* User cannot presign upload for another organization.
+* Browser cannot choose arbitrary S3 storage keys.
+* Customer cannot access another proof by changing an ID.
+* Raw review token is not leaked through internal APIs.
+* Regenerated review link invalidates previous token.
+* Customer cannot approve a stale revision.
+* Customer cannot approve a canceled proof.
+* Customer cannot approve an unsent revision.
+* Approved revision cannot be overwritten.
+* Concurrent revision creation cannot duplicate revision numbers.
+* Duplicate approval request does not duplicate the approval.
+* SendGrid failure does not erase approval.
+* Plan UI cannot be bypassed through direct API requests.
+* Free account cannot abuse presigned uploads.
+* Malicious filename cannot manipulate storage paths.
+* HTML/SVG uploads are rejected.
+* Oversized files are rejected.
+* Cross-tenant customer IDs are rejected.
+* Reminder cannot send after approval.
+* Internal scheduled endpoints require authentication.
 
 ---
 
@@ -2621,27 +3000,27 @@ This test represents the core product.
 
 ## DO NOT BUILD WITHOUT EVIDENCE
 
-- full CRM;
-- quoting;
-- invoicing;
-- inventory;
-- production scheduling;
-- online store;
-- customer accounts;
-- complicated approval chains;
-- live annotation/drawing;
-- PDF editing;
-- revision visual diffing;
-- SMS;
-- AI functionality;
-- QuickBooks integration;
-- Printavo integration;
-- shopVOX integration;
-- Zapier;
-- customer-facing webhooks;
-- custom domains;
-- payment collection;
-- electronic-signature-provider integration.
+* full CRM;
+* quoting;
+* invoicing;
+* inventory;
+* production scheduling;
+* online store;
+* customer accounts;
+* complicated approval chains;
+* live annotation/drawing;
+* PDF editing;
+* revision visual diffing;
+* SMS;
+* AI functionality;
+* QuickBooks integration;
+* Printavo integration;
+* shopVOX integration;
+* Zapier;
+* customer-facing webhooks;
+* custom domains;
+* payment collection;
+* electronic-signature-provider integration.
 
 ---
 
@@ -2699,22 +3078,24 @@ It exists as reference material.
 
 Useful implementation knowledge includes:
 
-- Auth0 flow;
-- sessions;
-- direct S3 uploads;
-- signed S3 reads;
-- SendGrid;
-- Stripe Checkout;
-- Billing Portal;
-- Stripe webhooks;
-- Prisma/PostgreSQL;
-- Vercel deployment;
-- Tailwind;
-- testing patterns.
+* Auth0 flow;
+* sessions;
+* direct S3 uploads;
+* signed S3 reads;
+* SendGrid;
+* Stripe Checkout;
+* Billing Portal;
+* Stripe webhooks;
+* Prisma/PostgreSQL;
+* Vercel deployment;
+* Tailwind;
+* testing patterns.
 
 Reuse knowledge and good patterns.
 
 Do not blindly copy code.
+
+The old SmartLynx ZIP/archive must remain local-only and must not be committed to the ApproveAProof repository.
 
 ---
 
@@ -2722,15 +3103,15 @@ Do not blindly copy code.
 
 Known lessons:
 
-- entitlement enforcement must happen before upload authorization;
-- browser must not control S3 object identity;
-- API permissions cannot depend on UI gating;
-- operational dashboard should not become one giant component;
-- approval records should not be treated like analytics;
-- orphaned files require cleanup;
-- plan logic should be centralized;
-- tenant ownership must be enforced server-side;
-- avoid N+1 database patterns.
+* entitlement enforcement must happen before upload authorization;
+* browser must not control S3 object identity;
+* API permissions cannot depend on UI gating;
+* operational dashboard should not become one giant component;
+* approval records should not be treated like analytics;
+* orphaned files require cleanup;
+* plan logic should be centralized;
+* tenant ownership must be enforced server-side;
+* avoid N+1 database patterns.
 
 These lessons should directly influence ApproveAProof implementation.
 
@@ -2738,35 +3119,71 @@ These lessons should directly influence ApproveAProof implementation.
 
 # 84. Development Roadmap
 
+The roadmap distinguishes between **database representation** and **application behavior**.
+
+For example, User/Organization/Membership database tables are created during Phase 1 so the database foundation is coherent. Auth0 integration, tenant resolution, and authorization behavior still belong to Phase 2.
+
+---
+
 ## PHASE 0 — Foundation
 
-Current phase.
+**Status: COMPLETE**
 
-Tasks:
+Completed:
 
-- inspect React Router boilerplate;
-- remove unnecessary starter code;
-- establish project structure;
-- TypeScript configuration;
-- environment validation;
-- lint/format conventions;
-- testing conventions;
-- CI basics;
-- development/production configuration.
+* inspect React Router boilerplate;
+* remove unnecessary starter code;
+* establish project structure;
+* TypeScript configuration;
+* environment validation;
+* lint/format conventions;
+* testing conventions;
+* development/production configuration baseline;
+* successful format/lint/typecheck/test/build gate.
 
 ---
 
 ## PHASE 1 — Database
 
-Tasks:
+**Status: IN PROGRESS**
 
-- PostgreSQL connection;
-- Prisma;
-- initial migrations;
-- development database;
-- database utility layer.
+Purpose:
 
-No proof functionality yet.
+Establish the durable relational foundation before application behavior depends on it.
+
+Completed:
+
+* PostgreSQL provider selection;
+* Neon development database;
+* Prisma 7.10.0;
+* Prisma configuration;
+* database connectivity;
+* schema-first migration workflow;
+* User;
+* Organization;
+* Membership;
+* Customer;
+* Proof;
+* Revision;
+* initial migrations.
+
+Remaining:
+
+* Proof status/lifecycle representation;
+* current-revision relationship;
+* review Revision tenant-scoping strategy;
+* historical Customer/Proof deletion semantics;
+* ProofResponse;
+* ProofActivity;
+* ProofDispatch;
+* supporting enums;
+* important indexes/constraints;
+* database utility/client layer;
+* Prisma runtime adapter configuration;
+* database-focused tests where appropriate;
+* final Phase 1 quality gate.
+
+No application proof workflow yet.
 
 ---
 
@@ -2774,18 +3191,22 @@ No proof functionality yet.
 
 Tasks:
 
-- Auth0;
-- User;
-- Organization;
-- Membership;
-- initial organization creation;
-- organization resolver;
-- authorization helpers;
-- authenticated `/app` shell.
+* Auth0;
+* User synchronization/resolution;
+* Organization creation behavior;
+* Membership behavior;
+* initial organization creation;
+* organization resolver;
+* authorization helpers;
+* role enforcement;
+* authenticated `/app` shell;
+* tenant-isolation tests.
 
 Critical milestone:
 
 > Tenant isolation works before proof functionality exists.
+
+The underlying User/Organization/Membership tables already exist from Phase 1. This phase makes them operational.
 
 ---
 
@@ -2793,15 +3214,19 @@ Critical milestone:
 
 Build:
 
-- Customer;
-- Proof;
-- ProofRevision;
-- ProofResponse;
-- ProofActivity;
-- ProofDispatch;
-- state-machine logic.
+* Customer behavior;
+* Proof behavior;
+* Revision behavior;
+* ProofResponse behavior;
+* ProofActivity behavior;
+* ProofDispatch behavior;
+* state-machine domain logic;
+* revision allocation logic;
+* domain invariants.
 
 Write domain tests before elaborate UI.
+
+The underlying tables should already exist from Phase 1.
 
 ---
 
@@ -2809,14 +3234,14 @@ Write domain tests before elaborate UI.
 
 Build:
 
-- S3 configuration;
-- server-created object paths;
-- revision allocation;
-- presigned direct upload;
-- upload finalization;
-- object verification;
-- integrity/hash handling;
-- orphan cleanup.
+* S3 configuration;
+* server-created object paths;
+* revision allocation integration;
+* presigned direct upload;
+* upload finalization;
+* object verification;
+* integrity/hash handling;
+* orphan cleanup.
 
 Milestone:
 
@@ -2828,13 +3253,13 @@ Milestone:
 
 Build:
 
-- dashboard shell;
-- proof list;
-- new proof;
-- proof detail;
-- customer creation;
-- revision history;
-- state display.
+* dashboard shell;
+* proof list;
+* new proof;
+* proof detail;
+* customer creation;
+* revision history;
+* state display.
 
 ---
 
@@ -2842,14 +3267,14 @@ Build:
 
 Build:
 
-- secure review-token generation;
-- hashed-token storage;
-- public review route;
-- PDF.js;
-- image preview;
-- shop branding;
-- checklist;
-- responsive/mobile UI.
+* secure review-token generation;
+* hashed-token storage;
+* public review route;
+* PDF.js;
+* image preview;
+* shop branding;
+* checklist;
+* responsive/mobile UI.
 
 Milestone:
 
@@ -2861,12 +3286,12 @@ Milestone:
 
 Build:
 
-- required comments;
-- revision validation;
-- transactional response;
-- state transition;
-- activity timeline;
-- shop notification.
+* required comments;
+* revision validation;
+* transactional response;
+* state transition;
+* activity timeline;
+* shop notification.
 
 Milestone:
 
@@ -2880,15 +3305,15 @@ Most security-sensitive product phase.
 
 Build:
 
-- approval confirmation;
-- typed responder identity;
-- database transaction;
-- row/state validation;
-- stale-revision protection;
-- snapshotting;
-- review fingerprint;
-- idempotency;
-- approved-state locking.
+* approval confirmation;
+* typed responder identity;
+* database transaction;
+* row/state validation;
+* stale-revision protection;
+* snapshotting;
+* review fingerprint;
+* idempotency;
+* approved-state locking.
 
 Milestone:
 
@@ -2900,14 +3325,14 @@ Milestone:
 
 Build:
 
-- SendGrid templates;
-- dispatch abstraction;
-- retry behavior;
-- proof-ready email;
-- revision-ready email;
-- change-request email;
-- approval notification;
-- approval confirmation.
+* SendGrid templates;
+* dispatch abstraction;
+* retry behavior;
+* proof-ready email;
+* revision-ready email;
+* change-request email;
+* approval notification;
+* approval confirmation.
 
 ---
 
@@ -2924,10 +3349,10 @@ Needs Attention
 
 Add:
 
-- filtering;
-- pagination;
-- manual reminder;
-- recent approvals.
+* filtering;
+* pagination;
+* manual reminder;
+* recent approvals.
 
 ---
 
@@ -2935,11 +3360,11 @@ Add:
 
 Build:
 
-- scheduled jobs;
-- reminder eligibility;
-- 24/72-hour hypothesis;
-- retry logic;
-- approval/cancellation recheck.
+* scheduled jobs;
+* reminder eligibility;
+* 24/72-hour hypothesis;
+* retry logic;
+* approval/cancellation recheck.
 
 ---
 
@@ -2947,13 +3372,13 @@ Build:
 
 Build:
 
-- organization Stripe customer;
-- Checkout;
-- Billing Portal;
-- webhook verification;
-- subscription status;
-- centralized entitlements;
-- usage enforcement.
+* organization Stripe customer;
+* Checkout;
+* Billing Portal;
+* webhook verification;
+* subscription status;
+* centralized entitlements;
+* usage enforcement.
 
 Do not allow billing work to delay early customer validation unnecessarily.
 
@@ -2963,12 +3388,12 @@ Do not allow billing work to delay early customer validation unnecessarily.
 
 Build:
 
-- business identity;
-- logo;
-- accent color;
-- default approval statement;
-- checklist defaults;
-- reply-to email.
+* business identity;
+* logo;
+* accent color;
+* default approval statement;
+* checklist defaults;
+* reply-to email.
 
 ---
 
@@ -2982,19 +3407,19 @@ Build downloadable approval-record PDF from authoritative data.
 
 Complete:
 
-- security test suite;
-- rate limiting;
-- CSP;
-- CSRF/origin protections;
-- logging review;
-- secret rotation;
-- backup verification;
-- monitoring;
-- error tracking;
-- load testing;
-- accessibility review;
-- mobile review;
-- cross-browser review.
+* security test suite;
+* rate limiting;
+* CSP;
+* CSRF/origin protections;
+* logging review;
+* secret rotation;
+* backup verification;
+* monitoring;
+* error tracking;
+* load testing;
+* accessibility review;
+* mobile review;
+* cross-browser review.
 
 ---
 
@@ -3037,10 +3462,10 @@ Colorado provides a practical first market.
 
 Do not initially rely on:
 
-- SEO;
-- paid advertising;
-- broad content marketing;
-- viral growth.
+* SEO;
+* paid advertising;
+* broad content marketing;
+* viral growth.
 
 ---
 
@@ -3060,28 +3485,28 @@ This is positioning direction, not locked final marketing copy.
 
 Do not outsource the sales process before founder-led outreach proves:
 
-- who buys;
-- why they buy;
-- objections;
-- demo flow;
-- pricing;
-- sales cycle.
+* who buys;
+* why they buy;
+* objections;
+* demo flow;
+* pricing;
+* sales cycle.
 
 Later possibilities:
 
-- contract salesperson;
-- Reddit-based sales contractor;
-- fixed customer-acquisition bounty;
-- first 2–3 months of revenue as commission.
+* contract salesperson;
+* Reddit-based sales contractor;
+* fixed customer-acquisition bounty;
+* first 2–3 months of revenue as commission.
 
 Avoid indefinite recurring commissions unless economically justified.
 
 Require:
 
-- lead tracking;
-- attribution;
-- clawback rules;
-- anti-spam requirements.
+* lead tracking;
+* attribution;
+* clawback rules;
+* anti-spam requirements.
 
 ---
 
@@ -3127,12 +3552,12 @@ Brand:
 
 Advantages:
 
-- immediately explains the action;
-- memorable;
-- exact-match `.com` obtained/selected;
-- works beyond printing;
-- naturally describes iterative proofing;
-- does not imply that the first submitted design is necessarily final.
+* immediately explains the action;
+* memorable;
+* exact-match `.com` obtained/selected;
+* works beyond printing;
+* naturally describes iterative proofing;
+* does not imply that the first submitted design is necessarily final.
 
 Important caveat:
 
@@ -3236,7 +3661,7 @@ The user specifically rejected naming centered around "FinalOK" for this reason.
 
 ## D-007 — Approval references exact revision
 
-**Decision:** ProofResponse points directly to ProofRevision.
+**Decision:** ProofResponse points directly to Revision.
 
 **Reason:** This is the central integrity property of the application.
 
@@ -3330,12 +3755,105 @@ The user specifically rejected naming centered around "FinalOK" for this reason.
 
 **Workflow:**
 
-- ChatGPT provides architecture, review, instructions, and copy/paste-ready code.
-- User edits locally.
-- User runs commands.
-- User makes commits.
-- User pushes.
-- User controls deployments.
+* ChatGPT provides architecture, review, instructions, and copy/paste-ready code.
+* User edits locally.
+* User runs commands.
+* User makes commits.
+* User pushes.
+* User controls deployments.
+
+**Status:** LOCKED workflow preference.
+
+---
+
+## D-017 — Neon managed PostgreSQL
+
+**Decision:** Use Neon as the managed PostgreSQL provider for ApproveAProof.
+
+**Reason:**
+
+* independent managed PostgreSQL;
+* strong fit with Prisma;
+* serverless-friendly pooled connectivity;
+* scale-to-zero characteristics suitable for early usage;
+* database branching capabilities useful for future development workflows;
+* avoids unnecessary coupling of both ORM and database hosting to Prisma's ecosystem.
+
+**Status:** LOCKED for current implementation unless a material operational issue appears.
+
+---
+
+## D-018 — Prisma 7 stable line
+
+**Decision:** Pin Prisma to stable `7.10.0` rather than using the Prisma 8 release candidate that npm exposed through its current `latest` tag during setup.
+
+**Reason:** Do not build the core data layer on a release candidate without a compelling need.
+
+**Status:** LOCKED for the current development baseline.
+
+---
+
+## D-019 — UUID primary keys
+
+**Decision:** Current foundational database models use PostgreSQL UUID IDs.
+
+**Reason:** Establish a consistent, database-native identifier strategy for tenant and domain records.
+
+**Status:** CURRENT IMPLEMENTATION
+
+---
+
+## D-020 — Schema-first database development
+
+**Decision:** Prisma schema and migrations define the application database.
+
+Normal workflow:
+
+```text
+schema
+→ validate
+→ migrate
+→ verify
+```
+
+**Reason:** The ApproveAProof database is new and application-owned. Database introspection is not the normal source of truth.
+
+**Status:** LOCKED
+
+---
+
+## D-021 — Short-lived development branches
+
+**Decision:** Keep `main` stable and develop coherent phases/features on short-lived branches.
+
+Current branch:
+
+```text
+phase-1-database
+```
+
+At phase completion:
+
+```text
+format
+→ lint
+→ typecheck
+→ test
+→ build
+→ merge to main
+```
+
+**Status:** CURRENT WORKFLOW
+
+---
+
+## D-022 — Documentation checkpoints
+
+**Decision:** Update canonical project documentation at major phase boundaries and meaningful mid-phase architectural checkpoints.
+
+**Reason:** Long development conversations should not be the only record of implementation state or next steps.
+
+The documentation should make it possible to resume development accurately in a new session without reconstructing important decisions from memory.
 
 **Status:** LOCKED workflow preference.
 
@@ -3360,20 +3878,40 @@ We should establish:
 
 Prefer small coherent changes.
 
-Avoid giving dozens of unrelated files in one step when incremental verification is possible.
+Proceed one file or one tightly related step at a time when practical.
+
+Do not dump many unrelated files or architectural changes into one instruction.
+
+After each meaningful step, verify it before proceeding.
 
 ### After implementation
 
-Verify:
+Verify appropriate checks such as:
 
 ```text
-npm build/test commands
-application runs
-expected behavior
-security invariants
+npm run format
+npm run lint
+npm run typecheck
+npm run test
+npm run build
 ```
 
-Then user decides when to commit.
+Not every tiny edit requires the entire gate.
+
+Every phase boundary does.
+
+### Git responsibility
+
+The user controls:
+
+```text
+commits
+pushes
+merges
+deployments
+```
+
+ChatGPT should proactively identify good commit points but should not assume a commit has occurred until the user confirms it.
 
 ---
 
@@ -3386,17 +3924,17 @@ Prefer meaningful checkpoints.
 Examples:
 
 ```text
-chore: clean initial React Router scaffold
+chore: establish ApproveAProof project foundation
 
-chore: add environment validation
+chore: initialize Prisma database tooling
 
-feat: add Prisma and PostgreSQL foundation
+feat: add identity and tenant database foundation
 
-feat: add organization membership model
+feat: add customer proof and revision models
+
+feat: add proof domain state model
 
 feat: add authenticated application shell
-
-feat: add proof domain models
 
 feat: add secure revision uploads
 
@@ -3406,6 +3944,8 @@ feat: add proof approval transaction
 ```
 
 Avoid giant commits containing multiple unrelated architectural phases.
+
+Current Phase 1 database work follows this pattern.
 
 ---
 
@@ -3485,12 +4025,12 @@ through ApproveAProof
 
 From those customers we learn:
 
-- what is confusing;
-- what is missing;
-- what saves time;
-- what prevents mistakes;
-- what they will pay for;
-- what adjacent features are genuinely valuable.
+* what is confusing;
+* what is missing;
+* what saves time;
+* what prevents mistakes;
+* what they will pay for;
+* what adjacent features are genuinely valuable.
 
 ---
 
@@ -3563,137 +4103,228 @@ Scalable simplicity is preferred to speculative complexity.
 
 # 99. Current Working Checkpoint
 
-**Date:** September 9, 2026
+**Date:** September 10, 2026
 
 Repository:
 
 ```text
-Created
+Created and active
 ```
 
 Framework:
 
 ```text
 React Router Framework Mode
+React 19
+TypeScript
+Vite
+Tailwind
 ```
 
-Application scaffold:
+Application foundation:
 
 ```text
-Created
+Phase 0 complete
 ```
 
-Local development:
+Quality tooling:
 
 ```text
-Working
+ESLint configured
+Prettier configured
+Vitest configured
+Testing Library baseline configured
+Zod environment validation configured
 ```
 
-Initial repository push:
+Quality gate:
 
 ```text
-Completed
-```
-
-Product code:
-
-```text
-Not started
+format: passed
+lint: passed
+typecheck: passed
+test: passed
+build: passed
 ```
 
 Database:
 
 ```text
-Not configured
+Neon PostgreSQL configured
+Prisma 7.10.0 configured
+Connectivity verified
+Schema-first migration workflow operational
+```
+
+Applied migrations:
+
+```text
+20260910064511_init_identity
+
+20260910065333_add_customer_proof_revision
+```
+
+Implemented database models:
+
+```text
+Organization
+User
+Membership
+Customer
+Proof
+Revision
+```
+
+Implemented database relationships:
+
+```text
+User
+  ↓
+Membership
+  ↓
+Organization
+  ├── Customers
+  └── Proofs
+        ↓
+      Revisions
 ```
 
 Authentication:
 
 ```text
-Not configured
+Not yet implemented
+Planned for Phase 2
 ```
 
 S3:
 
 ```text
-Not configured
+Not yet implemented
+Planned for Phase 4
 ```
 
 Stripe:
 
 ```text
-Not configured
+Not yet implemented
+Planned for Phase 12
 ```
 
 SendGrid:
 
 ```text
-Not configured
+Not yet implemented
+Planned for Phase 9
+```
+
+Current Git branch:
+
+```text
+phase-1-database
+```
+
+Current phase:
+
+```text
+PHASE 1 — DATABASE
+IN PROGRESS
 ```
 
 This is intentional.
 
-We currently have a clean, functioning framework scaffold.
+The database foundation is being finalized before authentication behavior or product workflows depend on it.
 
 ---
 
-# 100. NEXT SESSION
+# 100. DEVELOPMENT RESUME POINT
 
-## Start here.
+## Start here after this documentation checkpoint.
 
-### Step 1
+Do not repeat completed Phase 0 setup.
 
-Inspect the exact generated React Router scaffold.
+Do not recreate the existing database models.
 
-Do not assume its structure from SmartLynx.
+Do not run `prisma db pull` as the normal workflow.
 
-### Step 2
+### Immediate next architectural task
 
-Remove unnecessary demo/boilerplate content.
-
-Verify application still runs.
-
-### Step 3
-
-Establish clean project organization.
-
-### Step 4
-
-Establish:
-
-- environment-variable validation;
-- TypeScript expectations;
-- formatting/linting;
-- testing baseline;
-- `.gitignore`/secret hygiene.
-
-### Step 5
-
-Run production build locally.
-
-Confirm clean baseline.
-
-### Step 6
-
-Commit the foundation.
-
-Suggested commit:
+Review the relationship among:
 
 ```text
-chore: establish ApproveAProof project foundation
+Proof
+Revision
+ProofStatus
+currentRevision
 ```
 
-### Step 7
+before creating the next migration.
 
-Begin PostgreSQL + Prisma.
+Specifically determine:
 
-Only after the application foundation is clean.
+1. the Prisma representation of `ProofStatus`;
+2. the exact `Proof.currentRevisionId` relationship;
+3. whether Revision should include `organizationId` for stronger tenant-scoped querying;
+4. whether the current Customer → Proof deletion behavior matches the historical-record requirement;
+5. which fields belong on Proof now versus later.
+
+### After that
+
+Design and add:
+
+```text
+ProofResponse
+ProofActivity
+ProofDispatch
+```
+
+with their required enums, constraints, indexes, and exact revision relationships.
+
+### Before declaring Phase 1 complete
+
+Confirm:
+
+```text
+schema validates
+migrations apply cleanly
+Neon is synchronized
+tenant ownership paths are deliberate
+approval references exact revision
+historical deletion behavior is deliberate
+revision numbering constraint exists
+important indexes exist
+Prisma runtime database utility is configured
+database tests pass where appropriate
+```
+
+Then run the complete phase gate:
+
+```bash
+npm run format
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
+
+Only after that should:
+
+```text
+phase-1-database
+```
+
+be merged into:
+
+```text
+main
+```
+
+Then begin Phase 2.
 
 ---
 
 # 101. Questions We Intentionally Have Not Answered Yet
 
-These are not blockers.
+These are not blockers unless they intersect the current implementation step.
 
 ### Pricing
 
@@ -3747,7 +4378,25 @@ Future possibility.
 
 Future possibility.
 
-None should distract from building the core workflow.
+### Revision tenant key
+
+The current Revision model reaches its Organization through Proof.
+
+Before Phase 1 completion, explicitly decide whether Revision should additionally carry `organizationId` to make tenant-scoped direct queries and authorization boundaries safer and simpler.
+
+### Customer deletion semantics
+
+The current database relationship is stricter than the eventual historical-data design described elsewhere in this plan.
+
+Before Phase 1 completion, decide whether `Proof.customerId` should become nullable with historical recipient snapshots and `onDelete: SetNull`, or whether another deliberate retention strategy is preferable.
+
+### Current revision relationship
+
+The architecture requires the server to know which revision is authoritative for review and stale-revision protection.
+
+The exact Prisma relationship has not yet been finalized.
+
+None of these questions justify skipping the current database-design sequence.
 
 ---
 
@@ -3805,7 +4454,7 @@ The system can ultimately be reduced to this:
                    PROOF
                     │
                     ▼
-              PROOF REVISION
+                 REVISION
               (immutable file)
                     │
               ┌─────┴─────┐
@@ -3826,7 +4475,7 @@ Infrastructure:
 React Router / React / TypeScript
                 │
                 ▼
-            PostgreSQL
+       Neon PostgreSQL / Prisma
                 │
         ┌───────┼───────┐
         ▼       ▼       ▼
@@ -3929,8 +4578,8 @@ Fix proof approval exceptionally well.
 
 # END OF CURRENT MASTER PLAN
 
-**Current checkpoint:** Clean React Router application scaffold is running and pushed to the new ApproveAProof repository.
+**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. Neon PostgreSQL and Prisma 7.10.0 are operational. Identity/tenant models and the initial Customer → Proof → Revision hierarchy have been migrated successfully.
 
-**Next action:** Inspect and clean the generated boilerplate, establish the project foundation, and then begin PostgreSQL/Prisma.
+**Next action:** Finalize Proof state/current-revision architecture and review tenant/historical-data implications before adding the remaining core database records.
 
 **Do not skip ahead without a reason.**
