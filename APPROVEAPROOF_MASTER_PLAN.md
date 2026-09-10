@@ -16,12 +16,12 @@ This document is the source of truth for the direction of ApproveAProof.
 
 It exists to prevent:
 
-* architectural drift
-* forgotten decisions
-* accidental scope creep
-* inconsistent security decisions
-* rebuilding previously solved problems
-* losing track of development progress between sessions
+- architectural drift
+- forgotten decisions
+- accidental scope creep
+- inconsistent security decisions
+- rebuilding previously solved problems
+- losing track of development progress between sessions
 
 Before making a major architectural or product decision, check this document.
 
@@ -55,20 +55,20 @@ Do not build it merely because it appears in this document.
 
 Completed:
 
-* Product pivot from SmartLynx established.
-* Initial market research completed.
-* Small custom-production businesses selected as the broader market.
-* Local commercial/digital print shops selected as the initial wedge.
-* Core proof-approval problem identified.
-* Product architecture designed.
-* Security and scalability requirements established.
-* `approveaproof.com` selected for the marketing site.
-* `approveaproof.app` selected for the application.
-* New ApproveAProof repository created.
-* Clean application scaffold created using React Router Framework Mode.
-* Initial boilerplate successfully runs locally.
-* Initial working scaffold pushed to the new repository.
-* SmartLynx retained as a frozen reference implementation.
+- Product pivot from SmartLynx established.
+- Initial market research completed.
+- Small custom-production businesses selected as the broader market.
+- Local commercial/digital print shops selected as the initial wedge.
+- Core proof-approval problem identified.
+- Product architecture designed.
+- Security and scalability requirements established.
+- `approveaproof.com` selected for the marketing site.
+- `approveaproof.app` selected for the application.
+- New ApproveAProof repository created.
+- Clean application scaffold created using React Router Framework Mode.
+- Initial boilerplate successfully runs locally.
+- Initial working scaffold pushed to the new repository.
+- SmartLynx retained as a frozen reference implementation.
 
 ## Exact next development task
 
@@ -98,13 +98,13 @@ Its central purpose is to answer:
 
 The product replaces fragile approval workflows such as:
 
-* emailing PDFs back and forth;
-* customers replying "looks good";
-* text-message approvals;
-* screenshots;
-* verbal approvals;
-* employees searching old email threads;
-* uncertainty about which revision was approved.
+- emailing PDFs back and forth;
+- customers replying "looks good";
+- text-message approvals;
+- screenshots;
+- verbal approvals;
+- employees searching old email threads;
+- uncertainty about which revision was approved.
 
 ApproveAProof creates a simple, explicit, documented approval workflow without requiring the business to replace its existing operating systems.
 
@@ -132,11 +132,11 @@ Initial target:
 
 Particularly attractive prospects are shops where proof approval currently happens through:
 
-* emailed PDFs;
-* email attachments;
-* text messages;
-* screenshots;
-* informal email replies.
+- emailed PDFs;
+- email attachments;
+- text messages;
+- screenshots;
+- informal email replies.
 
 Ideal discovery question:
 
@@ -166,17 +166,17 @@ Weak prospect answers:
 
 The same approval workflow may later serve:
 
-* sign shops;
-* screen printing;
-* DTF/DTG businesses;
-* embroidery shops;
-* vehicle wraps;
-* stickers and decals;
-* promotional products;
-* engraving and awards;
-* packaging;
-* personalized-product manufacturers;
-* other custom-production businesses.
+- sign shops;
+- screen printing;
+- DTF/DTG businesses;
+- embroidery shops;
+- vehicle wraps;
+- stickers and decals;
+- promotional products;
+- engraving and awards;
+- packaging;
+- personalized-product manufacturers;
+- other custom-production businesses.
 
 The architecture should support these industries.
 
@@ -198,12 +198,12 @@ It is:
 
 The positioning should emphasize:
 
-* clear approval;
-* exact revision identity;
-* fewer misunderstandings;
-* documented customer decisions;
-* easier revision cycles;
-* knowing when production can proceed.
+- clear approval;
+- exact revision identity;
+- fewer misunderstandings;
+- documented customer decisions;
+- easier revision cycles;
+- knowing when production can proceed.
 
 ---
 
@@ -213,18 +213,18 @@ The positioning should emphasize:
 
 ApproveAProof is not becoming:
 
-* a CRM;
-* print MIS;
-* ERP;
-* quoting software;
-* invoicing software;
-* accounting software;
-* inventory software;
-* production scheduling software;
-* online storefront;
-* project-management platform;
-* Adobe replacement;
-* graphic-design editor.
+- a CRM;
+- print MIS;
+- ERP;
+- quoting software;
+- invoicing software;
+- accounting software;
+- inventory software;
+- production scheduling software;
+- online storefront;
+- project-management platform;
+- Adobe replacement;
+- graphic-design editor.
 
 The positioning is:
 
@@ -452,47 +452,47 @@ Even if initial customers have one employee, this prevents a difficult migration
 
 Application:
 
-* React Router Framework Mode
-* React
-* TypeScript
+- React Router Framework Mode
+- React
+- TypeScript
 
 Database:
 
-* PostgreSQL
-* Prisma
+- PostgreSQL
+- Prisma
 
 Authentication:
 
-* Auth0
+- Auth0
 
 Object storage:
 
-* AWS S3
+- AWS S3
 
 Email:
 
-* SendGrid
+- SendGrid
 
 Billing:
 
-* Stripe
+- Stripe
 
 Styling:
 
-* Tailwind CSS
+- Tailwind CSS
 
 Testing:
 
-* Vitest
-* React Testing Library where appropriate
+- Vitest
+- React Testing Library where appropriate
 
 Hosting:
 
-* likely Vercel or equivalent
+- likely Vercel or equivalent
 
 Architecture:
 
-* modular monolith
+- modular monolith
 
 ---
 
@@ -879,8 +879,8 @@ Concurrent revision creation must not create duplicate numbers.
 
 Use:
 
-* database transaction/locking;
-* unique `(proofId, revisionNumber)` constraint.
+- database transaction/locking;
+- unique `(proofId, revisionNumber)` constraint.
 
 The database constraint is final protection.
 
@@ -1069,10 +1069,10 @@ Office documents
 
 Do not trust:
 
-* extension alone;
-* browser MIME type alone;
-* browser-provided S3 key;
-* browser-provided organization ID.
+- extension alone;
+- browser MIME type alone;
+- browser-provided S3 key;
+- browser-provided organization ID.
 
 Validate before presigning and again after upload.
 
@@ -1111,12 +1111,12 @@ Risk is constrained by accepting only PDF/JPEG/PNG and never executing uploads.
 
 Requirements:
 
-* keep PDF.js current;
-* disable PDF JavaScript;
-* do not render arbitrary HTML;
-* reject SVG initially;
-* serve files from private S3;
-* use strong Content Security Policy.
+- keep PDF.js current;
+- disable PDF JavaScript;
+- do not render arbitrary HTML;
+- reject SVG initially;
+- serve files from private S3;
+- use strong Content Security Policy.
 
 Architecture should permit later malware scanning.
 
@@ -1153,8 +1153,8 @@ hash incoming token
 
 Never log:
 
-* raw review tokens;
-* signed S3 URLs.
+- raw review tokens;
+- signed S3 URLs.
 
 Review links must be regeneratable.
 
@@ -1217,11 +1217,11 @@ Use PDF.js.
 
 Security requirements:
 
-* current maintained release;
-* no embedded PDF JavaScript execution;
-* strict CSP;
-* no unrestricted uploaded-content iframe behavior;
-* external links treated as untrusted.
+- current maintained release;
+- no embedded PDF JavaScript execution;
+- strict CSP;
+- no unrestricted uploaded-content iframe behavior;
+- external links treated as untrusted.
 
 JPEG and PNG can use signed S3 URLs.
 
@@ -1272,16 +1272,16 @@ The proof is the visual focus.
 
 Reasons:
 
-* print proofs often assume white viewing context;
-* dramatic backgrounds may affect perceived color;
-* nontechnical customers need clarity;
-* document review should feel trustworthy.
+- print proofs often assume white viewing context;
+- dramatic backgrounds may affect perceived color;
+- nontechnical customers need clarity;
+- document review should feel trustworthy.
 
 Shop branding may control:
 
-* logo;
-* business name;
-* accent color.
+- logo;
+- business name;
+- accent color.
 
 Do not allow arbitrary custom CSS/HTML.
 
@@ -1295,12 +1295,12 @@ The customer review workflow must work extremely well on phones.
 
 Requirements:
 
-* large tap targets;
-* readable without zooming;
-* easy PDF navigation;
-* obvious revision number;
-* obvious approval/change controls;
-* no hover-only interaction.
+- large tap targets;
+- readable without zooming;
+- easy PDF navigation;
+- obvious revision number;
+- obvious approval/change controls;
+- no hover-only interaction.
 
 Customer mobile UX has higher priority than perfect dashboard mobile UX.
 
@@ -1737,13 +1737,13 @@ when organization access matters.
 
 A user from Organization A must never access Organization B through:
 
-* URL manipulation;
-* API calls;
-* customer IDs;
-* proof IDs;
-* revision IDs;
-* upload endpoints;
-* billing endpoints.
+- URL manipulation;
+- API calls;
+- customer IDs;
+- proof IDs;
+- revision IDs;
+- upload endpoints;
+- billing endpoints.
 
 Tenant isolation receives dedicated automated tests.
 
@@ -1763,24 +1763,24 @@ STAFF
 
 OWNER:
 
-* all operations;
-* billing;
-* organization administration;
-* team management.
+- all operations;
+- billing;
+- organization administration;
+- team management.
 
 ADMIN:
 
-* proofs;
-* customers;
-* most settings;
-* team management except ownership/billing where appropriate.
+- proofs;
+- customers;
+- most settings;
+- team management except ownership/billing where appropriate.
 
 STAFF:
 
-* proofs;
-* customers;
-* revisions;
-* operational workflow.
+- proofs;
+- customers;
+- revisions;
+- operational workflow.
 
 The MVP UI may initially expose only OWNER.
 
@@ -1796,10 +1796,10 @@ Use Auth0 initially.
 
 Reason:
 
-* already understood from SmartLynx;
-* mature authentication infrastructure;
-* authentication is not product differentiation;
-* reduces unnecessary simultaneous infrastructure changes.
+- already understood from SmartLynx;
+- mature authentication infrastructure;
+- authentication is not product differentiation;
+- reduces unnecessary simultaneous infrastructure changes.
 
 Flow:
 
@@ -2021,10 +2021,10 @@ PostgreSQL stores cached subscription/entitlement state.
 
 Webhook requirements:
 
-* verify Stripe signature;
-* idempotently process events;
-* never trust client subscription state;
-* protect against duplicate events.
+- verify Stripe signature;
+- idempotently process events;
+- never trust client subscription state;
+- protect against duplicate events.
 
 ---
 
@@ -2360,13 +2360,13 @@ Target solid WCAG AA fundamentals.
 
 Requirements:
 
-* semantic controls;
-* keyboard accessibility;
-* visible focus states;
-* adequate contrast;
-* form labels;
-* associated errors;
-* status never conveyed by color alone.
+- semantic controls;
+- keyboard accessibility;
+- visible focus states;
+- adequate contrast;
+- form labels;
+- associated errors;
+- status never conveyed by color alone.
 
 This is particularly important because customers reviewing proofs may not be technically sophisticated.
 
@@ -2484,16 +2484,16 @@ job infrastructure
 
 PostgreSQL:
 
-* automatic backups;
-* point-in-time recovery where available;
-* documented restore process;
-* actual restore testing.
+- automatic backups;
+- point-in-time recovery where available;
+- documented restore process;
+- actual restore testing.
 
 S3:
 
-* encryption;
-* versioning where economically reasonable;
-* lifecycle rules.
+- encryption;
+- versioning where economically reasonable;
+- lifecycle rules.
 
 A backup is not proven until restoration has been tested.
 
@@ -2557,27 +2557,27 @@ scheduled jobs not executing
 
 Automated tests should verify:
 
-* User cannot access another organization.
-* User cannot presign upload for another organization.
-* Browser cannot choose arbitrary S3 storage keys.
-* Customer cannot access another proof by changing an ID.
-* Raw review token is not leaked through internal APIs.
-* Regenerated review link invalidates previous token.
-* Customer cannot approve a stale revision.
-* Customer cannot approve a canceled proof.
-* Customer cannot approve an unsent revision.
-* Approved revision cannot be overwritten.
-* Concurrent revision creation cannot duplicate revision numbers.
-* Duplicate approval request does not duplicate the approval.
-* SendGrid failure does not erase approval.
-* Plan UI cannot be bypassed through direct API requests.
-* Free account cannot abuse presigned uploads.
-* Malicious filename cannot manipulate storage paths.
-* HTML/SVG uploads are rejected.
-* Oversized files are rejected.
-* Cross-tenant customer IDs are rejected.
-* Reminder cannot send after approval.
-* Internal scheduled endpoints require authentication.
+- User cannot access another organization.
+- User cannot presign upload for another organization.
+- Browser cannot choose arbitrary S3 storage keys.
+- Customer cannot access another proof by changing an ID.
+- Raw review token is not leaked through internal APIs.
+- Regenerated review link invalidates previous token.
+- Customer cannot approve a stale revision.
+- Customer cannot approve a canceled proof.
+- Customer cannot approve an unsent revision.
+- Approved revision cannot be overwritten.
+- Concurrent revision creation cannot duplicate revision numbers.
+- Duplicate approval request does not duplicate the approval.
+- SendGrid failure does not erase approval.
+- Plan UI cannot be bypassed through direct API requests.
+- Free account cannot abuse presigned uploads.
+- Malicious filename cannot manipulate storage paths.
+- HTML/SVG uploads are rejected.
+- Oversized files are rejected.
+- Cross-tenant customer IDs are rejected.
+- Reminder cannot send after approval.
+- Internal scheduled endpoints require authentication.
 
 ---
 
@@ -2621,27 +2621,27 @@ This test represents the core product.
 
 ## DO NOT BUILD WITHOUT EVIDENCE
 
-* full CRM;
-* quoting;
-* invoicing;
-* inventory;
-* production scheduling;
-* online store;
-* customer accounts;
-* complicated approval chains;
-* live annotation/drawing;
-* PDF editing;
-* revision visual diffing;
-* SMS;
-* AI functionality;
-* QuickBooks integration;
-* Printavo integration;
-* shopVOX integration;
-* Zapier;
-* customer-facing webhooks;
-* custom domains;
-* payment collection;
-* electronic-signature-provider integration.
+- full CRM;
+- quoting;
+- invoicing;
+- inventory;
+- production scheduling;
+- online store;
+- customer accounts;
+- complicated approval chains;
+- live annotation/drawing;
+- PDF editing;
+- revision visual diffing;
+- SMS;
+- AI functionality;
+- QuickBooks integration;
+- Printavo integration;
+- shopVOX integration;
+- Zapier;
+- customer-facing webhooks;
+- custom domains;
+- payment collection;
+- electronic-signature-provider integration.
 
 ---
 
@@ -2699,18 +2699,18 @@ It exists as reference material.
 
 Useful implementation knowledge includes:
 
-* Auth0 flow;
-* sessions;
-* direct S3 uploads;
-* signed S3 reads;
-* SendGrid;
-* Stripe Checkout;
-* Billing Portal;
-* Stripe webhooks;
-* Prisma/PostgreSQL;
-* Vercel deployment;
-* Tailwind;
-* testing patterns.
+- Auth0 flow;
+- sessions;
+- direct S3 uploads;
+- signed S3 reads;
+- SendGrid;
+- Stripe Checkout;
+- Billing Portal;
+- Stripe webhooks;
+- Prisma/PostgreSQL;
+- Vercel deployment;
+- Tailwind;
+- testing patterns.
 
 Reuse knowledge and good patterns.
 
@@ -2722,15 +2722,15 @@ Do not blindly copy code.
 
 Known lessons:
 
-* entitlement enforcement must happen before upload authorization;
-* browser must not control S3 object identity;
-* API permissions cannot depend on UI gating;
-* operational dashboard should not become one giant component;
-* approval records should not be treated like analytics;
-* orphaned files require cleanup;
-* plan logic should be centralized;
-* tenant ownership must be enforced server-side;
-* avoid N+1 database patterns.
+- entitlement enforcement must happen before upload authorization;
+- browser must not control S3 object identity;
+- API permissions cannot depend on UI gating;
+- operational dashboard should not become one giant component;
+- approval records should not be treated like analytics;
+- orphaned files require cleanup;
+- plan logic should be centralized;
+- tenant ownership must be enforced server-side;
+- avoid N+1 database patterns.
 
 These lessons should directly influence ApproveAProof implementation.
 
@@ -2744,15 +2744,15 @@ Current phase.
 
 Tasks:
 
-* inspect React Router boilerplate;
-* remove unnecessary starter code;
-* establish project structure;
-* TypeScript configuration;
-* environment validation;
-* lint/format conventions;
-* testing conventions;
-* CI basics;
-* development/production configuration.
+- inspect React Router boilerplate;
+- remove unnecessary starter code;
+- establish project structure;
+- TypeScript configuration;
+- environment validation;
+- lint/format conventions;
+- testing conventions;
+- CI basics;
+- development/production configuration.
 
 ---
 
@@ -2760,11 +2760,11 @@ Tasks:
 
 Tasks:
 
-* PostgreSQL connection;
-* Prisma;
-* initial migrations;
-* development database;
-* database utility layer.
+- PostgreSQL connection;
+- Prisma;
+- initial migrations;
+- development database;
+- database utility layer.
 
 No proof functionality yet.
 
@@ -2774,14 +2774,14 @@ No proof functionality yet.
 
 Tasks:
 
-* Auth0;
-* User;
-* Organization;
-* Membership;
-* initial organization creation;
-* organization resolver;
-* authorization helpers;
-* authenticated `/app` shell.
+- Auth0;
+- User;
+- Organization;
+- Membership;
+- initial organization creation;
+- organization resolver;
+- authorization helpers;
+- authenticated `/app` shell.
 
 Critical milestone:
 
@@ -2793,13 +2793,13 @@ Critical milestone:
 
 Build:
 
-* Customer;
-* Proof;
-* ProofRevision;
-* ProofResponse;
-* ProofActivity;
-* ProofDispatch;
-* state-machine logic.
+- Customer;
+- Proof;
+- ProofRevision;
+- ProofResponse;
+- ProofActivity;
+- ProofDispatch;
+- state-machine logic.
 
 Write domain tests before elaborate UI.
 
@@ -2809,14 +2809,14 @@ Write domain tests before elaborate UI.
 
 Build:
 
-* S3 configuration;
-* server-created object paths;
-* revision allocation;
-* presigned direct upload;
-* upload finalization;
-* object verification;
-* integrity/hash handling;
-* orphan cleanup.
+- S3 configuration;
+- server-created object paths;
+- revision allocation;
+- presigned direct upload;
+- upload finalization;
+- object verification;
+- integrity/hash handling;
+- orphan cleanup.
 
 Milestone:
 
@@ -2828,13 +2828,13 @@ Milestone:
 
 Build:
 
-* dashboard shell;
-* proof list;
-* new proof;
-* proof detail;
-* customer creation;
-* revision history;
-* state display.
+- dashboard shell;
+- proof list;
+- new proof;
+- proof detail;
+- customer creation;
+- revision history;
+- state display.
 
 ---
 
@@ -2842,14 +2842,14 @@ Build:
 
 Build:
 
-* secure review-token generation;
-* hashed-token storage;
-* public review route;
-* PDF.js;
-* image preview;
-* shop branding;
-* checklist;
-* responsive/mobile UI.
+- secure review-token generation;
+- hashed-token storage;
+- public review route;
+- PDF.js;
+- image preview;
+- shop branding;
+- checklist;
+- responsive/mobile UI.
 
 Milestone:
 
@@ -2861,12 +2861,12 @@ Milestone:
 
 Build:
 
-* required comments;
-* revision validation;
-* transactional response;
-* state transition;
-* activity timeline;
-* shop notification.
+- required comments;
+- revision validation;
+- transactional response;
+- state transition;
+- activity timeline;
+- shop notification.
 
 Milestone:
 
@@ -2880,15 +2880,15 @@ Most security-sensitive product phase.
 
 Build:
 
-* approval confirmation;
-* typed responder identity;
-* database transaction;
-* row/state validation;
-* stale-revision protection;
-* snapshotting;
-* review fingerprint;
-* idempotency;
-* approved-state locking.
+- approval confirmation;
+- typed responder identity;
+- database transaction;
+- row/state validation;
+- stale-revision protection;
+- snapshotting;
+- review fingerprint;
+- idempotency;
+- approved-state locking.
 
 Milestone:
 
@@ -2900,14 +2900,14 @@ Milestone:
 
 Build:
 
-* SendGrid templates;
-* dispatch abstraction;
-* retry behavior;
-* proof-ready email;
-* revision-ready email;
-* change-request email;
-* approval notification;
-* approval confirmation.
+- SendGrid templates;
+- dispatch abstraction;
+- retry behavior;
+- proof-ready email;
+- revision-ready email;
+- change-request email;
+- approval notification;
+- approval confirmation.
 
 ---
 
@@ -2924,10 +2924,10 @@ Needs Attention
 
 Add:
 
-* filtering;
-* pagination;
-* manual reminder;
-* recent approvals.
+- filtering;
+- pagination;
+- manual reminder;
+- recent approvals.
 
 ---
 
@@ -2935,11 +2935,11 @@ Add:
 
 Build:
 
-* scheduled jobs;
-* reminder eligibility;
-* 24/72-hour hypothesis;
-* retry logic;
-* approval/cancellation recheck.
+- scheduled jobs;
+- reminder eligibility;
+- 24/72-hour hypothesis;
+- retry logic;
+- approval/cancellation recheck.
 
 ---
 
@@ -2947,13 +2947,13 @@ Build:
 
 Build:
 
-* organization Stripe customer;
-* Checkout;
-* Billing Portal;
-* webhook verification;
-* subscription status;
-* centralized entitlements;
-* usage enforcement.
+- organization Stripe customer;
+- Checkout;
+- Billing Portal;
+- webhook verification;
+- subscription status;
+- centralized entitlements;
+- usage enforcement.
 
 Do not allow billing work to delay early customer validation unnecessarily.
 
@@ -2963,12 +2963,12 @@ Do not allow billing work to delay early customer validation unnecessarily.
 
 Build:
 
-* business identity;
-* logo;
-* accent color;
-* default approval statement;
-* checklist defaults;
-* reply-to email.
+- business identity;
+- logo;
+- accent color;
+- default approval statement;
+- checklist defaults;
+- reply-to email.
 
 ---
 
@@ -2982,19 +2982,19 @@ Build downloadable approval-record PDF from authoritative data.
 
 Complete:
 
-* security test suite;
-* rate limiting;
-* CSP;
-* CSRF/origin protections;
-* logging review;
-* secret rotation;
-* backup verification;
-* monitoring;
-* error tracking;
-* load testing;
-* accessibility review;
-* mobile review;
-* cross-browser review.
+- security test suite;
+- rate limiting;
+- CSP;
+- CSRF/origin protections;
+- logging review;
+- secret rotation;
+- backup verification;
+- monitoring;
+- error tracking;
+- load testing;
+- accessibility review;
+- mobile review;
+- cross-browser review.
 
 ---
 
@@ -3037,10 +3037,10 @@ Colorado provides a practical first market.
 
 Do not initially rely on:
 
-* SEO;
-* paid advertising;
-* broad content marketing;
-* viral growth.
+- SEO;
+- paid advertising;
+- broad content marketing;
+- viral growth.
 
 ---
 
@@ -3060,28 +3060,28 @@ This is positioning direction, not locked final marketing copy.
 
 Do not outsource the sales process before founder-led outreach proves:
 
-* who buys;
-* why they buy;
-* objections;
-* demo flow;
-* pricing;
-* sales cycle.
+- who buys;
+- why they buy;
+- objections;
+- demo flow;
+- pricing;
+- sales cycle.
 
 Later possibilities:
 
-* contract salesperson;
-* Reddit-based sales contractor;
-* fixed customer-acquisition bounty;
-* first 2–3 months of revenue as commission.
+- contract salesperson;
+- Reddit-based sales contractor;
+- fixed customer-acquisition bounty;
+- first 2–3 months of revenue as commission.
 
 Avoid indefinite recurring commissions unless economically justified.
 
 Require:
 
-* lead tracking;
-* attribution;
-* clawback rules;
-* anti-spam requirements.
+- lead tracking;
+- attribution;
+- clawback rules;
+- anti-spam requirements.
 
 ---
 
@@ -3127,12 +3127,12 @@ Brand:
 
 Advantages:
 
-* immediately explains the action;
-* memorable;
-* exact-match `.com` obtained/selected;
-* works beyond printing;
-* naturally describes iterative proofing;
-* does not imply that the first submitted design is necessarily final.
+- immediately explains the action;
+- memorable;
+- exact-match `.com` obtained/selected;
+- works beyond printing;
+- naturally describes iterative proofing;
+- does not imply that the first submitted design is necessarily final.
 
 Important caveat:
 
@@ -3330,12 +3330,12 @@ The user specifically rejected naming centered around "FinalOK" for this reason.
 
 **Workflow:**
 
-* ChatGPT provides architecture, review, instructions, and copy/paste-ready code.
-* User edits locally.
-* User runs commands.
-* User makes commits.
-* User pushes.
-* User controls deployments.
+- ChatGPT provides architecture, review, instructions, and copy/paste-ready code.
+- User edits locally.
+- User runs commands.
+- User makes commits.
+- User pushes.
+- User controls deployments.
 
 **Status:** LOCKED workflow preference.
 
@@ -3485,12 +3485,12 @@ through ApproveAProof
 
 From those customers we learn:
 
-* what is confusing;
-* what is missing;
-* what saves time;
-* what prevents mistakes;
-* what they will pay for;
-* what adjacent features are genuinely valuable.
+- what is confusing;
+- what is missing;
+- what saves time;
+- what prevents mistakes;
+- what they will pay for;
+- what adjacent features are genuinely valuable.
 
 ---
 
@@ -3661,11 +3661,11 @@ Establish clean project organization.
 
 Establish:
 
-* environment-variable validation;
-* TypeScript expectations;
-* formatting/linting;
-* testing baseline;
-* `.gitignore`/secret hygiene.
+- environment-variable validation;
+- TypeScript expectations;
+- formatting/linting;
+- testing baseline;
+- `.gitignore`/secret hygiene.
 
 ### Step 5
 

@@ -6,14 +6,14 @@ ApproveAProof is a lightweight proof-review and approval application for small p
 
 The initial target market is:
 
-* commercial and digital print shops
-* sign shops
-* screen printers
-* embroidery businesses
-* vehicle-wrap shops
-* sticker/decal shops
-* promotional-product businesses
-* engravers and similar custom-production businesses
+- commercial and digital print shops
+- sign shops
+- screen printers
+- embroidery businesses
+- vehicle-wrap shops
+- sticker/decal shops
+- promotional-product businesses
+- engravers and similar custom-production businesses
 
 The application exists to answer one operationally important question:
 
@@ -98,14 +98,14 @@ Testing              Vitest + Testing Library
 
 The old SmartLynx repo remains frozen as a reference implementation for:
 
-* Auth0 flows
-* sessions
-* S3 presigning
-* SendGrid configuration
-* Stripe Checkout
-* Stripe Billing Portal
-* Stripe webhooks
-* deployment configuration
+- Auth0 flows
+- sessions
+- S3 presigning
+- SendGrid configuration
+- Stripe Checkout
+- Stripe Billing Portal
+- Stripe webhooks
+- deployment configuration
 
 ApproveAProof receives its own clean repository and database.
 
@@ -195,14 +195,14 @@ This is non-negotiable.
 
 The browser must never be trusted to decide:
 
-* which organization owns an object
-* whether a subscription allows an upload
-* an S3 storage path
-* which revision is current
-* which revision is being approved
-* whether a proof is still approvable
-* plan entitlements
-* approval timestamps
+- which organization owns an object
+- whether a subscription allows an upload
+- an S3 storage path
+- which revision is current
+- which revision is being approved
+- whether a proof is still approvable
+- plan entitlements
+- approval timestamps
 
 The browser submits intent.
 
@@ -1033,12 +1033,12 @@ Because v1 accepts only PDFs/JPEG/PNG and previews rather than executes them, ri
 
 Still:
 
-* keep PDF.js current
-* disable PDF JavaScript execution
-* do not render arbitrary uploaded HTML
-* do not allow SVG initially
-* serve uploads from S3 rather than the application origin
-* maintain strict Content Security Policy
+- keep PDF.js current
+- disable PDF JavaScript execution
+- do not render arbitrary uploaded HTML
+- do not allow SVG initially
+- serve uploads from S3 rather than the application origin
+- maintain strict Content Security Policy
 
 Later, add:
 
@@ -1095,10 +1095,10 @@ query by hash
 
 Never:
 
-* log raw tokens
-* include raw tokens in analytics
-* send them to third-party trackers
-* expose them through frontend telemetry
+- log raw tokens
+- include raw tokens in analytics
+- send them to third-party trackers
+- expose them through frontend telemetry
 
 The organization should have:
 
@@ -1169,12 +1169,12 @@ Use PDF.js for first-party browser rendering.
 
 Configuration should:
 
-* use a current maintained PDF.js release
-* host workers from our own controlled application resources
-* disable embedded JavaScript execution
-* prevent uploaded PDF content from executing in the application origin
-* apply strict Content Security Policy
-* treat external links as untrusted
+- use a current maintained PDF.js release
+- host workers from our own controlled application resources
+- disable embedded JavaScript execution
+- prevent uploaded PDF content from executing in the application origin
+- apply strict Content Security Policy
+- treat external links as untrusted
 
 JPEG/PNG may be rendered using `<img>` with signed S3 URLs.
 
@@ -1742,10 +1742,10 @@ Authorization functions should still be designed correctly.
 
 Reuse Auth0 initially because:
 
-* known working integration
-* mature security model
-* authentication is not product differentiation
-* avoids replacing every infrastructure component simultaneously
+- known working integration
+- mature security model
+- authentication is not product differentiation
+- avoids replacing every infrastructure component simultaneously
 
 Keep application identity separate:
 
@@ -2391,11 +2391,11 @@ The public review page should use a neutral light interface.
 
 Reasons:
 
-* proofs generally assume white viewing context
-* colors should not be distorted by dramatic UI
-* accessible for nontechnical users
-* resembles paper/document review
-* customer's attention belongs on artwork
+- proofs generally assume white viewing context
+- colors should not be distorted by dramatic UI
+- accessible for nontechnical users
+- resembles paper/document review
+- customer's attention belongs on artwork
 
 Use shop branding primarily for:
 

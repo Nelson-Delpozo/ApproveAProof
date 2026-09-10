@@ -1,12 +1,9 @@
-import type { Route } from "./+types/home";
-
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
     { title: "ApproveAProof" },
     {
       name: "description",
-      content:
-        "Simple, documented proof approvals for custom-production businesses.",
+      content: "Simple, documented proof approvals for custom-production businesses.",
     },
   ];
 }
@@ -24,13 +21,11 @@ export default function Home() {
         </h1>
 
         <p className="mt-6 text-lg leading-8 text-gray-600">
-          A better way for custom-production businesses to send proofs, collect
-          revision requests, and document exactly what customers approved.
+          A better way for custom-production businesses to send proofs, collect revision requests,
+          and document exactly what customers approved.
         </p>
 
-        <p className="mt-8 text-sm text-gray-400">
-          ApproveAProof is currently in development.
-        </p>
+        <p className="mt-8 text-sm text-gray-400">ApproveAProof is currently in development.</p>
       </div>
     </main>
   );
