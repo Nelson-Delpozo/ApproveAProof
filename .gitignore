@@ -8,3 +8,4 @@
 # Local reference archives
 smartlynx-main.zip
 *.zip
+/generated/prisma
