@@ -10,19 +10,6 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
-export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
-
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -32,6 +19,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
+
       <body>
         {children}
         <ScrollRestoration />
@@ -46,30 +34,36 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let title = "Something went wrong";
+  let message = "An unexpected error occurred.";
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
-    details =
-      error.status === 404
-        ? "The requested page could not be found."
-        : error.statusText || details;
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
+    if (error.status === 404) {
+      title = "Page not found";
+      message = "The page you're looking for doesn't exist.";
+    } else {
+      title = `Error ${error.status}`;
+      message = error.statusText || message;
+    }
+  } else if (import.meta.env.DEV && error instanceof Error) {
+    message = error.message;
     stack = error.stack;
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
+    <main className="flex min-h-screen items-center justify-center px-6">
+      <div className="w-full max-w-2xl">
+        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+
+        <p className="mt-3 text-gray-600">{message}</p>
+
+        {stack ? (
+          <pre className="mt-6 overflow-x-auto rounded-lg bg-gray-100 p-4 text-sm">
+            <code>{stack}</code>
+          </pre>
+        ) : null}
+      </div>
     </main>
   );
 }
