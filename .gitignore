@@ -5,3 +5,6 @@
 # React Router
 /.react-router/
 /build/
+# Local reference archives
+smartlynx-main.zip
+*.zip
