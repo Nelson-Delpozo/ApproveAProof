@@ -23,6 +23,7 @@ model Organization {
   memberships Membership[]
   customers   Customer[]
   proofs      Proof[]
+  revisions   Revision[]
 }
 
 model User {
@@ -80,25 +81,29 @@ model Proof {
 
   revisions Revision[]
 
+  @@unique([id, organizationId])
   @@index([organizationId])
   @@index([customerId])
 }
 
 model Revision {
-  id        String   @id @default(uuid()) @db.Uuid
-  proofId   String   @db.Uuid
-  number    Int
-  fileKey   String
-  fileName  String
-  fileType  String
-  fileSize  Int
-  fileHash  String
-  createdAt DateTime @default(now())
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  proofId        String   @db.Uuid
+  number         Int
+  fileKey        String
+  fileName       String
+  fileType       String
+  fileSize       Int
+  fileHash       String
+  createdAt      DateTime @default(now())
 
-  proof Proof @relation(fields: [proofId], references: [id], onDelete: Cascade)
+  proof        Proof        @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([proofId, number])
   @@index([proofId])
+  @@index([organizationId])
 }
 
 enum ProofStatus {
