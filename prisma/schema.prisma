@@ -68,20 +68,22 @@ model Customer {
 }
 
 model Proof {
-  id             String      @id @default(uuid()) @db.Uuid
-  organizationId String      @db.Uuid
-  customerId     String      @db.Uuid
-  title          String
-  status         ProofStatus @default(DRAFT)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id                String      @id @default(uuid()) @db.Uuid
+  organizationId    String      @db.Uuid
+  customerId        String      @db.Uuid
+  currentRevisionId String?     @db.Uuid
+  title             String
+  status            ProofStatus @default(DRAFT)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
-
-  revisions Revision[]
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer        Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  revisions       Revision[]   @relation("ProofRevisions")
+  currentRevision Revision?    @relation("ProofCurrentRevision", fields: [id, currentRevisionId], references: [proofId, id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([id, organizationId])
+  @@unique([id, currentRevisionId])
   @@index([organizationId])
   @@index([customerId])
 }
@@ -98,10 +100,12 @@ model Revision {
   fileHash       String
   createdAt      DateTime @default(now())
 
-  proof        Proof        @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  proof           Proof        @relation("ProofRevisions", fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  currentForProof Proof?       @relation("ProofCurrentRevision")
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([proofId, number])
+  @@unique([proofId, id])
   @@index([proofId])
   @@index([organizationId])
 }
