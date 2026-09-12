@@ -70,15 +70,17 @@ model Customer {
 model Proof {
   id                String      @id @default(uuid()) @db.Uuid
   organizationId    String      @db.Uuid
-  customerId        String      @db.Uuid
+  customerId        String?     @db.Uuid
   currentRevisionId String?     @db.Uuid
+  recipientName     String
+  recipientEmail    String?
   title             String
   status            ProofStatus @default(DRAFT)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  customer        Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer        Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
   revisions       Revision[]   @relation("ProofRevisions")
   currentRevision Revision?    @relation("ProofCurrentRevision", fields: [id, currentRevisionId], references: [proofId, id], onDelete: NoAction, onUpdate: NoAction)
 
