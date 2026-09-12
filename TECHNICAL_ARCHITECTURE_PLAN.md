@@ -15,14 +15,14 @@ ApproveAProof is a lightweight proof-review and approval application for small c
 
 The initial target market is:
 
-* commercial and digital print shops;
-* sign shops;
-* screen printers;
-* embroidery businesses;
-* vehicle-wrap shops;
-* sticker/decal shops;
-* promotional-product businesses;
-* engravers and similar custom-production businesses.
+- commercial and digital print shops;
+- sign shops;
+- screen printers;
+- embroidery businesses;
+- vehicle-wrap shops;
+- sticker/decal shops;
+- promotional-product businesses;
+- engravers and similar custom-production businesses.
 
 The initial customer wedge is:
 
@@ -34,15 +34,15 @@ The application exists to answer one operationally important question:
 
 ApproveAProof is deliberately not a:
 
-* CRM;
-* print MIS;
-* invoicing system;
-* production scheduler;
-* quoting system;
-* storefront;
-* inventory system;
-* design editor;
-* generic file-sharing application.
+- CRM;
+- print MIS;
+- invoicing system;
+- production scheduler;
+- quoting system;
+- storefront;
+- inventory system;
+- design editor;
+- generic file-sharing application.
 
 Its core workflow is:
 
@@ -85,19 +85,19 @@ The primary product invariant is:
 
 Established:
 
-* React Router Framework Mode;
-* React;
-* TypeScript;
-* Vite;
-* Tailwind CSS;
-* Zod environment validation;
-* ESLint;
-* Prettier;
-* Vitest;
-* jsdom;
-* Testing Library baseline;
-* production build;
-* server/client module boundary conventions.
+- React Router Framework Mode;
+- React;
+- TypeScript;
+- Vite;
+- Tailwind CSS;
+- Zod environment validation;
+- ESLint;
+- Prettier;
+- Vitest;
+- jsdom;
+- Testing Library baseline;
+- production build;
+- server/client module boundary conventions.
 
 The complete Phase 0 quality gate passed:
 
@@ -115,15 +115,15 @@ build
 
 Established:
 
-* Neon managed PostgreSQL;
-* Prisma `7.10.0`;
-* Prisma schema-first migrations;
-* Prisma configuration;
-* database connectivity;
-* UUID primary keys;
-* tenant/identity schema foundation;
-* Customer → Proof → Revision hierarchy;
-* immutable Revision direction.
+- Neon managed PostgreSQL;
+- Prisma `7.10.0`;
+- Prisma schema-first migrations;
+- Prisma configuration;
+- database connectivity;
+- UUID primary keys;
+- tenant/identity schema foundation;
+- Customer → Proof → Revision hierarchy;
+- immutable Revision direction.
 
 Current database models:
 
@@ -375,15 +375,15 @@ Mutability required for upload processing or lifecycle state must not permit rep
 
 The browser must never be trusted to determine:
 
-* organization ownership;
-* subscription entitlement;
-* S3 object path;
-* revision number;
-* current revision;
-* approved revision;
-* proof state;
-* approval timestamp;
-* customer authorization scope.
+- organization ownership;
+- subscription entitlement;
+- S3 object path;
+- revision number;
+- current revision;
+- approved revision;
+- proof state;
+- approval timestamp;
+- customer authorization scope.
 
 The browser submits intent.
 
@@ -489,18 +489,18 @@ model Organization {
 
 Current responsibilities:
 
-* tenant identity;
-* organization name;
-* stable slug;
-* ownership boundary.
+- tenant identity;
+- organization name;
+- stable slug;
+- ownership boundary.
 
 Later organization-level responsibilities include:
 
-* branding;
-* approval defaults;
-* billing;
-* plan state;
-* subscription state.
+- branding;
+- approval defaults;
+- billing;
+- plan state;
+- subscription state.
 
 ---
 
@@ -786,10 +786,10 @@ or another deliberate server-only location.
 
 Requirements:
 
-* never import database client code into the browser bundle;
-* avoid creating uncontrolled client/pool instances during development hot reload;
-* centralize database construction;
-* make future instrumentation straightforward.
+- never import database client code into the browser bundle;
+- avoid creating uncontrolled client/pool instances during development hot reload;
+- centralize database construction;
+- make future instrumentation straightforward.
 
 This work belongs in Phase 1.
 
@@ -839,13 +839,13 @@ Neon
 
 Reasons for selection include:
 
-* independent managed PostgreSQL;
-* compatibility with Prisma;
-* serverless-friendly pooled connections;
-* scale-to-zero characteristics;
-* database branching capabilities;
-* good fit for early SaaS usage;
-* avoids coupling both ORM and database hosting to one vendor.
+- independent managed PostgreSQL;
+- compatibility with Prisma;
+- serverless-friendly pooled connections;
+- scale-to-zero characteristics;
+- database branching capabilities;
+- good fit for early SaaS usage;
+- avoids coupling both ORM and database hosting to one vendor.
 
 Binary proof files do not belong in Neon.
 
@@ -1010,11 +1010,11 @@ Proof
 
 The relationship must support:
 
-* customer review;
-* stale-tab rejection;
-* sending revisions;
-* requesting changes;
-* approval validation.
+- customer review;
+- stale-tab rejection;
+- sending revisions;
+- requesting changes;
+- approval validation.
 
 Critical rule:
 
@@ -1052,16 +1052,16 @@ organizationId
 
 Benefits:
 
-* direct tenant-scoped queries;
-* safer authorization boundaries;
-* easier S3/upload lookups;
-* simpler compound ownership conditions;
-* reduced risk of querying a Revision by ID alone.
+- direct tenant-scoped queries;
+- safer authorization boundaries;
+- easier S3/upload lookups;
+- simpler compound ownership conditions;
+- reduced risk of querying a Revision by ID alone.
 
 Cost:
 
-* duplicated relational ownership data;
-* additional invariant requiring Revision.organizationId to agree with Proof.organizationId.
+- duplicated relational ownership data;
+- additional invariant requiring Revision.organizationId to agree with Proof.organizationId.
 
 Because Revision will be used heavily by security-sensitive upload and review operations, explicit tenant ownership may be worthwhile.
 
@@ -1440,9 +1440,9 @@ Expected behavior:
 
 Never:
 
-* silently substitute Revision 3;
-* approve Revision 2 after it is no longer current;
-* infer that reviewing an older revision constitutes approval of a newer one.
+- silently substitute Revision 3;
+- approve Revision 2 after it is no longer current;
+- infer that reviewing an older revision constitutes approval of a newer one.
 
 The submitted revision must match the current review revision.
 
@@ -1747,9 +1747,9 @@ The server treats this as expected metadata, not unquestioned truth.
 
 Where practical:
 
-* bind expected checksum into upload;
-* verify with S3/finalization;
-* persist the validated SHA-256.
+- bind expected checksum into upload;
+- verify with S3/finalization;
+- persist the validated SHA-256.
 
 If S3 checksum validation creates disproportionate MVP complexity, retain the schema and perform final verification through a controlled post-upload process.
 
@@ -1802,12 +1802,12 @@ PNG
 
 Requirements:
 
-* keep PDF.js current;
-* disable PDF JavaScript behavior;
-* reject SVG initially;
-* never render arbitrary uploaded HTML;
-* use strict CSP;
-* serve binary proof content from private object storage.
+- keep PDF.js current;
+- disable PDF JavaScript behavior;
+- reject SVG initially;
+- never render arbitrary uploaded HTML;
+- use strict CSP;
+- serve binary proof content from private object storage.
 
 Future architecture may add:
 
@@ -1918,12 +1918,12 @@ Use PDF.js.
 
 Requirements:
 
-* current maintained version;
-* self-controlled worker assets where practical;
-* embedded JavaScript disabled;
-* uploaded content does not execute in application origin;
-* strict CSP;
-* external PDF links considered untrusted.
+- current maintained version;
+- self-controlled worker assets where practical;
+- embedded JavaScript disabled;
+- uploaded content does not execute in application origin;
+- strict CSP;
+- external PDF links considered untrusted.
 
 JPEG/PNG may use normal `<img>` rendering with signed S3 URLs.
 
@@ -2347,10 +2347,10 @@ Auth0 remains the planned v1 authentication provider.
 
 Reason:
 
-* mature;
-* previously understood;
-* authentication is not product differentiation;
-* avoids unnecessary infrastructure reinvention.
+- mature;
+- previously understood;
+- authentication is not product differentiation;
+- avoids unnecessary infrastructure reinvention.
 
 Identity flow:
 
@@ -2671,10 +2671,10 @@ using Zod.
 
 Current philosophy:
 
-* configuration shape is defined centrally;
-* required-at-current-stage variables fail clearly;
-* future integration variables may remain optional until their phase;
-* environment validation stays server-only.
+- configuration shape is defined centrally;
+- required-at-current-stage variables fail clearly;
+- future integration variables may remain optional until their phase;
+- environment validation stays server-only.
 
 As integrations become active, variables required for that environment should become appropriately mandatory.
 
@@ -2960,12 +2960,12 @@ PostgreSQL should comfortably support foreseeable v1 scale.
 
 Use:
 
-* appropriate pooling;
-* tenant-aware indexes;
-* pagination;
-* transactions;
-* selective relation loading;
-* avoidance of N+1 query patterns.
+- appropriate pooling;
+- tenant-aware indexes;
+- pagination;
+- transactions;
+- selective relation loading;
+- avoidance of N+1 query patterns.
 
 Neon's pooled endpoint is the current connection direction.
 
