@@ -6,7 +6,7 @@
 **Application domain:** `approveaproof.app`
 **Initial market:** Small custom-production businesses, beginning with local print shops
 **Status:** MVP development
-**Last major checkpoint:** September 10, 2026
+**Last major checkpoint:** September 12, 2026
 
 ---
 
@@ -111,11 +111,14 @@ Completed:
 - Prisma schema-first migration workflow established.
 - `prisma.config.ts` established.
 - Generated Prisma client directory excluded from Git.
-- Initial identity/tenant schema created.
-- Initial identity migration applied.
-- Customer, Proof, and Revision schema created.
-- Customer/Proof/Revision migration applied.
-- Database synchronized with current Prisma schema.
+- Initial identity/tenant schema created and migrated.
+- Customer, Proof, and Revision schema created and migrated.
+- `ProofStatus` operational workflow state implemented and migrated.
+- Revision now carries explicit `organizationId`.
+- Database-enforced composite Revision → Proof tenant ownership implemented.
+- Nullable `Proof.currentRevisionId` implemented.
+- Database-enforced same-Proof current-revision integrity implemented.
+- Current Phase 1 slices passed their quality gates and were committed/pushed.
 
 Current implemented models:
 
@@ -128,18 +131,24 @@ Proof
 Revision
 ```
 
-Current implemented enum:
+Current implemented enums:
 
 ```text
 MembershipRole
+ProofStatus
 ```
 
-Current migration history:
+Current migration history includes:
 
 ```text
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
+20260912065530_add_proof_status
+20260912071656_add_revision_organization_ownership
+20260912073503_add_current_revision_relationship
 ```
+
+The repository is authoritative for the exact timestamp of any migration directory if it differs from this checkpoint text.
 
 Current development branch:
 
@@ -147,38 +156,30 @@ Current development branch:
 phase-1-database
 ```
 
-Current pushed database checkpoints include:
-
-```text
-chore: initialize Prisma database tooling
-
-feat: add identity and tenant database foundation
-
-feat: add customer proof and revision models
-```
+Current pushed database checkpoints now include the Proof status, Revision tenant-ownership, and current-revision integrity work.
 
 ### Exact next development task
 
 Do not jump to Auth0, S3, UI, or approval routes yet.
 
-Continue Phase 1 by deliberately finalizing the core database architecture around:
+The Proof lifecycle, Revision tenant ownership, and current-revision integrity decisions are now implemented.
 
-1. proof lifecycle/status;
-2. current-revision relationship;
-3. tenant-query implications of revision records;
-4. response/change-request records;
-5. authoritative approval records;
-6. activity records;
-7. dispatch/outbox records;
-8. important constraints and indexes;
-9. final Phase 1 database validation;
-10. full Phase 1 quality gate.
+Continue Phase 1 in this order:
+
+1. finalize Customer deletion/history semantics;
+2. design and migrate `ProofResponse`;
+3. design and migrate `ProofActivity`;
+4. design and migrate `ProofDispatch`;
+5. add supporting enums and remaining high-value constraints/indexes;
+6. configure the Prisma runtime PostgreSQL adapter and server-only database utility;
+7. add database-oriented integrity tests;
+8. run final Phase 1 database validation;
+9. run the full Phase 1 quality gate;
+10. merge `phase-1-database` into `main` only after the phase is complete.
 
 The next immediate architectural decision is:
 
-> **How should Proof state and currentRevision be represented while preserving revision immutability and exact-revision approval integrity?**
-
-Do not treat `APPROVED` as merely a boolean or casually add a current-revision pointer without considering the complete relationship.
+> **How should Customer deletion work without allowing ordinary contact cleanup to destroy or weaken historical Proof and future approval evidence?**
 
 ---
 
@@ -762,6 +763,7 @@ Current relationships:
 memberships
 customers
 proofs
+revisions
 ```
 
 Future organization-level fields may include:
@@ -872,7 +874,9 @@ Current implemented fields:
 id
 organizationId
 customerId
+currentRevisionId
 title
+status
 createdAt
 updatedAt
 ```
@@ -883,27 +887,54 @@ Current relationships:
 Organization → Proofs
 Customer → Proofs
 Proof → Revisions
+Proof → currentRevision
 ```
 
-Current indexes:
+Current operational status values:
 
 ```text
-organizationId
-customerId
+DRAFT
+AWAITING_APPROVAL
+CHANGES_REQUESTED
+APPROVED
+CANCELED
 ```
 
-Planned fields still requiring deliberate Phase 1 design include:
+`Proof.status` defaults to `DRAFT`.
+
+Proof status is operational state, not authoritative approval evidence.
+
+`currentRevisionId` is nullable so a Proof can exist before its first Revision exists or is selected as current.
+
+The database enforces:
+
+```text
+Proof(id, currentRevisionId)
+    → Revision(proofId, id)
+```
+
+Therefore, a Proof cannot point to another Proof's Revision as its current Revision.
+
+Current supporting constraints/indexes include:
+
+```text
+unique id + organizationId
+unique id + currentRevisionId
+index organizationId
+index customerId
+```
+
+The composite uniqueness involving `id` is intentionally present to support Prisma/PostgreSQL composite relations even though `id` itself is already unique.
+
+Planned fields still requiring deliberate design may include:
 
 ```text
 jobNumber
-status
 
 recipientName
 recipientEmail
 
 reviewTokenHash
-
-currentRevisionId
 
 firstSentAt
 firstViewedAt
@@ -926,6 +957,7 @@ Current implemented fields:
 
 ```text
 id
+organizationId
 proofId
 number
 fileKey
@@ -936,18 +968,41 @@ fileHash
 createdAt
 ```
 
-Current database constraints:
+Current database constraints/indexes include:
 
 ```text
 unique proofId + number
+unique proofId + id
 index proofId
+index organizationId
 ```
 
-Current relationship:
+Current relationships:
 
 ```text
+Organization → Revisions
 Proof → Revisions
+Revision → owning Proof
+Revision ↔ currentForProof inverse relation
 ```
+
+The database enforces explicit tenant ownership:
+
+```text
+Revision(proofId, organizationId)
+    → Proof(id, organizationId)
+```
+
+and:
+
+```text
+Revision.organizationId
+    → Organization.id
+```
+
+This means a Revision cannot claim an Organization different from its owning Proof.
+
+The selected tenant design is deliberately stronger than deriving Organization only through Proof because Revision will participate in security-sensitive upload, review, and authorization operations.
 
 Current implementation intentionally has no `updatedAt`.
 
@@ -962,8 +1017,6 @@ The revision number is unique within its Proof.
 `fileSize` is currently an integer. This is acceptable while v1 upload limits remain far below PostgreSQL integer limits.
 
 `fileHash` is intended to contain the durable cryptographic fingerprint of the exact uploaded bytes.
-
-Before further schema expansion, we must deliberately evaluate whether Revision should also carry `organizationId` to make tenant-scoped direct queries safer and more explicit.
 
 Potential later fields include:
 
@@ -983,8 +1036,6 @@ readyAt
 sentAt
 supersededAt
 ```
-
----
 
 ## ProofResponse
 
@@ -1134,7 +1185,9 @@ State transitions belong in domain logic.
 
 Routes must not arbitrarily set statuses.
 
-**Implementation status:** The state machine is architecturally locked but has not yet been added to the Prisma schema. This is the next major Phase 1 database decision.
+**Implementation status:** The `ProofStatus` enum and `Proof.status` field are implemented and migrated.
+
+Application/domain transition functions are not yet implemented; they belong to the later core-domain behavior phase. Routes must not gain arbitrary status-write behavior.
 
 ---
 
@@ -2793,10 +2846,14 @@ organizationId
 Proof:
 organizationId
 customerId
+unique id + organizationId
+unique id + currentRevisionId
 
 Revision:
 proofId
+organizationId
 unique proofId + number
+unique proofId + id
 ```
 
 Use appropriate connection pooling for the hosting environment.
@@ -3166,27 +3223,27 @@ Completed:
 - Customer;
 - Proof;
 - Revision;
-- initial migrations.
+- ProofStatus;
+- explicit Revision organization ownership;
+- database-enforced Revision/Proof tenant consistency;
+- nullable Proof.currentRevision;
+- database-enforced same-Proof currentRevision integrity;
+- migrations and quality gates for those slices.
 
 Remaining:
 
-- Proof status/lifecycle representation;
-- current-revision relationship;
-- review Revision tenant-scoping strategy;
 - historical Customer/Proof deletion semantics;
 - ProofResponse;
 - ProofActivity;
 - ProofDispatch;
 - supporting enums;
-- important indexes/constraints;
+- remaining important indexes/constraints;
 - database utility/client layer;
-- Prisma runtime adapter configuration;
-- database-focused tests where appropriate;
+- Prisma runtime PostgreSQL adapter configuration;
+- database-focused integrity tests;
 - final Phase 1 quality gate.
 
 No application proof workflow yet.
-
----
 
 ## PHASE 2 — Identity and Tenant Foundation
 
@@ -3860,6 +3917,64 @@ The documentation should make it possible to resume development accurately in a 
 
 ---
 
+## D-023 — ProofStatus operational state
+
+**Decision:** Represent Proof workflow state with the `ProofStatus` enum:
+
+```text
+DRAFT
+AWAITING_APPROVAL
+CHANGES_REQUESTED
+APPROVED
+CANCELED
+```
+
+**Reason:** Proof-level status is useful operational state while authoritative approval evidence remains a separate exact-Revision response record.
+
+**Status:** IMPLEMENTED / LOCKED
+
+---
+
+## D-024 — Explicit Revision tenant ownership
+
+**Decision:** Revision carries `organizationId` and the database enforces:
+
+```text
+Revision(proofId, organizationId)
+    → Proof(id, organizationId)
+```
+
+**Reason:** Revision participates in security-sensitive operations. Direct tenant ownership makes scoped querying simpler while the composite foreign key prevents duplicated ownership data from drifting.
+
+**Status:** IMPLEMENTED / LOCKED
+
+---
+
+## D-025 — Database-enforced current Revision ownership
+
+**Decision:** `Proof.currentRevisionId` is nullable and the database enforces:
+
+```text
+Proof(id, currentRevisionId)
+    → Revision(proofId, id)
+```
+
+**Reason:** A plain `currentRevisionId → Revision.id` foreign key could allow a Proof to point to another Proof's Revision. The composite relationship makes that invalid state impossible at the database layer.
+
+**Status:** IMPLEMENTED / LOCKED
+
+---
+
+## D-026 — Development Playbook
+
+**Decision:** Maintain `DEVELOPMENT_PLAYBOOK.md` as the canonical authority for development method, verification discipline, migration inspection, testing philosophy, Git checkpoints, and collaboration workflow.
+
+**Reason:** Product strategy and system architecture should not be overloaded with procedural development rules. A dedicated playbook preserves the working method that has emerged during implementation.
+
+**Status:** LOCKED workflow preference.
+
+---
+
 # 92. Development Collaboration Protocol
 
 To reduce mistakes:
@@ -3913,6 +4028,14 @@ deployments
 ```
 
 ChatGPT should proactively identify good commit points but should not assume a commit has occurred until the user confirms it.
+
+The canonical detailed workflow is maintained in:
+
+```text
+DEVELOPMENT_PLAYBOOK.md
+```
+
+This Master Plan records the existence and purpose of that workflow; the Playbook owns its procedural details.
 
 ---
 
@@ -4104,7 +4227,7 @@ Scalable simplicity is preferred to speculative complexity.
 
 # 99. Current Working Checkpoint
 
-**Date:** September 10, 2026
+**Date:** September 12, 2026
 
 Repository:
 
@@ -4128,26 +4251,6 @@ Application foundation:
 Phase 0 complete
 ```
 
-Quality tooling:
-
-```text
-ESLint configured
-Prettier configured
-Vitest configured
-Testing Library baseline configured
-Zod environment validation configured
-```
-
-Quality gate:
-
-```text
-format: passed
-lint: passed
-typecheck: passed
-test: passed
-build: passed
-```
-
 Database:
 
 ```text
@@ -4155,14 +4258,6 @@ Neon PostgreSQL configured
 Prisma 7.10.0 configured
 Connectivity verified
 Schema-first migration workflow operational
-```
-
-Applied migrations:
-
-```text
-20260910064511_init_identity
-
-20260910065333_add_customer_proof_revision
 ```
 
 Implemented database models:
@@ -4176,18 +4271,29 @@ Proof
 Revision
 ```
 
-Implemented database relationships:
+Implemented enums:
 
 ```text
-User
-  ↓
-Membership
-  ↓
-Organization
-  ├── Customers
-  └── Proofs
-        ↓
-      Revisions
+MembershipRole
+ProofStatus
+```
+
+Implemented integrity relationships include:
+
+```text
+Revision(proofId, organizationId)
+    → Proof(id, organizationId)
+
+Proof(id, currentRevisionId)
+    → Revision(proofId, id)
+```
+
+This means Revision tenant ownership and current-Revision same-Proof ownership are enforced by PostgreSQL rather than left only to application convention.
+
+Current Phase 1 slices have passed the full quality gate when checkpointed and have been committed/pushed to:
+
+```text
+phase-1-database
 ```
 
 Authentication:
@@ -4218,12 +4324,6 @@ Not yet implemented
 Planned for Phase 9
 ```
 
-Current Git branch:
-
-```text
-phase-1-database
-```
-
 Current phase:
 
 ```text
@@ -4231,42 +4331,48 @@ PHASE 1 — DATABASE
 IN PROGRESS
 ```
 
-This is intentional.
+Canonical development method:
 
-The database foundation is being finalized before authentication behavior or product workflows depend on it.
-
----
+```text
+DEVELOPMENT_PLAYBOOK.md
+```
 
 # 100. DEVELOPMENT RESUME POINT
 
-## Start here after this documentation checkpoint.
+## Start here after the September 12, 2026 documentation checkpoint.
 
 Do not repeat completed Phase 0 setup.
 
-Do not recreate the existing database models.
+Do not recreate existing database models.
+
+Do not redesign the already-implemented ProofStatus, Revision tenant-ownership, or currentRevision constraints without an explicit architecture reason.
 
 Do not run `prisma db pull` as the normal workflow.
 
 ### Immediate next architectural task
 
-Review the relationship among:
+Finalize:
 
 ```text
-Proof
-Revision
-ProofStatus
-currentRevision
+Customer deletion/history semantics
 ```
 
-before creating the next migration.
+Specifically determine whether the current:
 
-Specifically determine:
+```text
+Proof.customerId required
+Customer deletion → Restrict
+```
 
-1. the Prisma representation of `ProofStatus`;
-2. the exact `Proof.currentRevisionId` relationship;
-3. whether Revision should include `organizationId` for stronger tenant-scoped querying;
-4. whether the current Customer → Proof deletion behavior matches the historical-record requirement;
-5. which fields belong on Proof now versus later.
+should remain, or whether the historical-record requirement is better served by a design such as:
+
+```text
+Proof.customerId nullable
+Customer deletion → SetNull
+Proof recipient/customer snapshots
+```
+
+The chosen design must ensure ordinary customer/contact cleanup cannot destroy or weaken historical Proof and future approval evidence.
 
 ### After that
 
@@ -4278,7 +4384,16 @@ ProofActivity
 ProofDispatch
 ```
 
-with their required enums, constraints, indexes, and exact revision relationships.
+with their required enums, constraints, indexes, tenant relationships, and exact Revision relationships.
+
+Then complete:
+
+```text
+Prisma runtime PostgreSQL adapter
+server-only database utility
+database-oriented integrity tests
+remaining index/constraint review
+```
 
 ### Before declaring Phase 1 complete
 
@@ -4289,12 +4404,14 @@ schema validates
 migrations apply cleanly
 Neon is synchronized
 tenant ownership paths are deliberate
-approval references exact revision
+approval can reference an exact revision
 historical deletion behavior is deliberate
 revision numbering constraint exists
+current revision cannot cross Proof ownership
+Revision tenant ownership cannot drift from Proof ownership
 important indexes exist
 Prisma runtime database utility is configured
-database tests pass where appropriate
+database tests pass
 ```
 
 Then run the complete phase gate:
@@ -4321,7 +4438,7 @@ main
 
 Then begin Phase 2.
 
----
+Follow `DEVELOPMENT_PLAYBOOK.md` throughout.
 
 # 101. Questions We Intentionally Have Not Answered Yet
 
@@ -4379,23 +4496,11 @@ Future possibility.
 
 Future possibility.
 
-### Revision tenant key
-
-The current Revision model reaches its Organization through Proof.
-
-Before Phase 1 completion, explicitly decide whether Revision should additionally carry `organizationId` to make tenant-scoped direct queries and authorization boundaries safer and simpler.
-
 ### Customer deletion semantics
 
 The current database relationship is stricter than the eventual historical-data design described elsewhere in this plan.
 
 Before Phase 1 completion, decide whether `Proof.customerId` should become nullable with historical recipient snapshots and `onDelete: SetNull`, or whether another deliberate retention strategy is preferable.
-
-### Current revision relationship
-
-The architecture requires the server to know which revision is authoritative for review and stale-revision protection.
-
-The exact Prisma relationship has not yet been finalized.
 
 None of these questions justify skipping the current database-design sequence.
 
@@ -4579,8 +4684,10 @@ Fix proof approval exceptionally well.
 
 # END OF CURRENT MASTER PLAN
 
-**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. Neon PostgreSQL and Prisma 7.10.0 are operational. Identity/tenant models and the initial Customer → Proof → Revision hierarchy have been migrated successfully.
+**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. Neon PostgreSQL and Prisma 7.10.0 are operational. ProofStatus, explicit Revision tenant ownership, the composite Revision → Proof tenant constraint, and the same-Proof currentRevision relationship have been migrated, quality-gated, committed, and pushed.
 
-**Next action:** Finalize Proof state/current-revision architecture and review tenant/historical-data implications before adding the remaining core database records.
+**Next action:** Finalize Customer deletion/history semantics before adding ProofResponse, ProofActivity, and ProofDispatch.
+
+**Development method:** Follow `DEVELOPMENT_PLAYBOOK.md`.
 
 **Do not skip ahead without a reason.**
