@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "ProofStatus" AS ENUM ('DRAFT', 'AWAITING_APPROVAL', 'CHANGES_REQUESTED', 'APPROVED', 'CANCELED');
+
+-- AlterTable
+ALTER TABLE "Proof" ADD COLUMN     "status" "ProofStatus" NOT NULL DEFAULT 'DRAFT';
