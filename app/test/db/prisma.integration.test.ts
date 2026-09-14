@@ -30,11 +30,7 @@ async function createOrganization(name: string, slug: string) {
   });
 }
 
-async function createCustomer(
-  organizationId: string,
-  name: string,
-  email: string,
-) {
+async function createCustomer(organizationId: string, name: string, email: string) {
   return db.customer.create({
     data: {
       organizationId,
@@ -62,11 +58,7 @@ async function createProof(
   });
 }
 
-async function createRevision(
-  organizationId: string,
-  proofId: string,
-  number: number,
-) {
+async function createRevision(organizationId: string, proofId: string, number: number) {
   return db.revision.create({
     data: {
       organizationId,
@@ -92,21 +84,11 @@ describe("database invariants", () => {
   });
 
   it("rejects a revision whose organization does not own the proof", async () => {
-    const organizationA = await createOrganization(
-      "Organization A",
-      "organization-a",
-    );
+    const organizationA = await createOrganization("Organization A", "organization-a");
 
-    const organizationB = await createOrganization(
-      "Organization B",
-      "organization-b",
-    );
+    const organizationB = await createOrganization("Organization B", "organization-b");
 
-    const customer = await createCustomer(
-      organizationA.id,
-      "Customer A",
-      "customer-a@example.com",
-    );
+    const customer = await createCustomer(organizationA.id, "Customer A", "customer-a@example.com");
 
     const proof = await createProof(
       organizationA.id,
@@ -116,22 +98,13 @@ describe("database invariants", () => {
       "Proof A",
     );
 
-    await expect(
-      createRevision(organizationB.id, proof.id, 1),
-    ).rejects.toThrow();
+    await expect(createRevision(organizationB.id, proof.id, 1)).rejects.toThrow();
   });
 
   it("rejects a current revision belonging to another proof", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proofA = await createProof(
       organization.id,
@@ -149,11 +122,7 @@ describe("database invariants", () => {
       "Proof B",
     );
 
-    const revisionB = await createRevision(
-      organization.id,
-      proofB.id,
-      1,
-    );
+    const revisionB = await createRevision(organization.id, proofB.id, 1);
 
     await expect(
       db.proof.update({
@@ -168,16 +137,9 @@ describe("database invariants", () => {
   });
 
   it("preserves proof recipient history when a customer is deleted", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Jane Customer",
-      "jane@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Jane Customer", "jane@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -205,15 +167,9 @@ describe("database invariants", () => {
   });
 
   it("rejects a proof response tied to a revision from another proof or organization", async () => {
-    const organizationA = await createOrganization(
-      "Organization A",
-      "organization-a",
-    );
+    const organizationA = await createOrganization("Organization A", "organization-a");
 
-    const organizationB = await createOrganization(
-      "Organization B",
-      "organization-b",
-    );
+    const organizationB = await createOrganization("Organization B", "organization-b");
 
     const customerA = await createCustomer(
       organizationA.id,
@@ -243,11 +199,7 @@ describe("database invariants", () => {
       "Proof B",
     );
 
-    const revisionB = await createRevision(
-      organizationB.id,
-      proofB.id,
-      1,
-    );
+    const revisionB = await createRevision(organizationB.id, proofB.id, 1);
 
     await expect(
       db.proofResponse.create({
@@ -265,16 +217,9 @@ describe("database invariants", () => {
   });
 
   it("rejects an approved response without an approval statement snapshot", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -284,11 +229,7 @@ describe("database invariants", () => {
       "Proof",
     );
 
-    const revision = await createRevision(
-      organization.id,
-      proof.id,
-      1,
-    );
+    const revision = await createRevision(organization.id, proof.id, 1);
 
     await expect(
       db.proofResponse.create({
@@ -305,16 +246,9 @@ describe("database invariants", () => {
   });
 
   it("prevents deletion of a revision referenced by proof response evidence", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -324,11 +258,7 @@ describe("database invariants", () => {
       "Proof",
     );
 
-    const revision = await createRevision(
-      organization.id,
-      proof.id,
-      1,
-    );
+    const revision = await createRevision(organization.id, proof.id, 1);
 
     await db.proofResponse.create({
       data: {
@@ -338,8 +268,7 @@ describe("database invariants", () => {
         type: "APPROVED",
         responderName: "Customer",
         responderEmail: "customer@example.com",
-        approvalStatementSnapshot:
-          "I approve this revision for production.",
+        approvalStatementSnapshot: "I approve this revision for production.",
       },
     });
 
@@ -353,21 +282,11 @@ describe("database invariants", () => {
   });
 
   it("rejects proof activity assigned to the wrong organization", async () => {
-    const organizationA = await createOrganization(
-      "Organization A",
-      "organization-a",
-    );
+    const organizationA = await createOrganization("Organization A", "organization-a");
 
-    const organizationB = await createOrganization(
-      "Organization B",
-      "organization-b",
-    );
+    const organizationB = await createOrganization("Organization B", "organization-b");
 
-    const customer = await createCustomer(
-      organizationA.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organizationA.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organizationA.id,
@@ -389,16 +308,9 @@ describe("database invariants", () => {
   });
 
   it("rejects a proof dispatch revision belonging to another proof", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proofA = await createProof(
       organization.id,
@@ -416,11 +328,7 @@ describe("database invariants", () => {
       "Proof B",
     );
 
-    const revisionB = await createRevision(
-      organization.id,
-      proofB.id,
-      1,
-    );
+    const revisionB = await createRevision(organization.id, proofB.id, 1);
 
     await expect(
       db.proofDispatch.create({
