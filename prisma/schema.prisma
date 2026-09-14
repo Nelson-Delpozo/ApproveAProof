@@ -84,6 +84,8 @@ model Proof {
   revisions       Revision[]   @relation("ProofRevisions")
   currentRevision Revision?    @relation("ProofCurrentRevision", fields: [id, currentRevisionId], references: [proofId, id], onDelete: NoAction, onUpdate: NoAction)
 
+  activities ProofActivity[]
+
   @@unique([id, organizationId])
   @@unique([id, currentRevisionId])
   @@index([organizationId])
@@ -133,6 +135,20 @@ model ProofResponse {
   @@index([revisionId])
 }
 
+model ProofActivity {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  proofId        String            @db.Uuid
+  type           ProofActivityType
+  createdAt      DateTime          @default(now())
+
+  proof Proof @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([proofId])
+  @@index([proofId, createdAt])
+}
+
 enum ProofStatus {
   DRAFT
   AWAITING_APPROVAL
@@ -144,4 +160,17 @@ enum ProofStatus {
 enum ProofResponseType {
   APPROVED
   CHANGES_REQUESTED
+}
+
+enum ProofActivityType {
+  PROOF_CREATED
+  REVISION_CREATED
+  REVISION_READY
+  PROOF_SENT
+  PROOF_VIEWED
+  CHANGES_REQUESTED
+  PROOF_APPROVED
+  REMINDER_SENT
+  PROOF_CANCELED
+  REVIEW_LINK_REGENERATED
 }
