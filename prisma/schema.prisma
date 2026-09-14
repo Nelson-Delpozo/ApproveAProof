@@ -86,6 +86,8 @@ model Proof {
 
   activities ProofActivity[]
 
+  dispatches ProofDispatch[]
+
   @@unique([id, organizationId])
   @@unique([id, currentRevisionId])
   @@index([organizationId])
@@ -108,6 +110,8 @@ model Revision {
   currentForProof Proof?          @relation("ProofCurrentRevision")
   organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   responses       ProofResponse[]
+
+  dispatches ProofDispatch[]
 
   @@unique([proofId, number])
   @@unique([proofId, id])
@@ -149,6 +153,32 @@ model ProofActivity {
   @@index([proofId, createdAt])
 }
 
+model ProofDispatch {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @db.Uuid
+  proofId        String              @db.Uuid
+  revisionId     String?             @db.Uuid
+  type           ProofDispatchType
+  status         ProofDispatchStatus @default(PENDING)
+  recipientName  String
+  recipientEmail String
+  attemptCount   Int                 @default(0)
+  lastError      String?
+  scheduledAt    DateTime?
+  sentAt         DateTime?
+  createdAt      DateTime            @default(now())
+
+  proof Proof @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+
+  revision Revision? @relation(fields: [organizationId, proofId, revisionId], references: [organizationId, proofId, id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([organizationId])
+  @@index([proofId])
+  @@index([revisionId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
 enum ProofStatus {
   DRAFT
   AWAITING_APPROVAL
@@ -173,4 +203,18 @@ enum ProofActivityType {
   REMINDER_SENT
   PROOF_CANCELED
   REVIEW_LINK_REGENERATED
+}
+
+enum ProofDispatchType {
+  INITIAL_PROOF
+  REVISION
+  REMINDER
+  APPROVAL_CONFIRMATION
+  CHANGE_REQUEST_NOTIFICATION
+}
+
+enum ProofDispatchStatus {
+  PENDING
+  SENT
+  FAILED
 }
