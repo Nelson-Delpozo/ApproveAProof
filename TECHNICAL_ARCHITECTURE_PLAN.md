@@ -5,7 +5,7 @@
 **Status:** Active MVP development
 **Current phase:** Phase 1 — Database
 **Current branch:** `phase-1-database`
-**Last architecture checkpoint:** September 12, 2026
+**Last architecture checkpoint:** September 14, 2026
 
 ---
 
@@ -77,7 +77,7 @@ The primary product invariant is:
 
 # 2. Current Implementation Checkpoint
 
-## September 12, 2026
+## September 14, 2026
 
 ### Phase 0 — Foundation
 
@@ -128,7 +128,15 @@ Established:
 - explicit Revision tenant ownership;
 - database-enforced Revision → Proof tenant consistency;
 - nullable `Proof.currentRevisionId`;
-- database-enforced same-Proof current-revision integrity.
+- database-enforced same-Proof current-revision integrity;
+- historical Proof recipient preservation through nullable `customerId`, `onDelete: SetNull`, and recipient snapshots;
+- `ProofResponse` authoritative customer-decision model;
+- database-enforced ProofResponse tenant/Proof/Revision consistency;
+- database CHECK requiring `approvalStatementSnapshot` for approved responses;
+- `ProofActivity` operational timeline model;
+- `ProofDispatch` transactional communication/outbox model;
+- Prisma runtime PostgreSQL adapter and server-only database utility;
+- database-oriented integration tests for implemented Phase 1 invariants.
 
 Current database models:
 
@@ -139,13 +147,20 @@ Membership
 Customer
 Proof
 Revision
+ProofResponse
+ProofActivity
+ProofDispatch
 ```
 
-Current enums:
+Current enums include:
 
 ```text
 MembershipRole
 ProofStatus
+ProofResponseType
+ProofActivityType
+ProofDispatchType
+ProofDispatchStatus
 ```
 
 Current migrations:
@@ -154,7 +169,7 @@ Current migrations:
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
 20260912065530_add_proof_status
-20260912071656_add_revision_organization_ownership
+20260912070452_add_revision_organization_ownership
 20260912073503_add_current_revision_relationship
 ```
 
@@ -184,15 +199,11 @@ These constraints make two important invalid states impossible at the database l
 Immediate next architecture work:
 
 ```text
-Customer deletion/history semantics
-ProofResponse
-ProofActivity
-ProofDispatch
-supporting enums
-remaining constraints/indexes
-Prisma runtime database utility
-PostgreSQL driver adapter
-database-oriented tests
+final remaining constraints/indexes review
+migration/database synchronization verification
+database integration-test coverage review
+full Phase 1 quality gate
+final Phase 1 documentation/merge checkpoint
 ```
 
 Do not begin Auth0, S3, public review, or approval routes until the Phase 1 schema foundation is complete.
@@ -510,7 +521,7 @@ enum ProofStatus {
 
 It is not authoritative approval evidence.
 
-Authoritative approval will be represented by a future `ProofResponse` tied to an exact immutable Revision.
+Authoritative approval is represented by `ProofResponse` tied to an exact immutable Revision.
 
 ---
 
@@ -892,7 +903,7 @@ Current applied migrations include:
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
 20260912065530_add_proof_status
-20260912071656_add_revision_organization_ownership
+20260912070452_add_revision_organization_ownership
 20260912073503_add_current_revision_relationship
 ```
 
@@ -1139,79 +1150,27 @@ replace proofId-only FK with composite FK
 
 This is now a locked Phase 1 architecture decision unless a material technical reason requires reconsideration.
 
-# 17. Revision Tenant Isolation Decision
-
-## OPEN PHASE 1 ARCHITECTURE DECISION
-
-Current Revision reaches Organization through:
-
-```text
-Revision
-  ↓
-Proof
-  ↓
-Organization
-```
-
-Before Phase 1 completion, explicitly decide whether Revision should additionally contain:
-
-```text
-organizationId
-```
-
-Benefits:
-
-- direct tenant-scoped queries;
-- safer authorization boundaries;
-- easier S3/upload lookups;
-- simpler compound ownership conditions;
-- reduced risk of querying a Revision by ID alone.
-
-Cost:
-
-- duplicated relational ownership data;
-- additional invariant requiring Revision.organizationId to agree with Proof.organizationId.
-
-Because Revision will be used heavily by security-sensitive upload and review operations, explicit tenant ownership may be worthwhile.
-
-This decision must be made before the schema becomes broadly depended upon.
-
----
-
 # 18. Customer Deletion Semantics
 
-## OPEN PHASE 1 ARCHITECTURE DECISION
+## IMPLEMENTED — HISTORICAL RECIPIENT PRESERVATION
 
-Current schema:
+Mutable Customer records are address-book/contact entities and are not required to survive forever for historical Proof evidence to remain meaningful.
 
-```text
-Customer → Proof
-onDelete Restrict
-```
-
-Long-term product architecture requires historical approval records to survive ordinary customer/contact cleanup.
-
-A likely final direction is:
+Implemented design:
 
 ```text
 Proof.customerId nullable
 Customer deletion → SetNull
-Proof stores recipient/customer snapshots
+Proof.recipientName snapshot
+Proof.recipientEmail snapshot
 ```
 
-Potential snapshots:
+The migration backfilled recipient snapshots from the linked Customer before making `recipientName` required and changing the Customer foreign key to `ON DELETE SET NULL`.
 
-```text
-recipientName
-recipientEmail
-customer/company name where required
-```
+This means ordinary Customer deletion does not delete the Proof or erase the recipient identity captured for that Proof.
 
-Before Phase 1 completion, choose the historical-data strategy deliberately.
+`ProofResponse` separately snapshots the actual responder identity.
 
-Do not allow deleting a mutable Customer record to destroy approval evidence.
-
----
 
 # 19. Revision Allocation
 
@@ -1337,52 +1296,50 @@ without appropriate review.
 
 ---
 
-# 22. Planned Core Domain Models
+# 22. Core Domain Models Added in Phase 1
 
-Before Phase 1 is complete, the relational shape should support the following models.
+The following relational models are now implemented.
 
 ## ProofResponse
 
-Authoritative customer decision.
+`ProofResponse` is the authoritative customer decision record.
 
-Types:
+Implemented response types:
 
 ```text
 APPROVED
 CHANGES_REQUESTED
 ```
 
-Expected responsibilities:
+Implemented responsibilities include:
 
 ```text
+organizationId
 proofId
 revisionId
 type
-
 responderName
 responderEmail
-
 comments
-
-privacy-conscious network metadata
-userAgent
-
 approvalStatementSnapshot
-checklistSnapshot
-reviewFingerprintSnapshot
-
 occurredAt
 ```
 
-The response must reference a specific Revision.
+The database uses a composite relationship to ensure the referenced Revision belongs to the same Organization and Proof.
+
+Approved responses are additionally protected by a PostgreSQL CHECK constraint requiring a non-null `approvalStatementSnapshot`.
+
+The current model deliberately does not yet add speculative browser/network/checklist/fingerprint fields.
 
 ---
 
 ## ProofActivity
 
-Operational timeline.
+`ProofActivity` is the operational Proof timeline.
 
-Potential event types:
+It is not authoritative approval evidence.
+
+Implemented activity types include:
 
 ```text
 PROOF_CREATED
@@ -1391,34 +1348,21 @@ REVISION_READY
 PROOF_SENT
 PROOF_VIEWED
 CHANGES_REQUESTED
-REVISION_SUPERSEDED
 PROOF_APPROVED
 REMINDER_SENT
 PROOF_CANCELED
 REVIEW_LINK_REGENERATED
 ```
 
-Activity exists for timeline/history presentation.
-
-It is not the authoritative substitute for ProofResponse.
+Activity is tenant/Proof scoped through the database relationship to Proof.
 
 ---
 
 ## ProofDispatch
 
-Transactional communication/outbox record.
+`ProofDispatch` is the transactional communication/outbox record used to separate authoritative business transactions from later email delivery.
 
-Potential types:
-
-```text
-INITIAL_PROOF
-REVISION
-REMINDER
-APPROVAL_CONFIRMATION
-CHANGE_REQUEST_NOTIFICATION
-```
-
-Potential statuses:
+Implemented dispatch categories and statuses support the planned proof/revision/reminder/approval/change-notification workflow and:
 
 ```text
 PENDING
@@ -1426,21 +1370,12 @@ SENT
 FAILED
 ```
 
-Expected operational fields:
+The model records outbound recipient/send-attempt state and supports an optional Revision reference.
 
-```text
-recipient
-revision
-attemptCount
-lastError
-scheduledAt
-sentAt
-createdAt
-```
+Database integrity prevents a dispatch Revision from belonging to another Proof.
 
-ProofDispatch provides retryable email behavior without coupling email success to approval integrity.
+Provider-specific SendGrid fields and retry-processing behavior remain later application/email work.
 
----
 
 # 23. Approval Record Model Principle
 
@@ -3722,21 +3657,26 @@ Revision explicit organization ownership
 Revision → Proof composite tenant constraint
 currentRevision relationship
 same-Proof currentRevision database constraint
+Customer deletion/history preservation
+Proof recipient snapshots
+ProofResponse
+approved-response approval-statement CHECK constraint
+ProofActivity
+ProofDispatch
+supporting response/activity/dispatch enums
+Prisma runtime PostgreSQL adapter
+server-only database utility
+database-oriented integration tests
 ```
 
 Remaining:
 
 ```text
-Customer deletion/history strategy
-ProofResponse
-ProofActivity
-ProofDispatch
-supporting enums
-remaining indexes/constraints
-Prisma runtime database utility
-PostgreSQL driver adapter
-database-oriented tests
-full phase quality gate
+final remaining indexes/constraints review
+migration/database synchronization verification
+integration-test coverage review
+full Phase 1 quality gate
+final documentation/merge checkpoint
 ```
 
 ---
@@ -4113,7 +4053,7 @@ and begin Phase 2.
 
 # 94. Immediate Resume Point
 
-## Start here after the September 12, 2026 documentation update.
+## Start here after the September 14, 2026 documentation update.
 
 Current branch:
 
@@ -4121,70 +4061,50 @@ Current branch:
 phase-1-database
 ```
 
-The following Phase 1 slices are implemented, migrated, quality-gated, committed, and pushed:
+Do not recreate or redesign the implemented Phase 1 relationships without an explicit architecture reason.
+
+Implemented since the prior documentation checkpoint:
 
 ```text
-ProofStatus
-Revision explicit organization ownership
-Revision → Proof tenant-consistency constraint
-Proof.currentRevisionId
-same-Proof currentRevision constraint
-```
-
-Do not recreate or redesign those relationships without an explicit architecture reason.
-
-### Next decision
-
-Finalize:
-
-```text
-Customer deletion/history semantics
-```
-
-while preserving:
-
-```text
-historical approval evidence
-ordinary customer/contact cleanup
-tenant isolation
-simple customer management
-```
-
-Explicitly decide whether:
-
-```text
-Proof.customerId remains required + Restrict
-```
-
-or moves toward a design such as:
-
-```text
-Proof.customerId nullable
-Customer deletion → SetNull
-Proof recipient/customer snapshots
-```
-
-### Then proceed to:
-
-```text
+Customer deletion/history preservation
+Proof recipient snapshots
 ProofResponse
+approved-response approval-statement CHECK constraint
 ProofActivity
 ProofDispatch
-```
-
-After the remaining relational foundation is complete:
-
-```text
-supporting enums/indexes/constraints
 Prisma runtime PostgreSQL adapter
 server-only database utility
-database-oriented integrity tests
+database-oriented integration tests
+```
+
+The current database tests exercise implemented invariants including:
+
+```text
+Revision tenant ownership rejection
+same-Proof currentRevision enforcement
+Customer deletion preserving Proof recipient history
+ProofResponse exact Revision/tenant ownership
+approved ProofResponse approval-statement requirement
+ProofDispatch Revision ownership
+```
+
+### Next work
+
+Perform the final Phase 1 database review:
+
+```text
+remaining high-value indexes/constraints
+migration/database synchronization
+integration-test coverage
 full Phase 1 quality gate
 ```
 
 Do not jump ahead to Auth0, S3, public review, or UI.
 
-Follow `DEVELOPMENT_PLAYBOOK.md` for each implementation slice.
+After the Phase 1 completion criteria pass, update documentation if repository verification reveals any exact discrepancy, merge `phase-1-database` into `main`, and begin Phase 2.
+
+Follow `DEVELOPMENT_PLAYBOOK.md`.
+
 
 # 95. Architecture Decisions Already Locked
 
@@ -4208,6 +4128,13 @@ explicit Revision organization ownership
 database-enforced Revision/Proof tenant consistency
 nullable Proof.currentRevisionId
 database-enforced same-Proof current revision
+historical Proof recipient snapshots with Customer SetNull deletion
+ProofResponse exact Revision/tenant integrity
+approved-response approval-statement CHECK constraint
+ProofActivity operational timeline
+ProofDispatch outbox representation
+Prisma runtime PostgreSQL adapter and server-only database utility
+database-oriented integration tests
 approval references exact revision
 private S3
 direct browser-to-S3 uploads
@@ -4230,11 +4157,7 @@ Changing one of these requires an explicit reason.
 The following are unresolved by design:
 
 ```text
-final Customer deletion semantics
-exact Proof recipient snapshot fields
 exact revision upload status schema
-exact ProofResponse constraints
-exact ProofActivity metadata shape
 exact ProofDispatch idempotency fields
 pricing
 plan limits
@@ -4390,11 +4313,9 @@ Do not invent distributed-system complexity.
 
 # END OF CURRENT TECHNICAL ARCHITECTURE SPECIFICATION
 
-**Current implementation checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. Prisma 7.10.0 and Neon PostgreSQL are operational. `ProofStatus`, explicit Revision tenant ownership, the composite Revision → Proof tenant constraint, and the same-Proof `currentRevision` relationship are implemented, migrated, quality-gated, committed, and pushed.
+**Current implementation checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. The core relational models through `ProofDispatch`, historical Proof recipient preservation, the Prisma/PostgreSQL runtime database utility, and database-oriented integration tests are implemented. Earlier Phase 1 slices through current-revision integrity are confirmed committed and pushed; later commit/push status must be verified from repository history.
 
-**Immediate next architecture task:** Finalize Customer deletion/history semantics without compromising historical approval evidence.
-
-**Next models after that:** ProofResponse, ProofActivity, and ProofDispatch.
+**Immediate next architecture task:** Final Phase 1 database review: remaining indexes/constraints, migration/database synchronization, integration-test coverage, and the full quality gate.
 
 **Development method:** Follow `DEVELOPMENT_PLAYBOOK.md`.
 

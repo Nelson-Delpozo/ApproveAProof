@@ -1336,22 +1336,27 @@ commit checkpoint
 push
 ```
 
+Current relational/database implementation now includes:
+
+```text
+Customer deletion/history preservation
+Proof recipient snapshots
+ProofResponse
+approved-response approval-statement CHECK constraint
+ProofActivity
+ProofDispatch
+runtime Prisma/PostgreSQL adapter
+server-only database utility
+database integrity tests
+```
+
 Current next concern:
 
 ```text
-Customer deletion/history semantics
-```
-
-Then:
-
-```text
-ProofResponse
-ProofActivity
-ProofDispatch
-remaining constraints/indexes
-runtime database adapter/client
-database integrity tests
-final Phase 1 gate
+final remaining constraints/indexes review
+migration/database synchronization verification
+database integrity-test coverage review
+full Phase 1 gate
 ```
 
 ---
@@ -1450,15 +1455,9 @@ The next unresolved decisions should be handled when they become necessary.
 Current Phase 1 open items include:
 
 ```text
-Customer deletion/history semantics
-exact Proof recipient snapshot fields
-exact ProofResponse schema and constraints
-exact ProofActivity metadata shape
 exact ProofDispatch idempotency fields
 revision lifecycle/status schema
 remaining operational indexes
-runtime Prisma/PostgreSQL adapter construction
-database test implementation structure
 ```
 
 Later open questions remain in the Master Plan and Technical Architecture Specification.
@@ -1610,10 +1609,12 @@ The system exists to establish:
 
 # END OF DEVELOPMENT PLAYBOOK
 
-**Current checkpoint:** September 12, 2026. Phase 1 Database remains in progress on `phase-1-database`.
+**Current checkpoint:** September 14, 2026. Phase 1 Database remains in progress on `phase-1-database`.
 
-**Most recent completed slices:** ProofStatus, explicit Revision tenant ownership, database-enforced Revision/Proof tenant consistency, and database-enforced same-Proof currentRevision integrity.
+**Implemented since the previous documentation checkpoint:** Customer deletion/history preservation, Proof recipient snapshots, ProofResponse with exact Revision/tenant integrity, the approved-response approval-statement CHECK constraint, ProofActivity, ProofDispatch, the Prisma/PostgreSQL runtime database utility, and database-oriented integration tests.
 
-**Immediate next development concern:** Customer deletion/history semantics.
+**Commit/push note:** Earlier Phase 1 slices through current-revision integrity are confirmed committed and pushed. Do not infer later commit/push status without repository confirmation.
 
-**Then:** ProofResponse → ProofActivity → ProofDispatch → remaining constraints/indexes → runtime database adapter/client → database integrity tests → final Phase 1 gate.
+**Immediate next development concern:** Final remaining constraints/indexes review, migration/database synchronization verification, database integrity-test coverage review, and the full Phase 1 quality gate.
+
+**Then:** If all Phase 1 completion criteria pass, perform the documentation/merge checkpoint and begin Phase 2.

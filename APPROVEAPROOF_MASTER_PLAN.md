@@ -6,7 +6,7 @@
 **Application domain:** `approveaproof.app`
 **Initial market:** Small custom-production businesses, beginning with local print shops
 **Status:** MVP development
-**Last major checkpoint:** September 12, 2026
+**Last major checkpoint:** September 14, 2026
 
 ---
 
@@ -51,7 +51,7 @@ Do not build it merely because it appears in this document.
 
 # 2. Project Status
 
-## Current checkpoint — September 10, 2026
+## Current checkpoint — September 14, 2026
 
 ### Product and architecture
 
@@ -118,7 +118,15 @@ Completed:
 - Database-enforced composite Revision → Proof tenant ownership implemented.
 - Nullable `Proof.currentRevisionId` implemented.
 - Database-enforced same-Proof current-revision integrity implemented.
-- Current Phase 1 slices passed their quality gates and were committed/pushed.
+- Historical Proof recipient preservation implemented: `Proof.customerId` is nullable, Customer deletion uses `SetNull`, and Proof snapshots `recipientName` / `recipientEmail`.
+- `ProofResponse` implemented as authoritative customer-decision evidence tied to an exact Revision.
+- Database-enforced ProofResponse tenant/Proof/Revision consistency implemented.
+- Approved ProofResponses require an `approvalStatementSnapshot` through a database CHECK constraint.
+- `ProofActivity` operational timeline model implemented.
+- `ProofDispatch` transactional communication/outbox model implemented.
+- Prisma runtime PostgreSQL adapter and server-only database utility implemented.
+- Database-oriented integration tests implemented for the Phase 1 invariants reached so far.
+- Earlier Phase 1 slices through current-revision integrity were quality-gated, committed, and pushed. Do not infer commit/push status for later slices from this document unless repository history confirms it.
 
 Current implemented models:
 
@@ -129,13 +137,20 @@ Membership
 Customer
 Proof
 Revision
+ProofResponse
+ProofActivity
+ProofDispatch
 ```
 
-Current implemented enums:
+Current implemented enums include:
 
 ```text
 MembershipRole
 ProofStatus
+ProofResponseType
+ProofActivityType
+ProofDispatchType
+ProofDispatchStatus
 ```
 
 Current migration history includes:
@@ -144,7 +159,7 @@ Current migration history includes:
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
 20260912065530_add_proof_status
-20260912071656_add_revision_organization_ownership
+20260912070452_add_revision_organization_ownership
 20260912073503_add_current_revision_relationship
 ```
 
@@ -162,24 +177,22 @@ Current pushed database checkpoints now include the Proof status, Revision tenan
 
 Do not jump to Auth0, S3, UI, or approval routes yet.
 
-The Proof lifecycle, Revision tenant ownership, and current-revision integrity decisions are now implemented.
+The core Phase 1 relational models, historical Customer/Proof deletion behavior, runtime Prisma/PostgreSQL database utility, and initial database integrity tests are now implemented.
 
-Continue Phase 1 in this order:
+Continue Phase 1 by reviewing the remaining database foundation only:
 
-1. finalize Customer deletion/history semantics;
-2. design and migrate `ProofResponse`;
-3. design and migrate `ProofActivity`;
-4. design and migrate `ProofDispatch`;
-5. add supporting enums and remaining high-value constraints/indexes;
-6. configure the Prisma runtime PostgreSQL adapter and server-only database utility;
-7. add database-oriented integrity tests;
-8. run final Phase 1 database validation;
-9. run the full Phase 1 quality gate;
-10. merge `phase-1-database` into `main` only after the phase is complete.
+1. review remaining high-value constraints and indexes;
+2. confirm the implemented integration tests cover the intended Phase 1 database invariants;
+3. verify migration/database synchronization from the repository;
+4. run the final Phase 1 quality gate;
+5. update canonical documentation if repository verification reveals any exact implementation detail that differs from this checkpoint;
+6. merge `phase-1-database` into `main` only after the Phase 1 completion criteria are satisfied.
 
-The next immediate architectural decision is:
+The immediate resume point is:
 
-> **How should Customer deletion work without allowing ordinary contact cleanup to destroy or weaken historical Proof and future approval evidence?**
+> **Phase 1 final database review and completion gate.**
+
+Do not begin Phase 2 until that review and gate are complete.
 
 ---
 
@@ -3228,20 +3241,23 @@ Completed:
 - database-enforced Revision/Proof tenant consistency;
 - nullable Proof.currentRevision;
 - database-enforced same-Proof currentRevision integrity;
-- migrations and quality gates for those slices.
+- historical Customer/Proof deletion semantics with recipient snapshots and `SetNull`;
+- ProofResponse and its exact-Revision/tenant integrity;
+- approved-response approval-statement CHECK constraint;
+- ProofActivity;
+- ProofDispatch;
+- supporting enums for the implemented response/activity/dispatch models;
+- Prisma runtime PostgreSQL adapter;
+- server-only database utility;
+- database-focused integration tests for the implemented Phase 1 invariants.
 
 Remaining:
 
-- historical Customer/Proof deletion semantics;
-- ProofResponse;
-- ProofActivity;
-- ProofDispatch;
-- supporting enums;
-- remaining important indexes/constraints;
-- database utility/client layer;
-- Prisma runtime PostgreSQL adapter configuration;
-- database-focused integrity tests;
-- final Phase 1 quality gate.
+- final review of remaining important indexes/constraints;
+- verify database/migration synchronization;
+- confirm database integrity-test coverage;
+- final Phase 1 quality gate;
+- final Phase 1 documentation/merge checkpoint.
 
 No application proof workflow yet.
 
@@ -3915,6 +3931,7 @@ The documentation should make it possible to resume development accurately in a 
 
 **Status:** LOCKED workflow preference.
 
+
 ---
 
 ## D-023 — ProofStatus operational state
@@ -4339,79 +4356,61 @@ DEVELOPMENT_PLAYBOOK.md
 
 # 100. DEVELOPMENT RESUME POINT
 
-## Start here after the September 12, 2026 documentation checkpoint.
+## Start here after the September 14, 2026 documentation checkpoint.
 
 Do not repeat completed Phase 0 setup.
 
-Do not recreate existing database models.
-
-Do not redesign the already-implemented ProofStatus, Revision tenant-ownership, or currentRevision constraints without an explicit architecture reason.
+Do not recreate or redesign the implemented Phase 1 relational models and constraints without an explicit architecture reason.
 
 Do not run `prisma db pull` as the normal workflow.
 
-### Immediate next architectural task
-
-Finalize:
+### Implemented since the previous documentation checkpoint
 
 ```text
 Customer deletion/history semantics
-```
-
-Specifically determine whether the current:
-
-```text
-Proof.customerId required
-Customer deletion → Restrict
-```
-
-should remain, or whether the historical-record requirement is better served by a design such as:
-
-```text
-Proof.customerId nullable
-Customer deletion → SetNull
-Proof recipient/customer snapshots
-```
-
-The chosen design must ensure ordinary customer/contact cleanup cannot destroy or weaken historical Proof and future approval evidence.
-
-### After that
-
-Design and add:
-
-```text
+Proof recipient snapshots
 ProofResponse
+approved-response approval-statement CHECK constraint
 ProofActivity
 ProofDispatch
-```
-
-with their required enums, constraints, indexes, tenant relationships, and exact Revision relationships.
-
-Then complete:
-
-```text
 Prisma runtime PostgreSQL adapter
 server-only database utility
-database-oriented integrity tests
-remaining index/constraint review
+database-oriented integration tests
 ```
 
-### Before declaring Phase 1 complete
+The database tests currently exercise implemented invariants including recipient-history preservation, exact ProofResponse Revision ownership, the approval-statement requirement, and ProofDispatch Revision ownership.
 
-Confirm:
+### Immediate next development task
+
+Perform the final Phase 1 database review:
+
+```text
+remaining high-value indexes/constraints
+database/migration synchronization
+integration-test coverage
+full Phase 1 quality gate
+```
+
+Do not add speculative schema fields merely to make Phase 1 look more complete.
+
+Before declaring Phase 1 complete, confirm:
 
 ```text
 schema validates
-migrations apply cleanly
+all intended migrations apply cleanly
 Neon is synchronized
 tenant ownership paths are deliberate
-approval can reference an exact revision
-historical deletion behavior is deliberate
+approval references an exact Revision
+historical Customer deletion preserves Proof recipient history
+approved ProofResponses require the approval statement snapshot
+ProofActivity remains operational history rather than approval evidence
+ProofDispatch cannot reference a Revision from another Proof
 revision numbering constraint exists
 current revision cannot cross Proof ownership
 Revision tenant ownership cannot drift from Proof ownership
-important indexes exist
-Prisma runtime database utility is configured
-database tests pass
+runtime Prisma/PostgreSQL database access is server-only
+database integrity tests pass
+remaining important indexes/constraints have been reviewed
 ```
 
 Then run the complete phase gate:
@@ -4424,7 +4423,7 @@ npm run test
 npm run build
 ```
 
-Only after that should:
+Only after the Phase 1 completion criteria pass should:
 
 ```text
 phase-1-database
@@ -4439,6 +4438,7 @@ main
 Then begin Phase 2.
 
 Follow `DEVELOPMENT_PLAYBOOK.md` throughout.
+
 
 # 101. Questions We Intentionally Have Not Answered Yet
 
@@ -4495,12 +4495,6 @@ Future possibility.
 ### Annotations
 
 Future possibility.
-
-### Customer deletion semantics
-
-The current database relationship is stricter than the eventual historical-data design described elsewhere in this plan.
-
-Before Phase 1 completion, decide whether `Proof.customerId` should become nullable with historical recipient snapshots and `onDelete: SetNull`, or whether another deliberate retention strategy is preferable.
 
 None of these questions justify skipping the current database-design sequence.
 
@@ -4684,9 +4678,9 @@ Fix proof approval exceptionally well.
 
 # END OF CURRENT MASTER PLAN
 
-**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. Neon PostgreSQL and Prisma 7.10.0 are operational. ProofStatus, explicit Revision tenant ownership, the composite Revision → Proof tenant constraint, and the same-Proof currentRevision relationship have been migrated, quality-gated, committed, and pushed.
+**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. The core relational models through `ProofDispatch`, historical Proof recipient preservation, the Prisma/PostgreSQL runtime database utility, and database-oriented integration tests are implemented. Earlier Phase 1 slices through current-revision integrity are confirmed committed and pushed; later commit/push status should be verified from repository history rather than inferred here.
 
-**Next action:** Finalize Customer deletion/history semantics before adding ProofResponse, ProofActivity, and ProofDispatch.
+**Next action:** Perform the final Phase 1 database review: remaining indexes/constraints, migration/database synchronization, integration-test coverage, and the full Phase 1 quality gate.
 
 **Development method:** Follow `DEVELOPMENT_PLAYBOOK.md`.
 
