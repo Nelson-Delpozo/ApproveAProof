@@ -3931,7 +3931,6 @@ The documentation should make it possible to resume development accurately in a 
 
 **Status:** LOCKED workflow preference.
 
-
 ---
 
 ## D-023 — ProofStatus operational state
@@ -4438,7 +4437,6 @@ main
 Then begin Phase 2.
 
 Follow `DEVELOPMENT_PLAYBOOK.md` throughout.
-
 
 # 101. Questions We Intentionally Have Not Answered Yet
 

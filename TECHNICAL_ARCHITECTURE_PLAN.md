@@ -1171,7 +1171,6 @@ This means ordinary Customer deletion does not delete the Proof or erase the rec
 
 `ProofResponse` separately snapshots the actual responder identity.
 
-
 # 19. Revision Allocation
 
 Every Revision has an integer revision number:
@@ -1375,7 +1374,6 @@ The model records outbound recipient/send-attempt state and supports an optional
 Database integrity prevents a dispatch Revision from belonging to another Proof.
 
 Provider-specific SendGrid fields and retry-processing behavior remain later application/email work.
-
 
 # 23. Approval Record Model Principle
 
@@ -4104,7 +4102,6 @@ Do not jump ahead to Auth0, S3, public review, or UI.
 After the Phase 1 completion criteria pass, update documentation if repository verification reveals any exact discrepancy, merge `phase-1-database` into `main`, and begin Phase 2.
 
 Follow `DEVELOPMENT_PLAYBOOK.md`.
-
 
 # 95. Architecture Decisions Already Locked
 

@@ -343,4 +343,208 @@ describe("database invariants", () => {
       }),
     ).rejects.toThrow();
   });
+
+  it("rejects duplicate membership for the same organization and user", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const user = await db.user.create({
+      data: {
+        auth0Subject: "auth0|test-user",
+        email: "user@example.com",
+        name: "Test User",
+      },
+    });
+
+    await db.membership.create({
+      data: {
+        organizationId: organization.id,
+        userId: user.id,
+      },
+    });
+
+    await expect(
+      db.membership.create({
+        data: {
+          organizationId: organization.id,
+          userId: user.id,
+        },
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects duplicate revision numbers within the same proof", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof",
+    );
+
+    await createRevision(organization.id, proof.id, 1);
+
+    await expect(createRevision(organization.id, proof.id, 1)).rejects.toThrow();
+  });
+
+  it("allows a proof to have no current revision", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof",
+    );
+
+    expect(proof.currentRevisionId).toBeNull();
+  });
+
+  it("allows a proof to reference one of its own revisions as current", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof",
+    );
+
+    const revision = await createRevision(organization.id, proof.id, 1);
+
+    const updatedProof = await db.proof.update({
+      where: {
+        id: proof.id,
+      },
+      data: {
+        currentRevisionId: revision.id,
+      },
+    });
+
+    expect(updatedProof.currentRevisionId).toBe(revision.id);
+  });
+
+  it("prevents deletion of a revision while it is the proof's current revision", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof",
+    );
+
+    const revision = await createRevision(organization.id, proof.id, 1);
+
+    await db.proof.update({
+      where: {
+        id: proof.id,
+      },
+      data: {
+        currentRevisionId: revision.id,
+      },
+    });
+
+    await expect(
+      db.revision.delete({
+        where: {
+          id: revision.id,
+        },
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("allows deleting a proof with a current revision when no evidence references that revision", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof",
+    );
+
+    const revision = await createRevision(organization.id, proof.id, 1);
+
+    await db.proof.update({
+      where: {
+        id: proof.id,
+      },
+      data: {
+        currentRevisionId: revision.id,
+      },
+    });
+
+    await db.proof.delete({
+      where: {
+        id: proof.id,
+      },
+    });
+
+    const deletedProof = await db.proof.findUnique({
+      where: {
+        id: proof.id,
+      },
+    });
+
+    const deletedRevision = await db.revision.findUnique({
+      where: {
+        id: revision.id,
+      },
+    });
+
+    expect(deletedProof).toBeNull();
+    expect(deletedRevision).toBeNull();
+  });
+
+  it("prevents deletion of a proof when approval evidence references one of its revisions", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof",
+    );
+
+    const revision = await createRevision(organization.id, proof.id, 1);
+
+    await db.proofResponse.create({
+      data: {
+        organizationId: organization.id,
+        proofId: proof.id,
+        revisionId: revision.id,
+        type: "APPROVED",
+        responderName: "Customer",
+        responderEmail: "customer@example.com",
+        approvalStatementSnapshot: "I approve this revision for production.",
+      },
+    });
+
+    await expect(
+      db.proof.delete({
+        where: {
+          id: proof.id,
+        },
+      }),
+    ).rejects.toThrow();
+  });
 });
