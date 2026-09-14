@@ -547,4 +547,26 @@ describe("database invariants", () => {
       }),
     ).rejects.toThrow();
   });
+
+  it("rejects a proof whose customer belongs to another organization", async () => {
+    const organizationA = await createOrganization("Organization A", "organization-a");
+
+    const organizationB = await createOrganization("Organization B", "organization-b");
+
+    const customerB = await createCustomer(
+      organizationB.id,
+      "Customer B",
+      "customer-b@example.com",
+    );
+
+    await expect(
+      createProof(
+        organizationA.id,
+        customerB.id,
+        customerB.name,
+        "customer-b@example.com",
+        "Cross-tenant Proof",
+      ),
+    ).rejects.toThrow();
+  });
 });
