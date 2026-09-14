@@ -102,14 +102,35 @@ model Revision {
   fileHash       String
   createdAt      DateTime @default(now())
 
-  proof           Proof        @relation("ProofRevisions", fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
-  currentForProof Proof?       @relation("ProofCurrentRevision")
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  proof           Proof           @relation("ProofRevisions", fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  currentForProof Proof?          @relation("ProofCurrentRevision")
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  responses       ProofResponse[]
 
   @@unique([proofId, number])
   @@unique([proofId, id])
+  @@unique([organizationId, proofId, id])
   @@index([proofId])
   @@index([organizationId])
+}
+
+model ProofResponse {
+  id                        String            @id @default(uuid()) @db.Uuid
+  organizationId            String            @db.Uuid
+  proofId                   String            @db.Uuid
+  revisionId                String            @db.Uuid
+  type                      ProofResponseType
+  responderName             String
+  responderEmail            String?
+  comments                  String?
+  approvalStatementSnapshot String?
+  occurredAt                DateTime          @default(now())
+
+  revision Revision @relation(fields: [organizationId, proofId, revisionId], references: [organizationId, proofId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([organizationId])
+  @@index([proofId])
+  @@index([revisionId])
 }
 
 enum ProofStatus {
@@ -118,4 +139,9 @@ enum ProofStatus {
   CHANGES_REQUESTED
   APPROVED
   CANCELED
+}
+
+enum ProofResponseType {
+  APPROVED
+  CHANGES_REQUESTED
 }
