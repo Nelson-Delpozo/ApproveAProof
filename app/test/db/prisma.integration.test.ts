@@ -1,6 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-// import { db } from "../../lib/db.server";
 import { db } from "./test-db.server";
 
 async function resetDatabase() {

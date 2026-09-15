@@ -1097,7 +1097,6 @@ An `APPROVED` response must contain `approvalStatementSnapshot`; this is enforce
 
 Deletion of a Revision referenced by a ProofResponse is restricted so ordinary deletion cannot destroy authoritative response evidence.
 
-
 ## ProofActivity
 
 **Implemented in Phase 1.**
@@ -1130,7 +1129,6 @@ REMINDER_SENT
 PROOF_CANCELED
 REVIEW_LINK_REGENERATED
 ```
-
 
 ## ProofDispatch
 
@@ -1167,7 +1165,6 @@ FAILED
 When a Revision is present, the database enforces that it belongs to the same Proof and Organization.
 
 Current indexes include separate indexes on `status` and `scheduledAt`. A compound `(status, scheduledAt)` index was reviewed and deliberately deferred until the actual worker query exists.
-
 
 # 19. Proof State Machine
 

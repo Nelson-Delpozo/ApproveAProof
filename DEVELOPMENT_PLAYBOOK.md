@@ -923,7 +923,6 @@ The suite has passed with all 16 tests against the current development database.
 
 Before Phase 1 completion, the same suite must be verified against the dedicated integration-test database described below.
 
-
 # 32. Security Review Is Continuous
 
 Security is not deferred to a final hardening phase.
