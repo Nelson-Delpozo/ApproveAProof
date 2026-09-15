@@ -170,6 +170,7 @@ unique constraints
 NOT NULL
 appropriate referential actions
 transactions
+database triggers when a critical invariant cannot be represented cleanly by Prisma relations
 ```
 
 over:
@@ -730,6 +731,38 @@ These are examples of the project's preference for structural integrity.
 
 ---
 
+# 25A. Database Triggers for ORM Gaps
+
+Prefer declarative constraints when they can express the domain correctly.
+
+A PostgreSQL trigger is acceptable when:
+
+```text
+the invariant is important
+the database can enforce it reliably
+Prisma cannot represent the required referential behavior cleanly
+the trigger preserves a deliberate lifecycle rule
+integration tests cover both rejection and valid lifecycle behavior
+```
+
+Phase 1 example:
+
+```text
+Proof.customerId → Customer.id uses SetNull on Customer deletion
+```
+
+while PostgreSQL insert/update triggers enforce:
+
+```text
+Proof.organizationId == Customer.organizationId
+```
+
+for every non-null Customer reference.
+
+This preserves historical Proof recipient data while making cross-tenant Customer assignment invalid at the database layer.
+
+---
+
 # 26. Nullable Does Not Mean Weak
 
 A nullable field can be the correct domain model.
@@ -863,31 +896,33 @@ Security tests that only test the happy path are incomplete.
 
 # 31. Database Tests Required Before Phase 1 Completion
 
-At minimum, Phase 1 database-oriented tests should eventually verify relevant invariants including:
+The Phase 1 database integration suite currently contains **16 tests**.
+
+It covers:
 
 ```text
-duplicate Membership for same Organization/User is rejected
-
-duplicate Revision number within one Proof is rejected
-
 Revision organization must match owning Proof organization
-
 Proof currentRevision may be null
-
 Proof currentRevision may reference its own Revision
-
 Proof currentRevision may not reference another Proof's Revision
-
 deleting a currently referenced Revision is blocked
-
-Proof deletion with currentRevision set behaves as intended
-
-Customer deletion behavior matches the final historical-data decision
+Customer deletion preserves Proof recipient snapshots
+ProofResponse must reference a Revision from the same Proof/Organization
+APPROVED ProofResponse requires approvalStatementSnapshot
+Revision referenced by ProofResponse cannot be deleted
+ProofActivity must belong to the same Organization as its Proof
+ProofDispatch Revision must belong to the same Proof
+duplicate Membership for the same Organization/User is rejected
+duplicate Revision number within one Proof is rejected
+Proof deletion with currentRevision behaves as intended when no evidence exists
+Proof deletion is blocked when ProofResponse evidence references a Revision
+Proof cannot reference a Customer from another Organization
 ```
 
-As `ProofResponse`, `ProofActivity`, and `ProofDispatch` are added, extend this list.
+The suite has passed with all 16 tests against the current development database.
 
----
+Before Phase 1 completion, the same suite must be verified against the dedicated integration-test database described below.
+
 
 # 32. Security Review Is Continuous
 
@@ -1300,6 +1335,56 @@ Do not fabricate exact repository state from memory.
 
 ---
 
+# 47A. Dedicated Integration-Test Database Safety
+
+Database integration tests are destructive.
+
+The test reset intentionally deletes database rows, so the suite must never depend on the ordinary development `DATABASE_URL`.
+
+Current implementation:
+
+```text
+app/test/db/test-db.server.ts
+```
+
+requires:
+
+```text
+TEST_DATABASE_URL
+```
+
+and throws before test execution when:
+
+```text
+TEST_DATABASE_URL === DATABASE_URL
+```
+
+The integration test imports this test-only client instead of the normal runtime database client.
+
+A separate Neon database/branch has been created for integration tests.
+
+Before any destructive test run on a newly configured environment:
+
+```text
+1. confirm DATABASE_URL and TEST_DATABASE_URL resolve to different database targets
+2. verify/apply migrations explicitly against TEST_DATABASE_URL
+3. run the integration suite
+4. periodically prove the equality guard fails closed
+```
+
+Do not print database credentials while verifying targets. Comparing parsed host/database identifiers is preferred.
+
+Current slice status:
+
+```text
+test-only client implemented
+integration-test import changed
+typecheck passes
+target/migration/test/guard verification still pending
+```
+
+---
+
 # 48. Current Phase 1 Working Method
 
 For the remaining database phase, continue using the pattern that has worked:
@@ -1353,11 +1438,14 @@ database integrity tests
 Current next concern:
 
 ```text
-final remaining constraints/indexes review
-migration/database synchronization verification
-database integrity-test coverage review
-full Phase 1 gate
+verify dedicated TEST_DATABASE_URL target
+verify/apply migrations against the test database
+run the 16-test integration suite against the test database
+prove the destructive-test equality guard fails closed
+run the full Phase 1 gate
 ```
+
+The remaining high-value constraints/index review is complete. The possible `ProofDispatch(status, scheduledAt)` compound index is intentionally deferred until the actual worker query exists.
 
 ---
 
@@ -1405,6 +1493,14 @@ Use explicit replacement blocks.
 ### Passing validation is necessary but insufficient
 
 Schema validation, migration safety, database behavior, tests, and Git diff inspection answer different questions.
+
+### ORM limitations do not justify weakening an invariant
+
+The desired Proof → Customer tenant rule could not be represented cleanly in Prisma while also preserving `SetNull` Customer deletion semantics. PostgreSQL triggers were used instead of accepting a cross-tenant hole or creating schema/migration drift.
+
+### Destructive integration tests require an isolated target
+
+A test suite that resets database tables must use a dedicated test database. Test code now requires `TEST_DATABASE_URL`; target, migration, suite, and guard verification are the final active Phase 1 safety slice.
 
 ---
 
@@ -1455,10 +1551,12 @@ The next unresolved decisions should be handled when they become necessary.
 Current Phase 1 open items include:
 
 ```text
-exact ProofDispatch idempotency fields
-revision lifecycle/status schema
-remaining operational indexes
+dedicated integration-test database safety verification
+final full quality gate
+final documentation/merge checkpoint
 ```
+
+Later domain work still includes deliberate decisions such as ProofDispatch idempotency behavior and Revision lifecycle/status behavior; they are not blockers for the current database-foundation completion gate.
 
 Later open questions remain in the Master Plan and Technical Architecture Specification.
 
@@ -1507,11 +1605,13 @@ ProofStatus
 currentRevision integrity
 Revision tenant integrity
 Customer/history deletion semantics
-important constraints/indexes
+important constraints/indexes reviewed
+Proof → Customer same-tenant trigger enforcement
 runtime Prisma/PostgreSQL adapter
 server-only database utility
-database integrity tests
-Neon synchronized
+16 database integrity tests
+dedicated TEST_DATABASE_URL safety verified
+Neon development/test targets synchronized
 full quality gate passed
 documentation current
 phase branch ready to merge
@@ -1611,10 +1711,10 @@ The system exists to establish:
 
 **Current checkpoint:** September 14, 2026. Phase 1 Database remains in progress on `phase-1-database`.
 
-**Implemented since the previous documentation checkpoint:** Customer deletion/history preservation, Proof recipient snapshots, ProofResponse with exact Revision/tenant integrity, the approved-response approval-statement CHECK constraint, ProofActivity, ProofDispatch, the Prisma/PostgreSQL runtime database utility, and database-oriented integration tests.
+**Implemented since the previous documentation checkpoint:** Customer deletion/history preservation, Proof recipient snapshots, ProofResponse with exact Revision/tenant integrity, the approved-response approval-statement CHECK constraint, ProofActivity, ProofDispatch, the Prisma/PostgreSQL runtime database utility, 16 database integration tests, and PostgreSQL trigger enforcement preventing cross-tenant Proof → Customer assignment while preserving `SetNull` deletion behavior.
 
-**Commit/push note:** Earlier Phase 1 slices through current-revision integrity are confirmed committed and pushed. Do not infer later commit/push status without repository confirmation.
+**Commit/push note:** The Proof → Customer tenant-integrity migration was committed and pushed after its migration directory was explicitly staged.
 
-**Immediate next development concern:** Final remaining constraints/indexes review, migration/database synchronization verification, database integrity-test coverage review, and the full Phase 1 quality gate.
+**Immediate next development concern:** Finish dedicated integration-test database safety: verify `DATABASE_URL` and `TEST_DATABASE_URL` are distinct targets, verify migrations against the test database, run all 16 integration tests there, prove the equality guard fails closed, then run the full Phase 1 quality gate.
 
 **Then:** If all Phase 1 completion criteria pass, perform the documentation/merge checkpoint and begin Phase 2.

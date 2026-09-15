@@ -109,7 +109,57 @@ test
 build
 ```
 
-### Phase 1 — Database
+## 88A. Integration-Test Database Safety
+
+## IMPLEMENTATION IN PROGRESS
+
+Database integration tests are destructive because the suite resets tables with `deleteMany()`.
+
+Production/development runtime database access remains in:
+
+```text
+app/lib/db.server.ts
+```
+
+The integration suite now imports a test-only Prisma client from:
+
+```text
+app/test/db/test-db.server.ts
+```
+
+That module:
+
+```text
+requires TEST_DATABASE_URL
+refuses to run when TEST_DATABASE_URL exactly equals DATABASE_URL
+constructs its own PrismaPg adapter
+exports a test-only PrismaClient
+```
+
+A separate Neon database/branch has been created for integration tests and `TEST_DATABASE_URL` has been added to the local environment.
+
+Current verification state:
+
+```text
+test-only client implemented
+integration-test import changed
+npm run typecheck passes
+```
+
+Still required before Phase 1 completion:
+
+```text
+confirm DATABASE_URL and TEST_DATABASE_URL resolve to different Neon hosts
+verify/apply migration history against the dedicated test target
+run all 16 integration tests against TEST_DATABASE_URL
+prove the equality guard fails closed before any reset executes
+```
+
+Do not run destructive integration tests until the target distinction is verified.
+
+---
+
+## Phase 1 — Database
 
 **IN PROGRESS**
 
@@ -169,7 +219,7 @@ Current migrations:
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
 20260912065530_add_proof_status
-20260912070452_add_revision_organization_ownership
+20260912071656_add_revision_organization_ownership
 20260912073503_add_current_revision_relationship
 ```
 
@@ -903,7 +953,7 @@ Current applied migrations include:
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
 20260912065530_add_proof_status
-20260912070452_add_revision_organization_ownership
+20260912071656_add_revision_organization_ownership
 20260912073503_add_current_revision_relationship
 ```
 
@@ -1292,6 +1342,47 @@ electronic-signature certification
 ```
 
 without appropriate review.
+
+---
+
+# 21A. Proof → Customer Tenant Integrity
+
+## IMPLEMENTED — DATABASE ENFORCED
+
+A Proof may reference a Customer only when that Customer belongs to the same Organization as the Proof.
+
+The ordinary foreign key:
+
+```text
+Proof.customerId → Customer.id
+```
+
+is retained with `ON DELETE SET NULL` so deleting a Customer preserves the Proof and its recipient snapshots.
+
+Because Prisma cannot cleanly express the desired composite foreign key while keeping `Proof.organizationId` required and nulling only `customerId` on Customer deletion, the same-tenant rule is enforced by PostgreSQL triggers.
+
+Migration:
+
+```text
+20260914020100_enforce_proof_customer_tenant_integrity
+```
+
+The trigger function rejects INSERT or UPDATE when:
+
+```text
+Proof.customerId IS NOT NULL
+AND
+Customer.organizationId != Proof.organizationId
+```
+
+A null `customerId` is allowed, so Customer deletion can still set the reference to null without destroying historical Proof data.
+
+This behavior is covered by integration tests for both:
+
+```text
+cross-tenant Proof → Customer rejection
+Customer deletion preserving Proof recipient history
+```
 
 ---
 
@@ -2844,7 +2935,7 @@ Potentially other historical display fields may also be snapshotted if needed.
 
 Customer deletion must not silently erase proof/approval history.
 
-This requirement directly informs the open Phase 1 Customer deletion decision.
+This requirement is implemented: `Proof.customerId` is nullable, Customer deletion uses `SetNull`, and Proof recipient snapshots preserve historical recipient identity.
 
 ---
 
@@ -3665,14 +3756,17 @@ supporting response/activity/dispatch enums
 Prisma runtime PostgreSQL adapter
 server-only database utility
 database-oriented integration tests
+Proof → Customer same-Organization enforcement through PostgreSQL triggers
+16 database integration tests covering the implemented Phase 1 invariants
 ```
 
 Remaining:
 
 ```text
-final remaining indexes/constraints review
-migration/database synchronization verification
-integration-test coverage review
+dedicated integration-test database safety verification with TEST_DATABASE_URL
+test-database migration/status verification
+16-test suite execution against the dedicated test database
+destructive-test equality-guard verification
 full Phase 1 quality gate
 final documentation/merge checkpoint
 ```
@@ -4075,7 +4169,7 @@ server-only database utility
 database-oriented integration tests
 ```
 
-The current database tests exercise implemented invariants including:
+The current database integration suite contains 16 tests covering:
 
 ```text
 Revision tenant ownership rejection
@@ -4083,19 +4177,30 @@ same-Proof currentRevision enforcement
 Customer deletion preserving Proof recipient history
 ProofResponse exact Revision/tenant ownership
 approved ProofResponse approval-statement requirement
+ProofResponse evidence deletion protection
+ProofActivity tenant ownership
 ProofDispatch Revision ownership
+Membership uniqueness
+Revision-number uniqueness
+valid nullable/current Revision behavior
+current-Revision deletion protection
+Proof deletion behavior with and without response evidence
+cross-tenant Proof → Customer rejection
 ```
 
 ### Next work
 
-Perform the final Phase 1 database review:
+Finish the dedicated integration-test database safety slice:
 
 ```text
-remaining high-value indexes/constraints
-migration/database synchronization
-integration-test coverage
-full Phase 1 quality gate
+verify DATABASE_URL and TEST_DATABASE_URL point to different Neon hosts
+verify migration status against the dedicated test database
+run all 16 database integration tests against TEST_DATABASE_URL
+prove the destructive-test equality guard fails closed
+run the full Phase 1 quality gate
 ```
+
+The remaining high-value constraints/index review is complete. The possible `ProofDispatch(status, scheduledAt)` compound index was deliberately deferred until the actual dispatch-worker query exists.
 
 Do not jump ahead to Auth0, S3, public review, or UI.
 
@@ -4310,9 +4415,9 @@ Do not invent distributed-system complexity.
 
 # END OF CURRENT TECHNICAL ARCHITECTURE SPECIFICATION
 
-**Current implementation checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. The core relational models through `ProofDispatch`, historical Proof recipient preservation, the Prisma/PostgreSQL runtime database utility, and database-oriented integration tests are implemented. Earlier Phase 1 slices through current-revision integrity are confirmed committed and pushed; later commit/push status must be verified from repository history.
+**Current implementation checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. The core relational models through `ProofDispatch`, historical Proof recipient preservation, Proof → Customer tenant-integrity triggers, the Prisma/PostgreSQL runtime database utility, and 16 database integration tests are implemented. The tenant-integrity migration was committed and pushed after its migration directory was explicitly staged.
 
-**Immediate next architecture task:** Final Phase 1 database review: remaining indexes/constraints, migration/database synchronization, integration-test coverage, and the full quality gate.
+**Immediate next architecture task:** Finish dedicated integration-test database safety with `TEST_DATABASE_URL`, verify the test target and migrations, run the 16-test suite and equality guard, then run the full Phase 1 quality gate.
 
 **Development method:** Follow `DEVELOPMENT_PLAYBOOK.md`.
 

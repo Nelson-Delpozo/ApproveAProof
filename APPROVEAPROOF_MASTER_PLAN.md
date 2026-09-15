@@ -126,7 +126,11 @@ Completed:
 - `ProofDispatch` transactional communication/outbox model implemented.
 - Prisma runtime PostgreSQL adapter and server-only database utility implemented.
 - Database-oriented integration tests implemented for the Phase 1 invariants reached so far.
-- Earlier Phase 1 slices through current-revision integrity were quality-gated, committed, and pushed. Do not infer commit/push status for later slices from this document unless repository history confirms it.
+- The database integration suite now contains 16 tests covering the implemented Phase 1 invariants.
+- Cross-tenant Proof → Customer assignment is rejected by PostgreSQL through dedicated insert/update triggers while preserving the existing `Customer` deletion `SetNull` behavior.
+- The final Phase 1 constraints/index review is complete; no speculative `ProofDispatch(status, scheduledAt)` compound index was added before the worker query exists.
+- The Proof → Customer tenant-integrity migration was committed and pushed after its migration directory was explicitly staged.
+- Dedicated integration-test database safety is now the active final Phase 1 implementation slice: a test-only Prisma client requires `TEST_DATABASE_URL` and refuses exact equality with `DATABASE_URL`; type checking passes. Test-database target verification, migration verification, destructive-test guard verification, and the final phase gate are still pending.
 
 Current implemented models:
 
@@ -159,11 +163,17 @@ Current migration history includes:
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
 20260912065530_add_proof_status
-20260912070452_add_revision_organization_ownership
+20260912071656_add_revision_organization_ownership
 20260912073503_add_current_revision_relationship
+20260912081733_preserve_proof_recipient_history
+20260914020100_enforce_proof_customer_tenant_integrity
+20260914064029_add_proof_response
+20260914064536_enforce_proof_response_approval_statement
+20260914065429_add_proof_activity
+20260914070108_add_proof_dispatch
 ```
 
-The repository is authoritative for the exact timestamp of any migration directory if it differs from this checkpoint text.
+The repository remains authoritative for exact migration history. The Revision organization-ownership migration timestamp is `20260912071656`.
 
 Current development branch:
 
@@ -179,18 +189,19 @@ Do not jump to Auth0, S3, UI, or approval routes yet.
 
 The core Phase 1 relational models, historical Customer/Proof deletion behavior, runtime Prisma/PostgreSQL database utility, and initial database integrity tests are now implemented.
 
-Continue Phase 1 by reviewing the remaining database foundation only:
+Continue Phase 1 only through the dedicated integration-test database safety slice and final completion gate:
 
-1. review remaining high-value constraints and indexes;
-2. confirm the implemented integration tests cover the intended Phase 1 database invariants;
-3. verify migration/database synchronization from the repository;
-4. run the final Phase 1 quality gate;
-5. update canonical documentation if repository verification reveals any exact implementation detail that differs from this checkpoint;
-6. merge `phase-1-database` into `main` only after the Phase 1 completion criteria are satisfied.
+1. verify that `DATABASE_URL` and `TEST_DATABASE_URL` resolve to different Neon hosts before any destructive test runs;
+2. target the dedicated test database explicitly when verifying/applying migrations;
+3. run the 16-test database integration suite against `TEST_DATABASE_URL`;
+4. prove the safety guard rejects a configuration where `TEST_DATABASE_URL` equals `DATABASE_URL`;
+5. run the complete Phase 1 quality gate;
+6. synchronize the canonical documentation to the verified repository state;
+7. merge `phase-1-database` into `main` only after all Phase 1 completion criteria are satisfied.
 
 The immediate resume point is:
 
-> **Phase 1 final database review and completion gate.**
+> **Phase 1 dedicated test-database safety verification and final completion gate.**
 
 Do not begin Phase 2 until that review and gate are complete.
 
@@ -685,7 +696,7 @@ ProofActivity
 ProofDispatch
 ```
 
-Current implemented subset:
+Current implemented models:
 
 ```text
 User
@@ -694,6 +705,9 @@ Membership
 Customer
 Proof
 Revision
+ProofResponse
+ProofActivity
+ProofDispatch
 ```
 
 Potential later models:
@@ -888,6 +902,8 @@ id
 organizationId
 customerId
 currentRevisionId
+recipientName
+recipientEmail
 title
 status
 createdAt
@@ -943,9 +959,6 @@ Planned fields still requiring deliberate design may include:
 
 ```text
 jobNumber
-
-recipientName
-recipientEmail
 
 reviewTokenHash
 
@@ -1052,51 +1065,58 @@ supersededAt
 
 ## ProofResponse
 
-**Not yet implemented.**
+**Implemented in Phase 1.**
 
-This will represent an authoritative customer decision.
+`ProofResponse` is the authoritative customer-decision evidence record.
 
-Types:
+Current implemented fields:
+
+```text
+id
+organizationId
+proofId
+revisionId
+type
+responderName
+responderEmail
+comments
+approvalStatementSnapshot
+occurredAt
+```
+
+Current response types:
 
 ```text
 APPROVED
 CHANGES_REQUESTED
 ```
 
-Expected important fields:
+The database enforces that the referenced Revision belongs to the same Proof and Organization through the composite Revision relationship.
 
-```text
-proofId
-revisionId
+An `APPROVED` response must contain `approvalStatementSnapshot`; this is enforced by a PostgreSQL CHECK constraint.
 
-type
+Deletion of a Revision referenced by a ProofResponse is restricted so ordinary deletion cannot destroy authoritative response evidence.
 
-responderName
-responderEmail
-
-comments
-
-privacy-conscious IP metadata
-userAgent
-
-approvalStatementSnapshot
-checklistSnapshot
-reviewFingerprintSnapshot
-
-occurredAt
-```
-
-The exact schema will be finalized during Phase 1 before migration.
-
----
 
 ## ProofActivity
 
-**Not yet implemented.**
+**Implemented in Phase 1.**
 
-Human-readable operational timeline.
+`ProofActivity` is the operational Proof timeline, not authoritative approval evidence.
 
-Examples:
+Current implemented fields:
+
+```text
+id
+organizationId
+proofId
+type
+createdAt
+```
+
+The database enforces Proof/Organization consistency through the composite Proof relationship.
+
+Current activity types include:
 
 ```text
 PROOF_CREATED
@@ -1105,36 +1125,38 @@ REVISION_READY
 PROOF_SENT
 PROOF_VIEWED
 CHANGES_REQUESTED
-REVISION_SUPERSEDED
 PROOF_APPROVED
 REMINDER_SENT
 PROOF_CANCELED
 REVIEW_LINK_REGENERATED
 ```
 
-Activity is useful for display.
-
-ProofResponse remains authoritative for customer decisions.
-
----
 
 ## ProofDispatch
 
-**Not yet implemented.**
+**Implemented in Phase 1.**
 
-Tracks transactional communication.
+`ProofDispatch` is the durable transactional communication/outbox record.
 
-Examples:
+Current implemented fields include:
 
 ```text
-INITIAL_PROOF
-REVISION
-REMINDER
-APPROVAL_CONFIRMATION
-CHANGE_REQUEST_NOTIFICATION
+id
+organizationId
+proofId
+revisionId
+type
+status
+recipientName
+recipientEmail
+attemptCount
+lastError
+scheduledAt
+sentAt
+createdAt
 ```
 
-States:
+Current dispatch states:
 
 ```text
 PENDING
@@ -1142,9 +1164,10 @@ SENT
 FAILED
 ```
 
-This enables retries without compromising approval transactions.
+When a Revision is present, the database enforces that it belongs to the same Proof and Organization.
 
----
+Current indexes include separate indexes on `status` and `scheduledAt`. A compound `(status, scheduledAt)` index was reviewed and deliberately deferred until the actual worker query exists.
+
 
 # 19. Proof State Machine
 
@@ -2570,7 +2593,7 @@ fingerprint
 
 Normal application APIs do not rewrite historical decisions.
 
-**Implementation note:** The current first-pass `Proof.customerId` relationship is required and uses restrictive deletion behavior. Historical deletion semantics must be revisited deliberately before Phase 1 is considered complete.
+**Implementation note:** Historical deletion semantics are implemented. `Proof.customerId` is nullable, Customer deletion uses `SetNull`, and `Proof.recipientName` / `Proof.recipientEmail` preserve recipient history. PostgreSQL insert/update triggers additionally reject a Proof whose non-null Customer belongs to a different Organization.
 
 ---
 
@@ -3253,11 +3276,13 @@ Completed:
 
 Remaining:
 
-- final review of remaining important indexes/constraints;
-- verify database/migration synchronization;
-- confirm database integrity-test coverage;
-- final Phase 1 quality gate;
-- final Phase 1 documentation/merge checkpoint.
+- finish dedicated integration-test database safety using `TEST_DATABASE_URL`;
+- verify the dedicated test target before destructive integration tests run;
+- verify migration status against the dedicated test database;
+- run the 16 database integration tests against the dedicated test database;
+- prove the destructive-test guard rejects `TEST_DATABASE_URL == DATABASE_URL`;
+- run the final Phase 1 quality gate;
+- perform the final Phase 1 documentation/merge checkpoint.
 
 No application proof workflow yet.
 
@@ -4243,7 +4268,7 @@ Scalable simplicity is preferred to speculative complexity.
 
 # 99. Current Working Checkpoint
 
-**Date:** September 12, 2026
+**Date:** September 14, 2026
 
 Repository:
 
@@ -4285,6 +4310,9 @@ Membership
 Customer
 Proof
 Revision
+ProofResponse
+ProofActivity
+ProofDispatch
 ```
 
 Implemented enums:
@@ -4292,6 +4320,10 @@ Implemented enums:
 ```text
 MembershipRole
 ProofStatus
+ProofResponseType
+ProofActivityType
+ProofDispatchType
+ProofDispatchStatus
 ```
 
 Implemented integrity relationships include:
@@ -4377,18 +4409,21 @@ server-only database utility
 database-oriented integration tests
 ```
 
-The database tests currently exercise implemented invariants including recipient-history preservation, exact ProofResponse Revision ownership, the approval-statement requirement, and ProofDispatch Revision ownership.
+The database integration suite currently contains 16 tests covering the implemented Phase 1 invariants, including recipient-history preservation, exact ProofResponse Revision ownership, the approval-statement requirement, ProofDispatch Revision ownership, deletion/evidence behavior, uniqueness constraints, current-Revision integrity, and rejection of cross-tenant Proof → Customer assignment.
 
 ### Immediate next development task
 
-Perform the final Phase 1 database review:
+Finish the dedicated integration-test database safety slice:
 
 ```text
-remaining high-value indexes/constraints
-database/migration synchronization
-integration-test coverage
-full Phase 1 quality gate
+confirm DATABASE_URL and TEST_DATABASE_URL resolve to different Neon hosts
+target the test database explicitly for migration verification
+run all 16 database integration tests against TEST_DATABASE_URL
+prove the destructive-test equality guard fails closed
+run the full Phase 1 quality gate
 ```
+
+The remaining high-value constraints/index review is already complete.
 
 Do not add speculative schema fields merely to make Phase 1 look more complete.
 
@@ -4676,9 +4711,9 @@ Fix proof approval exceptionally well.
 
 # END OF CURRENT MASTER PLAN
 
-**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. The core relational models through `ProofDispatch`, historical Proof recipient preservation, the Prisma/PostgreSQL runtime database utility, and database-oriented integration tests are implemented. Earlier Phase 1 slices through current-revision integrity are confirmed committed and pushed; later commit/push status should be verified from repository history rather than inferred here.
+**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. The core relational models through `ProofDispatch`, historical Proof recipient preservation, the Proof → Customer tenant-integrity trigger, the Prisma/PostgreSQL runtime database utility, and 16 database integration tests are implemented. The tenant-integrity migration was committed and pushed after its migration directory was explicitly staged.
 
-**Next action:** Perform the final Phase 1 database review: remaining indexes/constraints, migration/database synchronization, integration-test coverage, and the full Phase 1 quality gate.
+**Next action:** Finish dedicated integration-test database safety with `TEST_DATABASE_URL`, verify the test target and migrations, run all 16 database integration tests against it, prove the destructive-test guard fails closed, then run the full Phase 1 quality gate.
 
 **Development method:** Follow `DEVELOPMENT_PLAYBOOK.md`.
 
