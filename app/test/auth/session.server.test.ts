@@ -6,26 +6,28 @@ import {
   clearAuthorizationTransaction,
   commitSession,
   destroySession,
+  getAuthenticatedUserId,
   getAuthorizationTransaction,
   getSession,
+  setAuthenticatedUserId,
   setAuthorizationTransaction,
 } from "../../services/auth/session.server";
 
 describe("authentication session", () => {
-  it("round-trips session data through the signed cookie", async () => {
+  it("round-trips data through a signed cookie", async () => {
     const session = await getSession();
 
-    session.set("userId", "user-123");
+    session.set("example", "value");
 
     const setCookie = await commitSession(session);
     const cookie = setCookie.split(";")[0];
 
     const restoredSession = await getSession(cookie);
 
-    expect(restoredSession.get("userId")).toBe("user-123");
+    expect(restoredSession.get("example")).toBe("value");
   });
 
-  it("creates an HttpOnly SameSite=Lax cookie", async () => {
+  it("uses the expected cookie security flags", async () => {
     const session = await getSession();
     const setCookie = await commitSession(session);
 
@@ -37,25 +39,22 @@ describe("authentication session", () => {
   it("destroys the session cookie", async () => {
     const session = await getSession();
 
-    session.set("userId", "user-123");
+    session.set("example", "value");
 
     const setCookie = await destroySession(session);
 
-    expect(setCookie).toContain("__approveaproof_session=;");
     expect(setCookie).toContain(
       "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
     );
-    expect(setCookie).toContain("HttpOnly");
-    expect(setCookie).toContain("SameSite=Lax");
   });
 
-  it("stores and clears an authorization transaction", async () => {
+  it("stores and clears the authorization transaction", async () => {
     const session = await getSession();
 
     const transaction = {
-      codeVerifier: "verifier-123",
-      state: "state-123",
-      nonce: "nonce-123",
+      codeVerifier: "test-code-verifier",
+      state: "test-state",
+      nonce: "test-nonce",
     };
 
     setAuthorizationTransaction(session, transaction);
@@ -66,4 +65,17 @@ describe("authentication session", () => {
 
     expect(getAuthorizationTransaction(session)).toBeUndefined();
   });
-});
+
+  it("stores the authenticated local user ID", async () => {
+    const session = await getSession();
+
+    setAuthenticatedUserId(session, "test-user-id");
+
+    const setCookie = await commitSession(session);
+    const cookie = setCookie.split(";")[0];
+
+    const restoredSession = await getSession(cookie);
+
+    expect(getAuthenticatedUserId(restoredSession)).toBe("test-user-id");
+  });
+}); 

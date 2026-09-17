@@ -4,6 +4,7 @@ import type { AuthorizationTransaction } from "./auth-types";
 import { authConfig } from "./auth-config.server";
 
 const AUTH_TRANSACTION_KEY = "authTransaction";
+const USER_ID_KEY = "userId";
 
 export const sessionStorage = createCookieSessionStorage({
   cookie: {
@@ -37,4 +38,17 @@ export function clearAuthorizationTransaction(
   session: Awaited<ReturnType<typeof getSession>>,
 ) {
   session.unset(AUTH_TRANSACTION_KEY);
+}
+
+export function setAuthenticatedUserId(
+  session: Awaited<ReturnType<typeof getSession>>,
+  userId: string,
+) {
+  session.set(USER_ID_KEY, userId);
+}
+
+export function getAuthenticatedUserId(
+  session: Awaited<ReturnType<typeof getSession>>,
+): string | undefined {
+  return session.get(USER_ID_KEY) as string | undefined;
 }

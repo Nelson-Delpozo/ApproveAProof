@@ -5,7 +5,7 @@ import { getOidcConfiguration } from "./oidc.server";
 
 export type AuthenticatedIdentity = {
   subject: string;
-  email?: string;
+  email: string;
   name?: string;
 };
 
@@ -32,9 +32,13 @@ export async function processAuthorizationCallback(
     throw new Error("Authenticated identity is missing a subject");
   }
 
+  if (typeof claims.email !== "string" || claims.email.length === 0) {
+    throw new Error("Authenticated identity is missing an email");
+  }
+
   return {
     subject: claims.sub,
-    email: typeof claims.email === "string" ? claims.email : undefined,
+    email: claims.email,
     name: typeof claims.name === "string" ? claims.name : undefined,
   };
 }
