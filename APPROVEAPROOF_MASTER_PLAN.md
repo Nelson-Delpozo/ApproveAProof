@@ -1,14 +1,14 @@
-# ApproveAProof — Master Product & Engineering Plan
+# ApproveAProof --- Master Product & Engineering Plan
 
-**Document purpose:** Canonical product, architecture, security, development, and implementation-status reference
-**Project:** ApproveAProof
-**Primary marketing domain:** `approveaproof.com`
-**Application domain:** `approveaproof.app`
-**Initial market:** Small custom-production businesses, beginning with local print shops
-**Status:** MVP development
-**Last major checkpoint:** September 14, 2026
+**Document purpose:** Canonical product, architecture, security,
+development, and implementation-status reference **Project:**
+ApproveAProof **Primary marketing domain:** `approveaproof.com`
+**Application domain:** `approveaproof.app` **Initial market:** Small
+custom-production businesses, beginning with local print shops
+**Status:** MVP development **Last major checkpoint:** September 17,
+2026
 
----
+------------------------------------------------------------------------
 
 # 1. How to Use This Document
 
@@ -16,14 +16,15 @@ This document is the source of truth for the direction of ApproveAProof.
 
 It exists to prevent:
 
-- architectural drift
-- forgotten decisions
-- accidental scope creep
-- inconsistent security decisions
-- rebuilding previously solved problems
-- losing track of development progress between sessions
+-   architectural drift
+-   forgotten decisions
+-   accidental scope creep
+-   inconsistent security decisions
+-   rebuilding previously solved problems
+-   losing track of development progress between sessions
 
-Before making a major architectural or product decision, check this document.
+Before making a major architectural or product decision, check this
+document.
 
 When a significant decision changes, update this document.
 
@@ -33,13 +34,15 @@ The document uses three classifications.
 
 A foundational decision that should not change casually.
 
-Changing a LOCKED decision requires an explicit reason and consideration of its architectural consequences.
+Changing a LOCKED decision requires an explicit reason and consideration
+of its architectural consequences.
 
 ### CURRENT PLAN
 
 The intended implementation based on current knowledge.
 
-It may change when development or customer feedback gives us better information.
+It may change when development or customer feedback gives us better
+information.
 
 ### HYPOTHESIS / BACKLOG
 
@@ -47,94 +50,127 @@ An idea that has not yet earned its place in the product.
 
 Do not build it merely because it appears in this document.
 
----
+------------------------------------------------------------------------
 
 # 2. Project Status
 
-## Current checkpoint — September 14, 2026
+## Current checkpoint --- September 17, 2026
 
 ### Product and architecture
 
 Completed:
 
-- Product pivot from SmartLynx established.
-- Initial market research completed.
-- Small custom-production businesses selected as the broader market.
-- Local commercial/digital print shops selected as the initial wedge.
-- Core proof-approval problem identified.
-- Product architecture designed.
-- Security and scalability requirements established.
-- `approveaproof.com` selected for the marketing site.
-- `approveaproof.app` selected for the application.
-- New ApproveAProof repository created.
-- SmartLynx retained as a frozen reference implementation.
+-   Product pivot from SmartLynx established.
+-   Initial market research completed.
+-   Small custom-production businesses selected as the broader market.
+-   Local commercial/digital print shops selected as the initial wedge.
+-   Core proof-approval problem identified.
+-   Product architecture designed.
+-   Security and scalability requirements established.
+-   `approveaproof.com` selected for the marketing site.
+-   `approveaproof.app` selected for the application.
+-   New ApproveAProof repository created.
+-   SmartLynx retained as a frozen reference implementation.
 
-### Phase 0 — Foundation
+### Phase 0 --- Foundation
 
 **Status: COMPLETE**
 
 Completed:
 
-- React Router Framework Mode application scaffold created.
-- Starter boilerplate removed.
-- Minimal ApproveAProof application shell established.
-- React Router server/client boundary understood and documented.
-- Environment-variable validation established with Zod.
-- ESLint configured.
-- Prettier configured.
-- Vitest configured.
-- Testing Library baseline installed.
-- Smoke test established.
-- Type checking established.
-- Production build verified.
-- Full quality gate passed:
+-   React Router Framework Mode application scaffold created.
 
-  - format
-  - lint
-  - typecheck
-  - test
-  - build
+-   Starter boilerplate removed.
 
-- Foundation committed and pushed.
+-   Minimal ApproveAProof application shell established.
 
-### Phase 1 — Database
+-   React Router server/client boundary understood and documented.
 
-**Status: IN PROGRESS**
+-   Environment-variable validation established with Zod.
+
+-   ESLint configured.
+
+-   Prettier configured.
+
+-   Vitest configured.
+
+-   Testing Library baseline installed.
+
+-   Smoke test established.
+
+-   Type checking established.
+
+-   Production build verified.
+
+-   Full quality gate passed:
+
+    -   format
+    -   lint
+    -   typecheck
+    -   test
+    -   build
+
+-   Foundation committed and pushed.
+
+### Phase 1 --- Database
+
+**Status: COMPLETE**
 
 Completed:
 
-- Prisma selected and pinned to stable `7.10.0`.
-- Prisma 8 release candidate deliberately rejected for production development.
-- Neon selected as the managed PostgreSQL provider.
-- Fresh ApproveAProof Neon database created.
-- Prisma-to-Neon connectivity verified.
-- Prisma schema-first migration workflow established.
-- `prisma.config.ts` established.
-- Generated Prisma client directory excluded from Git.
-- Initial identity/tenant schema created and migrated.
-- Customer, Proof, and Revision schema created and migrated.
-- `ProofStatus` operational workflow state implemented and migrated.
-- Revision now carries explicit `organizationId`.
-- Database-enforced composite Revision → Proof tenant ownership implemented.
-- Nullable `Proof.currentRevisionId` implemented.
-- Database-enforced same-Proof current-revision integrity implemented.
-- Historical Proof recipient preservation implemented: `Proof.customerId` is nullable, Customer deletion uses `SetNull`, and Proof snapshots `recipientName` / `recipientEmail`.
-- `ProofResponse` implemented as authoritative customer-decision evidence tied to an exact Revision.
-- Database-enforced ProofResponse tenant/Proof/Revision consistency implemented.
-- Approved ProofResponses require an `approvalStatementSnapshot` through a database CHECK constraint.
-- `ProofActivity` operational timeline model implemented.
-- `ProofDispatch` transactional communication/outbox model implemented.
-- Prisma runtime PostgreSQL adapter and server-only database utility implemented.
-- Database-oriented integration tests implemented for the Phase 1 invariants reached so far.
-- The database integration suite now contains 16 tests covering the implemented Phase 1 invariants.
-- Cross-tenant Proof → Customer assignment is rejected by PostgreSQL through dedicated insert/update triggers while preserving the existing `Customer` deletion `SetNull` behavior.
-- The final Phase 1 constraints/index review is complete; no speculative `ProofDispatch(status, scheduledAt)` compound index was added before the worker query exists.
-- The Proof → Customer tenant-integrity migration was committed and pushed after its migration directory was explicitly staged.
-- Dedicated integration-test database safety is now the active final Phase 1 implementation slice: a test-only Prisma client requires `TEST_DATABASE_URL` and refuses exact equality with `DATABASE_URL`; type checking passes. Test-database target verification, migration verification, destructive-test guard verification, and the final phase gate are still pending.
+-   Prisma selected and pinned to stable `7.10.0`.
+-   Prisma 8 release candidate deliberately rejected for production
+    development.
+-   Neon selected as the managed PostgreSQL provider.
+-   Fresh ApproveAProof Neon database created.
+-   Prisma-to-Neon connectivity verified.
+-   Prisma schema-first migration workflow established.
+-   `prisma.config.ts` established.
+-   Generated Prisma client directory excluded from Git.
+-   Initial identity/tenant schema created and migrated.
+-   Customer, Proof, and Revision schema created and migrated.
+-   `ProofStatus` operational workflow state implemented and migrated.
+-   Revision now carries explicit `organizationId`.
+-   Database-enforced composite Revision → Proof tenant ownership
+    implemented.
+-   Nullable `Proof.currentRevisionId` implemented.
+-   Database-enforced same-Proof current-revision integrity implemented.
+-   Historical Proof recipient preservation implemented:
+    `Proof.customerId` is nullable, Customer deletion uses `SetNull`,
+    and Proof snapshots `recipientName` / `recipientEmail`.
+-   `ProofResponse` implemented as authoritative customer-decision
+    evidence tied to an exact Revision.
+-   Database-enforced ProofResponse tenant/Proof/Revision consistency
+    implemented.
+-   Approved ProofResponses require an `approvalStatementSnapshot`
+    through a database CHECK constraint.
+-   `ProofActivity` operational timeline model implemented.
+-   `ProofDispatch` transactional communication/outbox model
+    implemented.
+-   Prisma runtime PostgreSQL adapter and server-only database utility
+    implemented.
+-   Database-oriented integration tests implemented for the Phase 1
+    invariants reached so far.
+-   The database integration suite now contains 16 tests covering the
+    implemented Phase 1 invariants.
+-   Cross-tenant Proof → Customer assignment is rejected by PostgreSQL
+    through dedicated insert/update triggers while preserving the
+    existing `Customer` deletion `SetNull` behavior.
+-   The final Phase 1 constraints/index review is complete; no
+    speculative `ProofDispatch(status, scheduledAt)` compound index was
+    added before the worker query exists.
+-   The Proof → Customer tenant-integrity migration was committed and
+    pushed after its migration directory was explicitly staged.
+-   Dedicated integration-test database safety is implemented and
+    verified: destructive integration tests use `TEST_DATABASE_URL`, the
+    test client rejects exact equality with `DATABASE_URL`, the
+    dedicated test target and migrations were verified, and the Phase 1
+    completion gate passed.
+-   Phase 1 was completed and merged into `main` before Phase 2 began.
 
 Current implemented models:
 
-```text
+``` text
 Organization
 User
 Membership
@@ -148,7 +184,7 @@ ProofDispatch
 
 Current implemented enums include:
 
-```text
+``` text
 MembershipRole
 ProofStatus
 ProofResponseType
@@ -159,7 +195,7 @@ ProofDispatchStatus
 
 Current migration history includes:
 
-```text
+``` text
 20260910064511_init_identity
 20260910065333_add_customer_proof_revision
 20260912065530_add_proof_status
@@ -173,63 +209,119 @@ Current migration history includes:
 20260914070108_add_proof_dispatch
 ```
 
-The repository remains authoritative for exact migration history. The Revision organization-ownership migration timestamp is `20260912071656`.
+The repository remains authoritative for exact migration history. The
+Revision organization-ownership migration timestamp is `20260912071656`.
 
 Current development branch:
 
-```text
-phase-1-database
+``` text
+phase-2-auth
 ```
 
-Current pushed database checkpoints now include the Proof status, Revision tenant-ownership, and current-revision integrity work.
+### Phase 2 --- Identity and Tenant Foundation
+
+**Status: COMPLETE --- pending final documentation commit and merge to
+`main`**
+
+Completed:
+
+-   Auth0 integrated using standard OIDC Authorization Code Flow with
+    PKCE through `openid-client`.
+-   React Router signed cookie sessions implemented for application
+    authentication state.
+-   Auth0 `sub` resolves to local `User.auth0Subject`; authenticated
+    users are created/synchronized in PostgreSQL.
+-   `/auth/login` creates PKCE/state/nonce authorization transactions
+    and redirects to Auth0.
+-   `/auth/callback` validates the authorization transaction, resolves
+    the local User, establishes the application session, and redirects
+    to `/app`.
+-   `requireUser()` protects authenticated application routes.
+-   Organization onboarding implemented for authenticated users without
+    a Membership.
+-   Organization creation and OWNER Membership creation occur
+    transactionally.
+-   Organization slugs are generated server-side with collision
+    handling.
+-   `requireOrganization()` resolves the authenticated User, Membership,
+    and Organization.
+-   `requireRole()` enforces the current OWNER / ADMIN / MEMBER
+    hierarchy server-side.
+-   Authenticated `/app` shell implemented.
+-   Tenant-scoped Customer lookup implemented and covered by dedicated
+    cross-tenant integration tests.
+-   Automated auth tests use deterministic local OIDC configuration
+    rather than depending on live Auth0 discovery.
+-   Full automated suite passes: 20 test files / 70 tests.
+-   Full Phase 2 quality gate passes: format, lint, typecheck, test,
+    build.
+-   Real browser smoke test verified the complete flow: `/app` → Auth0 →
+    `/app/onboarding` → Organization creation → OWNER Membership →
+    `/app`.
+-   Prisma Studio verification confirmed the created Organization and
+    OWNER Membership belong to the authenticated local User.
+
+Current limitation deliberately accepted for this stage:
+
+-   `requireOrganization()` currently selects the first Membership
+    because the initial application flow creates one organization per
+    user. This is not the permanent multi-organization selection design;
+    an explicit active-organization mechanism must be introduced before
+    multi-organization UX requires it.
 
 ### Exact next development task
 
-Do not jump to Auth0, S3, UI, or approval routes yet.
+Finish the Phase 2 documentation checkpoint, run any final verification
+required by the documentation/code state, commit and push the
+documentation, then merge:
 
-The core Phase 1 relational models, historical Customer/Proof deletion behavior, runtime Prisma/PostgreSQL database utility, and initial database integrity tests are now implemented.
+``` text
+phase-2-auth
+```
 
-Continue Phase 1 only through the dedicated integration-test database safety slice and final completion gate:
+into:
 
-1. verify that `DATABASE_URL` and `TEST_DATABASE_URL` resolve to different Neon hosts before any destructive test runs;
-2. target the dedicated test database explicitly when verifying/applying migrations;
-3. run the 16-test database integration suite against `TEST_DATABASE_URL`;
-4. prove the safety guard rejects a configuration where `TEST_DATABASE_URL` equals `DATABASE_URL`;
-5. run the complete Phase 1 quality gate;
-6. synchronize the canonical documentation to the verified repository state;
-7. merge `phase-1-database` into `main` only after all Phase 1 completion criteria are satisfied.
+``` text
+main
+```
 
-The immediate resume point is:
+After the merge, begin Phase 3 --- Core Domain from a clean branch.
 
-> **Phase 1 dedicated test-database safety verification and final completion gate.**
+The immediate resume point after the merge is:
 
-Do not begin Phase 2 until that review and gate are complete.
+> **Phase 3 core-domain behavior: Customer, Proof, Revision,
+> ProofResponse, ProofActivity, ProofDispatch, state-machine logic,
+> revision allocation, and domain invariants.**
 
----
+------------------------------------------------------------------------
 
 # 3. Product Vision
 
 ## LOCKED
 
-ApproveAProof is a lightweight proof-review and approval application for businesses that create custom physical products.
+ApproveAProof is a lightweight proof-review and approval application for
+businesses that create custom physical products.
 
 Its central purpose is to answer:
 
-> **Which exact version did the customer approve for production, who approved it, and when?**
+> **Which exact version did the customer approve for production, who
+> approved it, and when?**
 
 The product replaces fragile approval workflows such as:
 
-- emailing PDFs back and forth;
-- customers replying "looks good";
-- text-message approvals;
-- screenshots;
-- verbal approvals;
-- employees searching old email threads;
-- uncertainty about which revision was approved.
+-   emailing PDFs back and forth;
+-   customers replying "looks good";
+-   text-message approvals;
+-   screenshots;
+-   verbal approvals;
+-   employees searching old email threads;
+-   uncertainty about which revision was approved.
 
-ApproveAProof creates a simple, explicit, documented approval workflow without requiring the business to replace its existing operating systems.
+ApproveAProof creates a simple, explicit, documented approval workflow
+without requiring the business to replace its existing operating
+systems.
 
----
+------------------------------------------------------------------------
 
 # 4. Core Product Promise
 
@@ -241,7 +333,7 @@ The product should ultimately make this statement true:
 
 Everything in the core architecture should reinforce that outcome.
 
----
+------------------------------------------------------------------------
 
 # 5. Initial Customer
 
@@ -251,17 +343,19 @@ Initial target:
 
 **Small independent commercial and digital print shops.**
 
-Particularly attractive prospects are shops where proof approval currently happens through:
+Particularly attractive prospects are shops where proof approval
+currently happens through:
 
-- emailed PDFs;
-- email attachments;
-- text messages;
-- screenshots;
-- informal email replies.
+-   emailed PDFs;
+-   email attachments;
+-   text messages;
+-   screenshots;
+-   informal email replies.
 
 Ideal discovery question:
 
-> **How do customers approve artwork before you send a job to production?**
+> **How do customers approve artwork before you send a job to
+> production?**
 
 Strong prospect answers:
 
@@ -279,7 +373,7 @@ Weak prospect answers:
 
 > "Our MIS already manages approvals."
 
----
+------------------------------------------------------------------------
 
 # 6. Adjacent Markets
 
@@ -287,23 +381,23 @@ Weak prospect answers:
 
 The same approval workflow may later serve:
 
-- sign shops;
-- screen printing;
-- DTF/DTG businesses;
-- embroidery shops;
-- vehicle wraps;
-- stickers and decals;
-- promotional products;
-- engraving and awards;
-- packaging;
-- personalized-product manufacturers;
-- other custom-production businesses.
+-   sign shops;
+-   screen printing;
+-   DTF/DTG businesses;
+-   embroidery shops;
+-   vehicle wraps;
+-   stickers and decals;
+-   promotional products;
+-   engraving and awards;
+-   packaging;
+-   personalized-product manufacturers;
+-   other custom-production businesses.
 
 The architecture should support these industries.
 
 The MVP does not need industry-specific functionality for all of them.
 
----
+------------------------------------------------------------------------
 
 # 7. Product Positioning
 
@@ -319,14 +413,14 @@ It is:
 
 The positioning should emphasize:
 
-- clear approval;
-- exact revision identity;
-- fewer misunderstandings;
-- documented customer decisions;
-- easier revision cycles;
-- knowing when production can proceed.
+-   clear approval;
+-   exact revision identity;
+-   fewer misunderstandings;
+-   documented customer decisions;
+-   easier revision cycles;
+-   knowing when production can proceed.
 
----
+------------------------------------------------------------------------
 
 # 8. What We Are NOT Building
 
@@ -334,32 +428,33 @@ The positioning should emphasize:
 
 ApproveAProof is not becoming:
 
-- a CRM;
-- print MIS;
-- ERP;
-- quoting software;
-- invoicing software;
-- accounting software;
-- inventory software;
-- production scheduling software;
-- online storefront;
-- project-management platform;
-- Adobe replacement;
-- graphic-design editor.
+-   a CRM;
+-   print MIS;
+-   ERP;
+-   quoting software;
+-   invoicing software;
+-   accounting software;
+-   inventory software;
+-   production scheduling software;
+-   online storefront;
+-   project-management platform;
+-   Adobe replacement;
+-   graphic-design editor.
 
 The positioning is:
 
-> **Keep the tools you already use. ApproveAProof fixes proof approval.**
+> **Keep the tools you already use. ApproveAProof fixes proof
+> approval.**
 
 This boundary is strategically important.
 
----
+------------------------------------------------------------------------
 
 # 9. MVP Workflow
 
 ## LOCKED
 
-```text
+``` text
 SHOP CREATES PROOF
         │
         ▼
@@ -388,7 +483,7 @@ CUSTOMER REVIEWS
 
 Example:
 
-```text
+``` text
 Johnson Dental Brochure
 Job #10482
 
@@ -409,7 +504,7 @@ Revision 2 remains preserved.
 
 Approval points specifically to Revision 2.
 
----
+------------------------------------------------------------------------
 
 # 10. Primary Domain Model
 
@@ -417,7 +512,7 @@ Approval points specifically to Revision 2.
 
 The central hierarchy is:
 
-```text
+``` text
 Organization
     │
     ├── Users / Memberships
@@ -437,7 +532,7 @@ Organization
 
 The most important relationship in the application is:
 
-```text
+``` text
 Proof
   ↓
 Immutable Revision
@@ -445,35 +540,36 @@ Immutable Revision
 ProofResponse
 ```
 
-Implementation naming may use `Revision` rather than `ProofRevision` where the surrounding domain already makes its meaning unambiguous.
+Implementation naming may use `Revision` rather than `ProofRevision`
+where the surrounding domain already makes its meaning unambiguous.
 
 The invariant is more important than the model name.
 
----
+------------------------------------------------------------------------
 
 # 11. Fundamental Data Invariant
 
-## LOCKED — NON-NEGOTIABLE
+## LOCKED --- NON-NEGOTIABLE
 
 > **An approval always belongs to exactly one immutable revision.**
 
 Never represent approval merely as:
 
-```text
+``` text
 proof.approved = true
 ```
 
 without preserving the exact approved revision.
 
----
+------------------------------------------------------------------------
 
-# 12. Proof vs. Revision
+# 12. Proof vs. Revision
 
 A `Proof` represents an approval process.
 
 Example:
 
-```text
+``` text
 Johnson Dental Brochure
 ```
 
@@ -481,7 +577,7 @@ A `Revision` represents a specific artifact presented to the customer.
 
 Example:
 
-```text
+``` text
 Revision 1
 Revision 2
 Revision 3
@@ -489,7 +585,7 @@ Revision 3
 
 A customer may:
 
-```text
+``` text
 Revision 1 → Request Changes
 Revision 2 → Request Changes
 Revision 3 → Approve
@@ -499,17 +595,17 @@ The Proof becomes APPROVED.
 
 The authoritative approval record references Revision 3.
 
----
+------------------------------------------------------------------------
 
 # 13. Revision Immutability
 
-## LOCKED — SECURITY/INTEGRITY REQUIREMENT
+## LOCKED --- SECURITY/INTEGRITY REQUIREMENT
 
 A revision that has been presented to a customer is never overwritten.
 
 Never:
 
-```text
+``` text
 proof.pdf
     ↓ overwrite
 proof.pdf
@@ -517,7 +613,7 @@ proof.pdf
 
 Instead:
 
-```text
+``` text
 Revision 1 → S3 object A
 Revision 2 → S3 object B
 Revision 3 → S3 object C
@@ -525,11 +621,12 @@ Revision 3 → S3 object C
 
 This preserves exactly what the customer saw.
 
-The current database design reinforces this by treating Revision records as immutable artifacts rather than ordinary editable records.
+The current database design reinforces this by treating Revision records
+as immutable artifacts rather than ordinary editable records.
 
 Revision currently has no `updatedAt` field by design.
 
----
+------------------------------------------------------------------------
 
 # 14. Multi-Tenant Architecture
 
@@ -539,25 +636,25 @@ The application is multi-tenant from day one.
 
 The tenant is:
 
-```text
+``` text
 Organization
 ```
 
 Example:
 
-```text
+``` text
 Denver Quick Print
 ```
 
 Users belong to organizations through:
 
-```text
+``` text
 Membership
 ```
 
 Conceptually:
 
-```text
+``` text
 User
   │
 Membership
@@ -571,11 +668,13 @@ Organization
   └── Subscription
 ```
 
-Even if initial customers have one employee, this prevents a difficult migration when teams are introduced.
+Even if initial customers have one employee, this prevents a difficult
+migration when teams are introduced.
 
-Tenant isolation must remain explicit in application queries and domain operations.
+Tenant isolation must remain explicit in application queries and domain
+operations.
 
----
+------------------------------------------------------------------------
 
 # 15. Technology Stack
 
@@ -583,61 +682,64 @@ Tenant isolation must remain explicit in application queries and domain operatio
 
 Application:
 
-- React Router Framework Mode `^8`
-- React `^19.2.7`
-- TypeScript `^5.9.3`
-- Vite `^8.0.3`
+-   React Router Framework Mode `^8`
+-   React `^19.2.7`
+-   TypeScript `^5.9.3`
+-   Vite `^8.0.3`
 
 Database:
 
-- PostgreSQL
-- Neon managed PostgreSQL
-- Prisma `7.10.0`
+-   PostgreSQL
+-   Neon managed PostgreSQL
+-   Prisma `7.10.0`
 
 Authentication:
 
-- Auth0 planned for Phase 2
+-   Auth0
+-   OIDC Authorization Code Flow with PKCE via `openid-client`
+-   React Router signed cookie sessions
+-   local User resolution through `User.auth0Subject`
 
 Object storage:
 
-- AWS S3 planned
+-   AWS S3 planned
 
 Email:
 
-- SendGrid planned
+-   SendGrid planned
 
 Billing:
 
-- Stripe planned
+-   Stripe planned
 
 Styling:
 
-- Tailwind CSS `^4.2.2`
+-   Tailwind CSS `^4.2.2`
 
 Validation:
 
-- Zod
+-   Zod
 
 Testing:
 
-- Vitest
-- jsdom
-- Testing Library where appropriate
+-   Vitest
+-   jsdom
+-   Testing Library where appropriate
 
 Runtime during current local development:
 
-- Node.js `v24.14.1`
-- macOS arm64
+-   Node.js `v24.14.1`
+-   macOS arm64
 
 Hosting:
 
-- likely Vercel or equivalent; not yet finalized
+-   likely Vercel or equivalent; not yet finalized
 
 Architecture:
 
-- modular monolith
+-   modular monolith
 
----
+------------------------------------------------------------------------
 
 # 16. Why a Modular Monolith
 
@@ -647,7 +749,7 @@ Do not build microservices.
 
 Initial architecture:
 
-```text
+``` text
                   ApproveAProof
                   Web Application
                        │
@@ -664,7 +766,7 @@ This is capable of supporting far more customers than the MVP requires.
 
 We will earn distributed-system complexity rather than inventing it.
 
----
+------------------------------------------------------------------------
 
 # 17. Database Strategy
 
@@ -674,17 +776,18 @@ Use one primary PostgreSQL database.
 
 Current provider:
 
-```text
+``` text
 Neon
 ```
 
 Do not reproduce SmartLynx's separate analytics database.
 
-Approval information is operational business data, not optional analytics.
+Approval information is operational business data, not optional
+analytics.
 
 Core models ultimately expected:
 
-```text
+``` text
 User
 Organization
 Membership
@@ -698,7 +801,7 @@ ProofDispatch
 
 Current implemented models:
 
-```text
+``` text
 User
 Organization
 Membership
@@ -712,7 +815,7 @@ ProofDispatch
 
 Potential later models:
 
-```text
+``` text
 ProofRecipient
 ProofAnnotation
 OrganizationCustomDomain
@@ -723,7 +826,7 @@ Do not create them until needed.
 
 Development follows a schema-first migration workflow:
 
-```text
+``` text
 define Prisma schema
         ↓
 validate schema
@@ -735,15 +838,19 @@ apply migration to Neon
 commit migration with schema change
 ```
 
-Do not use database introspection as the normal development workflow for this project.
+Do not use database introspection as the normal development workflow for
+this project.
 
----
+------------------------------------------------------------------------
 
 # 18. Core Models
 
-This section describes both the intended domain and the implementation reached so far.
+This section describes both the intended domain and the implementation
+reached so far.
 
-Where the implemented Phase 1 schema is intentionally smaller than the eventual model, future fields should be added deliberately as their corresponding architecture is finalized.
+Where the implemented Phase 1 schema is intentionally smaller than the
+eventual model, future fields should be added deliberately as their
+corresponding architecture is finalized.
 
 ## User
 
@@ -751,7 +858,7 @@ Identity only.
 
 Current implemented fields:
 
-```text
+``` text
 id
 auth0Subject
 email
@@ -768,7 +875,7 @@ Billing does not belong to User.
 
 Branding does not belong to User.
 
----
+------------------------------------------------------------------------
 
 ## Organization
 
@@ -776,7 +883,7 @@ Represents the business using ApproveAProof.
 
 Current implemented fields:
 
-```text
+``` text
 id
 name
 slug
@@ -786,7 +893,7 @@ updatedAt
 
 Current relationships:
 
-```text
+``` text
 memberships
 customers
 proofs
@@ -795,7 +902,7 @@ revisions
 
 Future organization-level fields may include:
 
-```text
+``` text
 branding settings
 
 default approval statement
@@ -812,7 +919,7 @@ Billing belongs to Organization.
 
 Branding belongs to Organization.
 
----
+------------------------------------------------------------------------
 
 ## Membership
 
@@ -820,7 +927,7 @@ Connects users and organizations.
 
 Current implemented roles:
 
-```text
+``` text
 OWNER
 ADMIN
 MEMBER
@@ -828,7 +935,7 @@ MEMBER
 
 Current implemented fields:
 
-```text
+``` text
 id
 organizationId
 userId
@@ -839,17 +946,19 @@ updatedAt
 
 Current database constraints include:
 
-```text
+``` text
 unique organizationId + userId
 index organizationId
 index userId
 ```
 
-`MEMBER` currently represents an ordinary non-administrative organization member.
+`MEMBER` currently represents an ordinary non-administrative
+organization member.
 
-Role naming may be revisited only if actual authorization requirements make a different name materially clearer.
+Role naming may be revisited only if actual authorization requirements
+make a different name materially clearer.
 
----
+------------------------------------------------------------------------
 
 ## Customer
 
@@ -857,7 +966,7 @@ Intentionally lightweight.
 
 Current implemented fields:
 
-```text
+``` text
 id
 organizationId
 name
@@ -868,20 +977,20 @@ updatedAt
 
 Current relationship:
 
-```text
+``` text
 Organization → Customers
 Customer → Proofs
 ```
 
 Current index:
 
-```text
+``` text
 organizationId
 ```
 
 Potential later customer fields remain:
 
-```text
+``` text
 companyName
 contactName
 phone
@@ -889,7 +998,7 @@ phone
 
 Do not expand Customer into a CRM.
 
----
+------------------------------------------------------------------------
 
 ## Proof
 
@@ -897,7 +1006,7 @@ Represents the overall approval workflow.
 
 Current implemented fields:
 
-```text
+``` text
 id
 organizationId
 customerId
@@ -912,7 +1021,7 @@ updatedAt
 
 Current relationships:
 
-```text
+``` text
 Organization → Proofs
 Customer → Proofs
 Proof → Revisions
@@ -921,7 +1030,7 @@ Proof → currentRevision
 
 Current operational status values:
 
-```text
+``` text
 DRAFT
 AWAITING_APPROVAL
 CHANGES_REQUESTED
@@ -933,31 +1042,35 @@ CANCELED
 
 Proof status is operational state, not authoritative approval evidence.
 
-`currentRevisionId` is nullable so a Proof can exist before its first Revision exists or is selected as current.
+`currentRevisionId` is nullable so a Proof can exist before its first
+Revision exists or is selected as current.
 
 The database enforces:
 
-```text
+``` text
 Proof(id, currentRevisionId)
     → Revision(proofId, id)
 ```
 
-Therefore, a Proof cannot point to another Proof's Revision as its current Revision.
+Therefore, a Proof cannot point to another Proof's Revision as its
+current Revision.
 
 Current supporting constraints/indexes include:
 
-```text
+``` text
 unique id + organizationId
 unique id + currentRevisionId
 index organizationId
 index customerId
 ```
 
-The composite uniqueness involving `id` is intentionally present to support Prisma/PostgreSQL composite relations even though `id` itself is already unique.
+The composite uniqueness involving `id` is intentionally present to
+support Prisma/PostgreSQL composite relations even though `id` itself is
+already unique.
 
 Planned fields still requiring deliberate design may include:
 
-```text
+``` text
 jobNumber
 
 reviewTokenHash
@@ -971,9 +1084,10 @@ canceledAt
 createdByUserId
 ```
 
-Do not add these mechanically. Their constraints and historical behavior must match the state machine and approval invariants.
+Do not add these mechanically. Their constraints and historical behavior
+must match the state machine and approval invariants.
 
----
+------------------------------------------------------------------------
 
 ## Revision
 
@@ -981,7 +1095,7 @@ Represents one immutable version of a Proof.
 
 Current implemented fields:
 
-```text
+``` text
 id
 organizationId
 proofId
@@ -996,7 +1110,7 @@ createdAt
 
 Current database constraints/indexes include:
 
-```text
+``` text
 unique proofId + number
 unique proofId + id
 index proofId
@@ -1005,7 +1119,7 @@ index organizationId
 
 Current relationships:
 
-```text
+``` text
 Organization → Revisions
 Proof → Revisions
 Revision → owning Proof
@@ -1014,21 +1128,24 @@ Revision ↔ currentForProof inverse relation
 
 The database enforces explicit tenant ownership:
 
-```text
+``` text
 Revision(proofId, organizationId)
     → Proof(id, organizationId)
 ```
 
 and:
 
-```text
+``` text
 Revision.organizationId
     → Organization.id
 ```
 
-This means a Revision cannot claim an Organization different from its owning Proof.
+This means a Revision cannot claim an Organization different from its
+owning Proof.
 
-The selected tenant design is deliberately stronger than deriving Organization only through Proof because Revision will participate in security-sensitive upload, review, and authorization operations.
+The selected tenant design is deliberately stronger than deriving
+Organization only through Proof because Revision will participate in
+security-sensitive upload, review, and authorization operations.
 
 Current implementation intentionally has no `updatedAt`.
 
@@ -1040,13 +1157,15 @@ The revision number is unique within its Proof.
 
 `fileType` represents file/MIME type metadata.
 
-`fileSize` is currently an integer. This is acceptable while v1 upload limits remain far below PostgreSQL integer limits.
+`fileSize` is currently an integer. This is acceptable while v1 upload
+limits remain far below PostgreSQL integer limits.
 
-`fileHash` is intended to contain the durable cryptographic fingerprint of the exact uploaded bytes.
+`fileHash` is intended to contain the durable cryptographic fingerprint
+of the exact uploaded bytes.
 
 Potential later fields include:
 
-```text
+``` text
 status
 
 s3ETag
@@ -1071,7 +1190,7 @@ supersededAt
 
 Current implemented fields:
 
-```text
+``` text
 id
 organizationId
 proofId
@@ -1086,26 +1205,30 @@ occurredAt
 
 Current response types:
 
-```text
+``` text
 APPROVED
 CHANGES_REQUESTED
 ```
 
-The database enforces that the referenced Revision belongs to the same Proof and Organization through the composite Revision relationship.
+The database enforces that the referenced Revision belongs to the same
+Proof and Organization through the composite Revision relationship.
 
-An `APPROVED` response must contain `approvalStatementSnapshot`; this is enforced by a PostgreSQL CHECK constraint.
+An `APPROVED` response must contain `approvalStatementSnapshot`; this is
+enforced by a PostgreSQL CHECK constraint.
 
-Deletion of a Revision referenced by a ProofResponse is restricted so ordinary deletion cannot destroy authoritative response evidence.
+Deletion of a Revision referenced by a ProofResponse is restricted so
+ordinary deletion cannot destroy authoritative response evidence.
 
 ## ProofActivity
 
 **Implemented in Phase 1.**
 
-`ProofActivity` is the operational Proof timeline, not authoritative approval evidence.
+`ProofActivity` is the operational Proof timeline, not authoritative
+approval evidence.
 
 Current implemented fields:
 
-```text
+``` text
 id
 organizationId
 proofId
@@ -1113,11 +1236,12 @@ type
 createdAt
 ```
 
-The database enforces Proof/Organization consistency through the composite Proof relationship.
+The database enforces Proof/Organization consistency through the
+composite Proof relationship.
 
 Current activity types include:
 
-```text
+``` text
 PROOF_CREATED
 REVISION_CREATED
 REVISION_READY
@@ -1134,11 +1258,12 @@ REVIEW_LINK_REGENERATED
 
 **Implemented in Phase 1.**
 
-`ProofDispatch` is the durable transactional communication/outbox record.
+`ProofDispatch` is the durable transactional communication/outbox
+record.
 
 Current implemented fields include:
 
-```text
+``` text
 id
 organizationId
 proofId
@@ -1156,15 +1281,18 @@ createdAt
 
 Current dispatch states:
 
-```text
+``` text
 PENDING
 SENT
 FAILED
 ```
 
-When a Revision is present, the database enforces that it belongs to the same Proof and Organization.
+When a Revision is present, the database enforces that it belongs to the
+same Proof and Organization.
 
-Current indexes include separate indexes on `status` and `scheduledAt`. A compound `(status, scheduledAt)` index was reviewed and deliberately deferred until the actual worker query exists.
+Current indexes include separate indexes on `status` and `scheduledAt`.
+A compound `(status, scheduledAt)` index was reviewed and deliberately
+deferred until the actual worker query exists.
 
 # 19. Proof State Machine
 
@@ -1172,7 +1300,7 @@ Current indexes include separate indexes on `status` and `scheduledAt`. A compou
 
 States:
 
-```text
+``` text
 DRAFT
 AWAITING_APPROVAL
 CHANGES_REQUESTED
@@ -1182,7 +1310,7 @@ CANCELED
 
 Normal workflow:
 
-```text
+``` text
 DRAFT
   │
   │ send
@@ -1200,7 +1328,7 @@ AWAITING_APPROVAL
 
 Possible cancellation:
 
-```text
+``` text
 DRAFT ────────────────┐
 AWAITING_APPROVAL ────┼──→ CANCELED
 CHANGES_REQUESTED ────┘
@@ -1208,7 +1336,7 @@ CHANGES_REQUESTED ────┘
 
 Invalid:
 
-```text
+``` text
 CANCELED → APPROVED
 
 APPROVED → CHANGES_REQUESTED
@@ -1218,11 +1346,14 @@ State transitions belong in domain logic.
 
 Routes must not arbitrarily set statuses.
 
-**Implementation status:** The `ProofStatus` enum and `Proof.status` field are implemented and migrated.
+**Implementation status:** The `ProofStatus` enum and `Proof.status`
+field are implemented and migrated.
 
-Application/domain transition functions are not yet implemented; they belong to the later core-domain behavior phase. Routes must not gain arbitrary status-write behavior.
+Application/domain transition functions are not yet implemented; they
+belong to the later core-domain behavior phase. Routes must not gain
+arbitrary status-write behavior.
 
----
+------------------------------------------------------------------------
 
 # 20. Revision Allocation
 
@@ -1232,7 +1363,7 @@ Revision numbers are server-generated.
 
 Never accept:
 
-```text
+``` text
 revisionNumber = 4
 ```
 
@@ -1242,16 +1373,18 @@ Concurrent revision creation must not create duplicate numbers.
 
 Use:
 
-- database transaction/locking;
-- unique `(proofId, revisionNumber)` constraint.
+-   database transaction/locking;
+-   unique `(proofId, revisionNumber)` constraint.
 
 The database constraint is final protection.
 
-**Implementation status:** The unique `(proofId, number)` database constraint now exists.
+**Implementation status:** The unique `(proofId, number)` database
+constraint now exists.
 
-Transactional server-side allocation will be implemented when revision creation behavior is built.
+Transactional server-side allocation will be implemented when revision
+creation behavior is built.
 
----
+------------------------------------------------------------------------
 
 # 21. File Integrity
 
@@ -1261,7 +1394,7 @@ Each revision stores a cryptographic file fingerprint.
 
 Current implemented field:
 
-```text
+``` text
 Revision.fileHash
 ```
 
@@ -1271,9 +1404,10 @@ Do not treat S3 ETag as equivalent to a cryptographic file hash.
 
 The hash identifies the exact approved file.
 
-Naming may later be changed to `sha256` if that materially improves clarity before the upload implementation stabilizes.
+Naming may later be changed to `sha256` if that materially improves
+clarity before the upload implementation stabilizes.
 
----
+------------------------------------------------------------------------
 
 # 22. Review Fingerprint
 
@@ -1281,7 +1415,7 @@ Naming may later be changed to `sha256` if that materially improves clarity befo
 
 A revision should receive a deterministic fingerprint derived from:
 
-```text
+``` text
 file SHA-256
 +
 approval statement snapshot
@@ -1293,7 +1427,7 @@ revision identity
 
 Example:
 
-```text
+``` text
 SHA256(...)
 ```
 
@@ -1301,7 +1435,7 @@ Approval copies that fingerprint into the ProofResponse.
 
 This links:
 
-```text
+``` text
 file
 +
 revision
@@ -1317,7 +1451,7 @@ Do not market this as blockchain or cryptographic legal certification.
 
 It is an internal integrity mechanism.
 
----
+------------------------------------------------------------------------
 
 # 23. S3 Architecture
 
@@ -1329,7 +1463,7 @@ The server creates storage keys.
 
 Recommended structure:
 
-```text
+``` text
 proofs/
   {organizationId}/
     {proofId}/
@@ -1343,19 +1477,19 @@ Original filenames are stored in PostgreSQL.
 
 Current Revision schema already separates:
 
-```text
+``` text
 fileKey
 ```
 
 from:
 
-```text
+``` text
 fileName
 ```
 
 which supports this architecture.
 
----
+------------------------------------------------------------------------
 
 # 24. S3 Security
 
@@ -1363,7 +1497,7 @@ which supports this architecture.
 
 Production bucket:
 
-```text
+``` text
 Public access: BLOCKED
 
 Object ACLs: DISABLED
@@ -1377,7 +1511,7 @@ AWS credentials use least privilege.
 
 Never grant:
 
-```text
+``` text
 s3:*
 ```
 
@@ -1385,7 +1519,7 @@ across the account.
 
 Development and production storage must be separated.
 
----
+------------------------------------------------------------------------
 
 # 25. Upload Architecture
 
@@ -1395,7 +1529,7 @@ Do not route file bytes through the normal application server.
 
 Flow:
 
-```text
+``` text
 Browser
    │
    │ request upload
@@ -1426,9 +1560,10 @@ ApproveAProof
    └── mark revision READY
 ```
 
-This keeps application servers stateless and avoids unnecessary file bandwidth.
+This keeps application servers stateless and avoids unnecessary file
+bandwidth.
 
----
+------------------------------------------------------------------------
 
 # 26. Upload Security
 
@@ -1436,7 +1571,7 @@ This keeps application servers stateless and avoids unnecessary file bandwidth.
 
 Initial accepted types:
 
-```text
+``` text
 PDF
 JPEG
 PNG
@@ -1444,7 +1579,7 @@ PNG
 
 Reject initially:
 
-```text
+``` text
 SVG
 HTML
 ZIP
@@ -1456,20 +1591,20 @@ Office documents
 
 Do not trust:
 
-- extension alone;
-- browser MIME type alone;
-- browser-provided S3 key;
-- browser-provided organization ID.
+-   extension alone;
+-   browser MIME type alone;
+-   browser-provided S3 key;
+-   browser-provided organization ID.
 
 Validate before presigning and again after upload.
 
----
+------------------------------------------------------------------------
 
 # 27. Upload Lifecycle
 
 States:
 
-```text
+``` text
 UPLOADING
 PROCESSING
 READY
@@ -1478,15 +1613,16 @@ SUPERSEDED
 
 Only READY revisions can be sent.
 
-Unfinished/orphan uploads should be cleaned automatically after a reasonable period.
+Unfinished/orphan uploads should be cleaned automatically after a
+reasonable period.
 
 Initial hypothesis:
 
-```text
+``` text
 24 hours
 ```
 
----
+------------------------------------------------------------------------
 
 # 28. Malware Strategy
 
@@ -1494,30 +1630,31 @@ Initial hypothesis:
 
 Full malware scanning is not required for first validation.
 
-Risk is constrained by accepting only PDF/JPEG/PNG and never executing uploads.
+Risk is constrained by accepting only PDF/JPEG/PNG and never executing
+uploads.
 
 Requirements:
 
-- keep PDF.js current;
-- disable PDF JavaScript;
-- do not render arbitrary HTML;
-- reject SVG initially;
-- serve files from private S3;
-- use strong Content Security Policy.
+-   keep PDF.js current;
+-   disable PDF JavaScript;
+-   do not render arbitrary HTML;
+-   reject SVG initially;
+-   serve files from private S3;
+-   use strong Content Security Policy.
 
 Architecture should permit later malware scanning.
 
----
+------------------------------------------------------------------------
 
 # 29. Public Review Tokens
 
-## LOCKED — SECURITY REQUIREMENT
+## LOCKED --- SECURITY REQUIREMENT
 
 Customer review links are bearer credentials.
 
 Example:
 
-```text
+``` text
 approveaproof.app/review/{token}
 ```
 
@@ -1527,33 +1664,33 @@ Do not store the raw token.
 
 Store:
 
-```text
+``` text
 SHA256(token)
 ```
 
 Lookup:
 
-```text
+``` text
 hash incoming token
 → query reviewTokenHash
 ```
 
 Never log:
 
-- raw review tokens;
-- signed S3 URLs.
+-   raw review tokens;
+-   signed S3 URLs.
 
 Review links must be regeneratable.
 
 Regeneration invalidates the old token.
 
----
+------------------------------------------------------------------------
 
 # 30. Review Page Access
 
 The review token grants access only to what the customer needs:
 
-```text
+``` text
 shop identity
 proof title
 job number
@@ -1566,7 +1703,7 @@ request-changes action
 
 It does not expose:
 
-```text
+``` text
 other proofs
 other customers
 billing
@@ -1576,7 +1713,7 @@ S3 keys
 private notes
 ```
 
----
+------------------------------------------------------------------------
 
 # 31. Signed File URLs
 
@@ -1584,17 +1721,18 @@ private notes
 
 S3 objects remain private.
 
-The application generates short-lived signed GET URLs after validating the review token.
+The application generates short-lived signed GET URLs after validating
+the review token.
 
 Initial target lifetime:
 
-```text
+``` text
 5–15 minutes
 ```
 
 Signed URLs can be refreshed when necessary.
 
----
+------------------------------------------------------------------------
 
 # 32. PDF Rendering
 
@@ -1604,15 +1742,15 @@ Use PDF.js.
 
 Security requirements:
 
-- current maintained release;
-- no embedded PDF JavaScript execution;
-- strict CSP;
-- no unrestricted uploaded-content iframe behavior;
-- external links treated as untrusted.
+-   current maintained release;
+-   no embedded PDF JavaScript execution;
+-   strict CSP;
+-   no unrestricted uploaded-content iframe behavior;
+-   external links treated as untrusted.
 
 JPEG and PNG can use signed S3 URLs.
 
----
+------------------------------------------------------------------------
 
 # 33. Public Review UX
 
@@ -1620,7 +1758,7 @@ JPEG and PNG can use signed S3 URLs.
 
 The review page should be deliberately simple.
 
-```text
+``` text
 SHOP LOGO
 
 Johnson Dental Brochure
@@ -1647,7 +1785,7 @@ No sales clutter.
 
 No advertising trackers.
 
----
+------------------------------------------------------------------------
 
 # 34. Review UI Visual Direction
 
@@ -1659,20 +1797,20 @@ The proof is the visual focus.
 
 Reasons:
 
-- print proofs often assume white viewing context;
-- dramatic backgrounds may affect perceived color;
-- nontechnical customers need clarity;
-- document review should feel trustworthy.
+-   print proofs often assume white viewing context;
+-   dramatic backgrounds may affect perceived color;
+-   nontechnical customers need clarity;
+-   document review should feel trustworthy.
 
 Shop branding may control:
 
-- logo;
-- business name;
-- accent color.
+-   logo;
+-   business name;
+-   accent color.
 
 Do not allow arbitrary custom CSS/HTML.
 
----
+------------------------------------------------------------------------
 
 # 35. Mobile Requirement
 
@@ -1682,16 +1820,16 @@ The customer review workflow must work extremely well on phones.
 
 Requirements:
 
-- large tap targets;
-- readable without zooming;
-- easy PDF navigation;
-- obvious revision number;
-- obvious approval/change controls;
-- no hover-only interaction.
+-   large tap targets;
+-   readable without zooming;
+-   easy PDF navigation;
+-   obvious revision number;
+-   obvious approval/change controls;
+-   no hover-only interaction.
 
 Customer mobile UX has higher priority than perfect dashboard mobile UX.
 
----
+------------------------------------------------------------------------
 
 # 36. Approval UX
 
@@ -1701,13 +1839,13 @@ Approval should be deliberate, not accidental.
 
 Step 1:
 
-```text
+``` text
 APPROVE FOR PRODUCTION
 ```
 
 Step 2:
 
-```text
+``` text
 Approve Revision 2?
 
 Your Name:
@@ -1721,17 +1859,17 @@ Your Name:
 
 The approval statement is snapshotted.
 
----
+------------------------------------------------------------------------
 
 # 37. Approval Transaction
 
-## LOCKED — CRITICAL INTEGRITY REQUIREMENT
+## LOCKED --- CRITICAL INTEGRITY REQUIREMENT
 
 Approval occurs inside a database transaction.
 
 Conceptually:
 
-```text
+``` text
 BEGIN
 
 lock Proof
@@ -1770,7 +1908,7 @@ Email is processed after the authoritative transaction succeeds.
 
 SendGrid failure must never erase a valid approval.
 
----
+------------------------------------------------------------------------
 
 # 38. Stale Revision Protection
 
@@ -1778,7 +1916,7 @@ SendGrid failure must never erase a valid approval.
 
 Scenario:
 
-```text
+``` text
 Monday:
 Customer opens Revision 2.
 
@@ -1794,41 +1932,43 @@ Server rejects the approval.
 
 Message:
 
-> A newer proof is available. Revision 3 replaced the version you were reviewing. Please review the latest revision before approving.
+> A newer proof is available. Revision 3 replaced the version you were
+> reviewing. Please review the latest revision before approving.
 
 Never silently substitute Revision 3.
 
 The customer must actually review what they approve.
 
----
+------------------------------------------------------------------------
 
 # 39. Duplicate Approval Protection
 
 ## LOCKED
 
-Network retries and double-clicks must not create duplicate approval records.
+Network retries and double-clicks must not create duplicate approval
+records.
 
 Approval must be idempotent where appropriate.
 
 Same proof + same revision + already successful approval:
 
-```text
+``` text
 return successful existing state
 ```
 
 Conflicting request:
 
-```text
+``` text
 reject
 ```
 
----
+------------------------------------------------------------------------
 
 # 40. Request Changes
 
 Customer provides:
 
-```text
+``` text
 name
 required comments
 ```
@@ -1837,7 +1977,7 @@ Transaction verifies the revision is current.
 
 Then:
 
-```text
+``` text
 create CHANGES_REQUESTED response
 
 Proof.status = CHANGES_REQUESTED
@@ -1847,7 +1987,7 @@ create activity
 
 Shop is notified after commit.
 
----
+------------------------------------------------------------------------
 
 # 41. Approval Identity
 
@@ -1857,7 +1997,7 @@ Customer accounts are not required.
 
 Capture:
 
-```text
+``` text
 typed responder name
 recipient email known by the proof
 server timestamp
@@ -1870,13 +2010,14 @@ user agent
 privacy-conscious IP/security metadata
 ```
 
-Do not claim this is a legally binding electronic-signature system without legal review.
+Do not claim this is a legally binding electronic-signature system
+without legal review.
 
 Safer language:
 
 > **Documented approval record**
 
----
+------------------------------------------------------------------------
 
 # 42. Email Architecture
 
@@ -1886,7 +2027,7 @@ SendGrid handles transactional email.
 
 Templates:
 
-```text
+``` text
 Proof Ready
 Revised Proof Ready
 Changes Requested
@@ -1897,7 +2038,7 @@ Reminder
 
 Example identity:
 
-```text
+``` text
 ABC Printing via ApproveAProof
 ```
 
@@ -1905,7 +2046,7 @@ Reply-To may point to the shop.
 
 Never allow arbitrary email-domain spoofing.
 
----
+------------------------------------------------------------------------
 
 # 43. Transactional Dispatch Pattern
 
@@ -1915,7 +2056,7 @@ Core business transactions do not depend synchronously on email success.
 
 Pattern:
 
-```text
+``` text
 Approval transaction
         │
         ▼
@@ -1934,7 +2075,7 @@ email processing
 
 This creates resilience without requiring a message broker.
 
----
+------------------------------------------------------------------------
 
 # 44. Scheduled Jobs
 
@@ -1942,7 +2083,7 @@ This creates resilience without requiring a message broker.
 
 Initial scheduled work:
 
-```text
+``` text
 automatic reminders
 failed-email retry
 orphan upload cleanup
@@ -1955,7 +2096,7 @@ Do not introduce Redis/SQS solely for this.
 
 Jobs must be idempotent.
 
----
+------------------------------------------------------------------------
 
 # 45. Automatic Reminders
 
@@ -1963,14 +2104,14 @@ Jobs must be idempotent.
 
 Possible default:
 
-```text
+``` text
 24 hours
 72 hours
 ```
 
 Before every reminder:
 
-```text
+``` text
 verify status == AWAITING_APPROVAL
 verify revision still current
 verify not approved
@@ -1981,7 +2122,7 @@ Never send stale reminders after approval.
 
 Exact cadence should be validated with customers.
 
----
+------------------------------------------------------------------------
 
 # 46. Application Route Direction
 
@@ -1989,7 +2130,7 @@ Exact cadence should be validated with customers.
 
 Conceptual structure:
 
-```text
+``` text
 /
 auth routes
 
@@ -2020,9 +2161,10 @@ auth routes
 /internal/jobs/upload-cleanup
 ```
 
-Exact React Router route filenames should follow Framework Mode conventions rather than legacy Remix assumptions.
+Exact React Router route filenames should follow Framework Mode
+conventions rather than legacy Remix assumptions.
 
----
+------------------------------------------------------------------------
 
 # 47. Application Code Organization
 
@@ -2030,7 +2172,7 @@ Exact React Router route filenames should follow Framework Mode conventions rath
 
 Prefer separation between:
 
-```text
+``` text
 routes
 domain
 models
@@ -2040,7 +2182,7 @@ components
 
 Conceptual structure:
 
-```text
+``` text
 app/
 ├── routes/
 ├── domain/
@@ -2054,13 +2196,14 @@ app/
 
 Current server-only environment module:
 
-```text
+``` text
 app/services/env.server.ts
 ```
 
-Server-only modules must flow only through React Router server execution paths such as:
+Server-only modules must flow only through React Router server execution
+paths such as:
 
-```text
+``` text
 loader
 action
 middleware
@@ -2074,7 +2217,7 @@ Routes should be thin.
 
 Bad:
 
-```text
+``` text
 route:
 auth
 permissions
@@ -2088,7 +2231,7 @@ UI
 
 Good:
 
-```text
+``` text
 route
   ↓
 validate
@@ -2100,15 +2243,15 @@ domain/service
 response
 ```
 
----
+------------------------------------------------------------------------
 
 # 48. Authorization
 
-## LOCKED — SECURITY REQUIREMENT
+## LOCKED --- SECURITY REQUIREMENT
 
 Every authenticated operation:
 
-```text
+``` text
 authenticate
      ↓
 resolve User
@@ -2128,33 +2271,35 @@ Queries involving tenant resources must enforce organization ownership.
 
 Never simply:
 
-```text
+``` text
 find proof where id = suppliedId
 ```
 
 when organization access matters.
 
----
+------------------------------------------------------------------------
 
 # 49. Tenant Isolation
 
-## LOCKED — CRITICAL SECURITY REQUIREMENT
+## LOCKED --- CRITICAL SECURITY REQUIREMENT
 
 A user from Organization A must never access Organization B through:
 
-- URL manipulation;
-- API calls;
-- customer IDs;
-- proof IDs;
-- revision IDs;
-- upload endpoints;
-- billing endpoints.
+-   URL manipulation;
+-   API calls;
+-   customer IDs;
+-   proof IDs;
+-   revision IDs;
+-   upload endpoints;
+-   billing endpoints.
 
 Tenant isolation receives dedicated automated tests.
 
-During Phase 1 schema design, favor relationships and indexes that make correct tenant-scoped queries straightforward rather than relying on developers to remember complex ownership joins everywhere.
+During Phase 1 schema design, favor relationships and indexes that make
+correct tenant-scoped queries straightforward rather than relying on
+developers to remember complex ownership joins everywhere.
 
----
+------------------------------------------------------------------------
 
 # 50. Roles
 
@@ -2162,7 +2307,7 @@ During Phase 1 schema design, favor relationships and indexes that make correct 
 
 Current database roles:
 
-```text
+``` text
 OWNER
 ADMIN
 MEMBER
@@ -2172,49 +2317,57 @@ Conceptual authorization direction:
 
 OWNER:
 
-- all operations;
-- billing;
-- organization administration;
-- team management.
+-   all operations;
+-   billing;
+-   organization administration;
+-   team management.
 
 ADMIN:
 
-- proofs;
-- customers;
-- most settings;
-- team management except ownership/billing where appropriate.
+-   proofs;
+-   customers;
+-   most settings;
+-   team management except ownership/billing where appropriate.
 
 MEMBER:
 
-- proofs;
-- customers;
-- revisions;
-- operational workflow as permitted.
+-   proofs;
+-   customers;
+-   revisions;
+-   operational workflow as permitted.
 
 The MVP UI may initially expose only OWNER.
 
 The server architecture should still understand roles.
 
-Exact role capabilities will be finalized during Phase 2.
+The current server-side hierarchy is:
 
----
+``` text
+OWNER > ADMIN > MEMBER
+```
+
+`requireRole()` enforces minimum-role requirements. Exact
+feature-by-feature capabilities can still be refined as Phase 3+
+application operations are implemented.
+
+------------------------------------------------------------------------
 
 # 51. Authentication
 
-## CURRENT PLAN
+## CURRENT IMPLEMENTATION
 
 Use Auth0 initially.
 
 Reason:
 
-- already understood from SmartLynx;
-- mature authentication infrastructure;
-- authentication is not product differentiation;
-- reduces unnecessary simultaneous infrastructure changes.
+-   already understood from SmartLynx;
+-   mature authentication infrastructure;
+-   authentication is not product differentiation;
+-   reduces unnecessary simultaneous infrastructure changes.
 
 Flow:
 
-```text
+``` text
 Auth0 identity
      ↓
 User.auth0Subject
@@ -2226,11 +2379,18 @@ Membership
 Organization
 ```
 
-Organization permissions and subscription state belong in PostgreSQL, not solely Auth0 metadata.
+Organization permissions and subscription state belong in PostgreSQL,
+not solely Auth0 metadata.
 
-**Implementation status:** Database identity models exist. Auth0 behavior has not yet been implemented and belongs to Phase 2.
+**Implementation status:** Phase 2 authentication is implemented. The
+server uses Auth0's OIDC Authorization Code Flow with PKCE through
+`openid-client`; the browser does not act as the authoritative
+authentication boundary. Successful callbacks resolve/synchronize the
+local User by Auth0 `sub`, store the local User ID in a signed React
+Router cookie session, and redirect to `/app`. Protected application
+routes resolve the User, Membership, Organization, and role server-side.
 
----
+------------------------------------------------------------------------
 
 # 52. Session Security
 
@@ -2238,7 +2398,7 @@ Organization permissions and subscription state belong in PostgreSQL, not solely
 
 Session cookies should use appropriate:
 
-```text
+``` text
 HttpOnly
 Secure
 SameSite
@@ -2250,7 +2410,7 @@ Authenticated mutations require appropriate CSRF/origin protection.
 
 Rotate sessions where authentication transitions warrant it.
 
----
+------------------------------------------------------------------------
 
 # 53. Rate Limiting
 
@@ -2258,7 +2418,7 @@ Rotate sessions where authentication transitions warrant it.
 
 Rate-limit sensitive operations including:
 
-```text
+``` text
 authentication-related endpoints
 review-token lookup
 approval submission
@@ -2271,16 +2431,17 @@ review-link regeneration
 
 Use combinations of:
 
-```text
+``` text
 IP
 user
 organization
 proof
 ```
 
-Do not rely exclusively on IP because businesses often share public addresses.
+Do not rely exclusively on IP because businesses often share public
+addresses.
 
----
+------------------------------------------------------------------------
 
 # 54. Input Validation
 
@@ -2290,7 +2451,7 @@ All server actions validate inputs.
 
 Examples:
 
-```text
+``` text
 emails
 names
 IDs
@@ -2308,19 +2469,21 @@ Do not allow arbitrary HTML.
 
 Avoid `dangerouslySetInnerHTML` for customer data.
 
-Zod is already installed and used for environment validation and is the preferred validation tool unless a specific implementation requires otherwise.
+Zod is already installed and used for environment validation and is the
+preferred validation tool unless a specific implementation requires
+otherwise.
 
----
+------------------------------------------------------------------------
 
 # 55. Content Security Policy
 
-## CURRENT PLAN — SECURITY PRIORITY
+## CURRENT PLAN --- SECURITY PRIORITY
 
 Establish CSP early.
 
 Restrict:
 
-```text
+``` text
 default-src
 script-src
 connect-src
@@ -2333,7 +2496,7 @@ Do not place marketing trackers on customer review routes.
 
 Review URLs may contain commercially sensitive information.
 
----
+------------------------------------------------------------------------
 
 # 56. Review Privacy
 
@@ -2341,7 +2504,7 @@ Review URLs may contain commercially sensitive information.
 
 Customer proof pages:
 
-```text
+``` text
 noindex
 nofollow
 noarchive
@@ -2349,7 +2512,7 @@ noarchive
 
 Use strict referrer policy such as:
 
-```text
+``` text
 Referrer-Policy: no-referrer
 ```
 
@@ -2357,7 +2520,7 @@ Never include review URLs in sitemaps.
 
 Never send raw review tokens to analytics providers.
 
----
+------------------------------------------------------------------------
 
 # 57. Logging
 
@@ -2365,7 +2528,7 @@ Never send raw review tokens to analytics providers.
 
 Safe structured log fields may include:
 
-```text
+``` text
 request ID
 organization ID
 proof ID
@@ -2378,7 +2541,7 @@ duration
 
 Never log:
 
-```text
+``` text
 review tokens
 signed S3 URLs
 Auth0 tokens
@@ -2391,7 +2554,7 @@ database credentials
 
 Use request correlation IDs.
 
----
+------------------------------------------------------------------------
 
 # 58. Secret Management
 
@@ -2401,7 +2564,7 @@ Secrets live in environment configuration/secret management.
 
 Never commit:
 
-```text
+``` text
 DATABASE_URL
 Auth0 secret
 AWS credentials
@@ -2413,7 +2576,7 @@ cron secret
 
 Separate:
 
-```text
+``` text
 development
 preview/staging
 production
@@ -2421,11 +2584,12 @@ production
 
 credentials.
 
-Any credential copied from old SmartLynx should be considered for rotation rather than blindly reused.
+Any credential copied from old SmartLynx should be considered for
+rotation rather than blindly reused.
 
 Current repository contains:
 
-```text
+``` text
 .env.example
 ```
 
@@ -2433,15 +2597,16 @@ for variable names only.
 
 Local:
 
-```text
+``` text
 .env
 ```
 
 is Git-ignored.
 
-The local Neon `DATABASE_URL` must never be pasted into documentation, chat output intended for publication, source code, or Git.
+The local Neon `DATABASE_URL` must never be pasted into documentation,
+chat output intended for publication, source code, or Git.
 
----
+------------------------------------------------------------------------
 
 # 59. Stripe Architecture
 
@@ -2455,12 +2620,12 @@ PostgreSQL stores cached subscription/entitlement state.
 
 Webhook requirements:
 
-- verify Stripe signature;
-- idempotently process events;
-- never trust client subscription state;
-- protect against duplicate events.
+-   verify Stripe signature;
+-   idempotently process events;
+-   never trust client subscription state;
+-   protect against duplicate events.
 
----
+------------------------------------------------------------------------
 
 # 60. Entitlements
 
@@ -2470,7 +2635,7 @@ Centralize plan logic.
 
 Functions may include:
 
-```text
+``` text
 getOrganizationEntitlements()
 
 canCreateProof()
@@ -2486,7 +2651,7 @@ maxTeamMembers()
 
 Never scatter:
 
-```text
+``` text
 if plan === "PRO"
 ```
 
@@ -2496,7 +2661,7 @@ UI gating is convenience.
 
 Server enforcement is authoritative.
 
----
+------------------------------------------------------------------------
 
 # 61. Pricing Architecture
 
@@ -2504,7 +2669,7 @@ Server enforcement is authoritative.
 
 Possible internal plan names:
 
-```text
+``` text
 FREE
 STARTER
 SHOP
@@ -2512,7 +2677,7 @@ SHOP
 
 Possible structure:
 
-```text
+``` text
 FREE
 small number of sends
 1 user
@@ -2534,7 +2699,7 @@ Pricing and exact limits remain unvalidated.
 
 Do not let hypothetical pricing block MVP development.
 
----
+------------------------------------------------------------------------
 
 # 62. Usage Accounting
 
@@ -2542,34 +2707,37 @@ Do not let hypothetical pricing block MVP development.
 
 Likely billing unit:
 
-> A proof send occurs when a new revision is successfully sent to a customer for review.
+> A proof send occurs when a new revision is successfully sent to a
+> customer for review.
 
 A reminder should not count as a new proof send.
 
 `ProofDispatch` can provide an auditable usage source.
 
-At larger scale, introduce monthly aggregate counters if query performance requires them.
+At larger scale, introduce monthly aggregate counters if query
+performance requires them.
 
----
+------------------------------------------------------------------------
 
 # 63. Historical Data
 
 ## LOCKED
 
-Historical approval evidence must survive ordinary customer/contact changes.
+Historical approval evidence must survive ordinary customer/contact
+changes.
 
 Deleting a Customer should not automatically destroy Proof history.
 
 Proof should ultimately store recipient snapshots:
 
-```text
+``` text
 recipientName
 recipientEmail
 ```
 
 Sent revisions retain:
 
-```text
+``` text
 file
 revision number
 hash
@@ -2580,7 +2748,7 @@ sent time
 
 Approved responses retain:
 
-```text
+``` text
 approved revision
 responder
 timestamp
@@ -2590,9 +2758,13 @@ fingerprint
 
 Normal application APIs do not rewrite historical decisions.
 
-**Implementation note:** Historical deletion semantics are implemented. `Proof.customerId` is nullable, Customer deletion uses `SetNull`, and `Proof.recipientName` / `Proof.recipientEmail` preserve recipient history. PostgreSQL insert/update triggers additionally reject a Proof whose non-null Customer belongs to a different Organization.
+**Implementation note:** Historical deletion semantics are implemented.
+`Proof.customerId` is nullable, Customer deletion uses `SetNull`, and
+`Proof.recipientName` / `Proof.recipientEmail` preserve recipient
+history. PostgreSQL insert/update triggers additionally reject a Proof
+whose non-null Customer belongs to a different Organization.
 
----
+------------------------------------------------------------------------
 
 # 64. Approval Record PDF
 
@@ -2600,7 +2772,7 @@ Normal application APIs do not rewrite historical decisions.
 
 A downloadable approval record may include:
 
-```text
+``` text
 APPROVEAPROOF
 PROOF APPROVAL RECORD
 
@@ -2624,7 +2796,7 @@ The PDF is a representation of the authoritative database record.
 
 The PDF itself is not the source of truth.
 
----
+------------------------------------------------------------------------
 
 # 65. Dashboard Philosophy
 
@@ -2640,7 +2812,7 @@ It should not primarily answer:
 
 Likely primary indicators:
 
-```text
+``` text
 Awaiting Approval
 Changes Requested
 Approved Today
@@ -2648,11 +2820,11 @@ Approved Today
 
 Primary operational section:
 
-```text
+``` text
 NEEDS ATTENTION
 ```
 
----
+------------------------------------------------------------------------
 
 # 66. Proof List
 
@@ -2660,7 +2832,7 @@ NEEDS ATTENTION
 
 Filters:
 
-```text
+``` text
 All
 Awaiting Approval
 Changes Requested
@@ -2670,11 +2842,12 @@ Draft
 
 Pagination from the beginning.
 
-Never load an organization's complete proof history into application memory.
+Never load an organization's complete proof history into application
+memory.
 
 Primary database pattern:
 
-```text
+``` text
 organization
 +
 status
@@ -2682,13 +2855,13 @@ status
 updated/created time
 ```
 
----
+------------------------------------------------------------------------
 
 # 67. Proof Detail
 
 Likely contents:
 
-```text
+``` text
 proof name
 job number
 customer
@@ -2706,7 +2879,7 @@ Examples:
 
 ### Awaiting Approval
 
-```text
+``` text
 Send Reminder
 Copy Review Link
 Cancel
@@ -2714,19 +2887,19 @@ Cancel
 
 ### Changes Requested
 
-```text
+``` text
 View Comments
 Upload New Revision
 ```
 
 ### Approved
 
-```text
+``` text
 Download Approved Revision
 Download Approval Record
 ```
 
----
+------------------------------------------------------------------------
 
 # 68. New Proof UX
 
@@ -2736,7 +2909,7 @@ Creating and sending a proof should be extremely fast.
 
 Minimal information:
 
-```text
+``` text
 Customer
 Proof Name
 Job Number optional
@@ -2747,16 +2920,17 @@ File
 
 Actions:
 
-```text
+``` text
 SAVE DRAFT
 SEND FOR APPROVAL
 ```
 
 Goal:
 
-> An existing-customer proof should comfortably take less than a minute to create and send.
+> An existing-customer proof should comfortably take less than a minute
+> to create and send.
 
----
+------------------------------------------------------------------------
 
 # 69. Customer Management
 
@@ -2766,7 +2940,7 @@ Customer records remain intentionally small.
 
 Display may ultimately include:
 
-```text
+``` text
 company/name
 contact
 email
@@ -2777,7 +2951,7 @@ past approvals
 
 Do not casually add:
 
-```text
+``` text
 sales pipelines
 CRM notes
 tasks
@@ -2788,7 +2962,7 @@ campaigns
 
 The current database model intentionally begins smaller than this.
 
----
+------------------------------------------------------------------------
 
 # 70. Accessibility
 
@@ -2798,27 +2972,29 @@ Target solid WCAG AA fundamentals.
 
 Requirements:
 
-- semantic controls;
-- keyboard accessibility;
-- visible focus states;
-- adequate contrast;
-- form labels;
-- associated errors;
-- status never conveyed by color alone.
+-   semantic controls;
+-   keyboard accessibility;
+-   visible focus states;
+-   adequate contrast;
+-   form labels;
+-   associated errors;
+-   status never conveyed by color alone.
 
-This is particularly important because customers reviewing proofs may not be technically sophisticated.
+This is particularly important because customers reviewing proofs may
+not be technically sophisticated.
 
----
+------------------------------------------------------------------------
 
 # 71. Scalability Strategy
 
 ## LOCKED PHILOSOPHY
 
-Build for scalability without prematurely building distributed infrastructure.
+Build for scalability without prematurely building distributed
+infrastructure.
 
 Initial architecture should comfortably support:
 
-```text
+``` text
 10 shops
 100 shops
 1,000 shops
@@ -2829,7 +3005,7 @@ before fundamental redesign should be necessary.
 
 The central model remains:
 
-```text
+``` text
 Organization
     ↓
 Proof
@@ -2839,7 +3015,7 @@ Revision
 Response
 ```
 
----
+------------------------------------------------------------------------
 
 # 72. Database Scalability
 
@@ -2847,7 +3023,7 @@ Use PostgreSQL indexes around real access patterns.
 
 Important anticipated indexes:
 
-```text
+``` text
 Proof:
 organizationId + status
 organizationId + createdAt
@@ -2867,7 +3043,7 @@ status + scheduledAt
 
 Current indexes already established include:
 
-```text
+``` text
 Membership:
 organizationId
 userId
@@ -2891,7 +3067,8 @@ unique proofId + id
 
 Use appropriate connection pooling for the hosting environment.
 
-Neon's pooled connection architecture is the current database deployment choice.
+Neon's pooled connection architecture is the current database deployment
+choice.
 
 Avoid N+1 queries.
 
@@ -2899,7 +3076,7 @@ Do not shard.
 
 Do not create one database per organization.
 
----
+------------------------------------------------------------------------
 
 # 73. Application Scalability
 
@@ -2907,7 +3084,7 @@ Application servers should remain stateless.
 
 Persistent state lives in:
 
-```text
+``` text
 PostgreSQL
 S3
 ```
@@ -2920,7 +3097,7 @@ Scheduled jobs are idempotent.
 
 Any web instance should be capable of serving any request.
 
----
+------------------------------------------------------------------------
 
 # 74. Caching
 
@@ -2934,13 +3111,13 @@ Add specialized caching only when measurements justify it.
 
 Potential future reasons:
 
-```text
+``` text
 distributed rate limiting
 heavy repeated queries
 job infrastructure
 ```
 
----
+------------------------------------------------------------------------
 
 # 75. Backups
 
@@ -2948,26 +3125,26 @@ job infrastructure
 
 PostgreSQL:
 
-- automatic backups;
-- point-in-time recovery where available;
-- documented restore process;
-- actual restore testing.
+-   automatic backups;
+-   point-in-time recovery where available;
+-   documented restore process;
+-   actual restore testing.
 
 Current managed database provider:
 
-```text
+``` text
 Neon
 ```
 
 S3:
 
-- encryption;
-- versioning where economically reasonable;
-- lifecycle rules.
+-   encryption;
+-   versioning where economically reasonable;
+-   lifecycle rules.
 
 A backup is not proven until restoration has been tested.
 
----
+------------------------------------------------------------------------
 
 # 76. Data Retention
 
@@ -2975,7 +3152,7 @@ A backup is not proven until restoration has been tested.
 
 Potential policy:
 
-```text
+``` text
 active paid account:
 retain approval history
 
@@ -2990,13 +3167,13 @@ Exact retention periods require business/privacy decisions later.
 
 Architecture must support deletion cleanly.
 
----
+------------------------------------------------------------------------
 
 # 77. Monitoring
 
 Before meaningful production use, monitor:
 
-```text
+``` text
 HTTP failures
 database failures
 upload failures
@@ -3012,14 +3189,14 @@ Use application exception monitoring such as Sentry or equivalent.
 
 Particularly important alerts:
 
-```text
+``` text
 approval errors
 Stripe webhook repeated failure
 email queue backlog
 scheduled jobs not executing
 ```
 
----
+------------------------------------------------------------------------
 
 # 78. Security Test Checklist
 
@@ -3027,35 +3204,35 @@ scheduled jobs not executing
 
 Automated tests should verify:
 
-- User cannot access another organization.
-- User cannot presign upload for another organization.
-- Browser cannot choose arbitrary S3 storage keys.
-- Customer cannot access another proof by changing an ID.
-- Raw review token is not leaked through internal APIs.
-- Regenerated review link invalidates previous token.
-- Customer cannot approve a stale revision.
-- Customer cannot approve a canceled proof.
-- Customer cannot approve an unsent revision.
-- Approved revision cannot be overwritten.
-- Concurrent revision creation cannot duplicate revision numbers.
-- Duplicate approval request does not duplicate the approval.
-- SendGrid failure does not erase approval.
-- Plan UI cannot be bypassed through direct API requests.
-- Free account cannot abuse presigned uploads.
-- Malicious filename cannot manipulate storage paths.
-- HTML/SVG uploads are rejected.
-- Oversized files are rejected.
-- Cross-tenant customer IDs are rejected.
-- Reminder cannot send after approval.
-- Internal scheduled endpoints require authentication.
+-   User cannot access another organization.
+-   User cannot presign upload for another organization.
+-   Browser cannot choose arbitrary S3 storage keys.
+-   Customer cannot access another proof by changing an ID.
+-   Raw review token is not leaked through internal APIs.
+-   Regenerated review link invalidates previous token.
+-   Customer cannot approve a stale revision.
+-   Customer cannot approve a canceled proof.
+-   Customer cannot approve an unsent revision.
+-   Approved revision cannot be overwritten.
+-   Concurrent revision creation cannot duplicate revision numbers.
+-   Duplicate approval request does not duplicate the approval.
+-   SendGrid failure does not erase approval.
+-   Plan UI cannot be bypassed through direct API requests.
+-   Free account cannot abuse presigned uploads.
+-   Malicious filename cannot manipulate storage paths.
+-   HTML/SVG uploads are rejected.
+-   Oversized files are rejected.
+-   Cross-tenant customer IDs are rejected.
+-   Reminder cannot send after approval.
+-   Internal scheduled endpoints require authentication.
 
----
+------------------------------------------------------------------------
 
 # 79. Critical Integration Test
 
 The most important full workflow test:
 
-```text
+``` text
 Owner registers
      ↓
 Organization created
@@ -3085,35 +3262,35 @@ Approval record references Revision 2
 
 This test represents the core product.
 
----
+------------------------------------------------------------------------
 
 # 80. Features Explicitly Deferred
 
 ## DO NOT BUILD WITHOUT EVIDENCE
 
-- full CRM;
-- quoting;
-- invoicing;
-- inventory;
-- production scheduling;
-- online store;
-- customer accounts;
-- complicated approval chains;
-- live annotation/drawing;
-- PDF editing;
-- revision visual diffing;
-- SMS;
-- AI functionality;
-- QuickBooks integration;
-- Printavo integration;
-- shopVOX integration;
-- Zapier;
-- customer-facing webhooks;
-- custom domains;
-- payment collection;
-- electronic-signature-provider integration.
+-   full CRM;
+-   quoting;
+-   invoicing;
+-   inventory;
+-   production scheduling;
+-   online store;
+-   customer accounts;
+-   complicated approval chains;
+-   live annotation/drawing;
+-   PDF editing;
+-   revision visual diffing;
+-   SMS;
+-   AI functionality;
+-   QuickBooks integration;
+-   Printavo integration;
+-   shopVOX integration;
+-   Zapier;
+-   customer-facing webhooks;
+-   custom domains;
+-   payment collection;
+-   electronic-signature-provider integration.
 
----
+------------------------------------------------------------------------
 
 # 81. Future Architecture Possibilities
 
@@ -3121,7 +3298,7 @@ The core architecture intentionally permits later additions.
 
 ### Annotations
 
-```text
+``` text
 ProofAnnotation
 revisionId
 page
@@ -3131,7 +3308,7 @@ comment
 
 ### Multiple approvers
 
-```text
+``` text
 ProofRecipient
 ```
 
@@ -3143,7 +3320,7 @@ Additional dispatch channel.
 
 Potential events:
 
-```text
+``` text
 proof.sent
 proof.changes_requested
 proof.approved
@@ -3155,7 +3332,7 @@ Organization domain mapping.
 
 None belong in MVP until justified.
 
----
+------------------------------------------------------------------------
 
 # 82. SmartLynx Relationship
 
@@ -3169,274 +3346,312 @@ It exists as reference material.
 
 Useful implementation knowledge includes:
 
-- Auth0 flow;
-- sessions;
-- direct S3 uploads;
-- signed S3 reads;
-- SendGrid;
-- Stripe Checkout;
-- Billing Portal;
-- Stripe webhooks;
-- Prisma/PostgreSQL;
-- Vercel deployment;
-- Tailwind;
-- testing patterns.
+-   Auth0 flow;
+-   sessions;
+-   direct S3 uploads;
+-   signed S3 reads;
+-   SendGrid;
+-   Stripe Checkout;
+-   Billing Portal;
+-   Stripe webhooks;
+-   Prisma/PostgreSQL;
+-   Vercel deployment;
+-   Tailwind;
+-   testing patterns.
 
 Reuse knowledge and good patterns.
 
 Do not blindly copy code.
 
-The old SmartLynx ZIP/archive must remain local-only and must not be committed to the ApproveAProof repository.
+The old SmartLynx ZIP/archive must remain local-only and must not be
+committed to the ApproveAProof repository.
 
----
+------------------------------------------------------------------------
 
 # 83. SmartLynx Problems We Intend to Avoid
 
 Known lessons:
 
-- entitlement enforcement must happen before upload authorization;
-- browser must not control S3 object identity;
-- API permissions cannot depend on UI gating;
-- operational dashboard should not become one giant component;
-- approval records should not be treated like analytics;
-- orphaned files require cleanup;
-- plan logic should be centralized;
-- tenant ownership must be enforced server-side;
-- avoid N+1 database patterns.
+-   entitlement enforcement must happen before upload authorization;
+-   browser must not control S3 object identity;
+-   API permissions cannot depend on UI gating;
+-   operational dashboard should not become one giant component;
+-   approval records should not be treated like analytics;
+-   orphaned files require cleanup;
+-   plan logic should be centralized;
+-   tenant ownership must be enforced server-side;
+-   avoid N+1 database patterns.
 
 These lessons should directly influence ApproveAProof implementation.
 
----
+------------------------------------------------------------------------
 
 # 84. Development Roadmap
 
-The roadmap distinguishes between **database representation** and **application behavior**.
+The roadmap distinguishes between **database representation** and
+**application behavior**.
 
-For example, User/Organization/Membership database tables are created during Phase 1 so the database foundation is coherent. Auth0 integration, tenant resolution, and authorization behavior still belong to Phase 2.
+For example, User/Organization/Membership database tables are created
+during Phase 1 so the database foundation is coherent. Auth0
+integration, tenant resolution, and authorization behavior still belong
+to Phase 2.
 
----
+------------------------------------------------------------------------
 
-## PHASE 0 — Foundation
+## PHASE 0 --- Foundation
 
 **Status: COMPLETE**
 
 Completed:
 
-- inspect React Router boilerplate;
-- remove unnecessary starter code;
-- establish project structure;
-- TypeScript configuration;
-- environment validation;
-- lint/format conventions;
-- testing conventions;
-- development/production configuration baseline;
-- successful format/lint/typecheck/test/build gate.
+-   inspect React Router boilerplate;
+-   remove unnecessary starter code;
+-   establish project structure;
+-   TypeScript configuration;
+-   environment validation;
+-   lint/format conventions;
+-   testing conventions;
+-   development/production configuration baseline;
+-   successful format/lint/typecheck/test/build gate.
 
----
+------------------------------------------------------------------------
 
-## PHASE 1 — Database
+## PHASE 1 --- Database
 
-**Status: IN PROGRESS**
+**Status: COMPLETE**
 
 Purpose:
 
-Establish the durable relational foundation before application behavior depends on it.
+Establish the durable relational foundation before application behavior
+depends on it.
 
 Completed:
 
-- PostgreSQL provider selection;
-- Neon development database;
-- Prisma 7.10.0;
-- Prisma configuration;
-- database connectivity;
-- schema-first migration workflow;
-- User;
-- Organization;
-- Membership;
-- Customer;
-- Proof;
-- Revision;
-- ProofStatus;
-- explicit Revision organization ownership;
-- database-enforced Revision/Proof tenant consistency;
-- nullable Proof.currentRevision;
-- database-enforced same-Proof currentRevision integrity;
-- historical Customer/Proof deletion semantics with recipient snapshots and `SetNull`;
-- ProofResponse and its exact-Revision/tenant integrity;
-- approved-response approval-statement CHECK constraint;
-- ProofActivity;
-- ProofDispatch;
-- supporting enums for the implemented response/activity/dispatch models;
-- Prisma runtime PostgreSQL adapter;
-- server-only database utility;
-- database-focused integration tests for the implemented Phase 1 invariants.
+-   PostgreSQL provider selection;
+-   Neon development database;
+-   Prisma 7.10.0;
+-   Prisma configuration;
+-   database connectivity;
+-   schema-first migration workflow;
+-   User;
+-   Organization;
+-   Membership;
+-   Customer;
+-   Proof;
+-   Revision;
+-   ProofStatus;
+-   explicit Revision organization ownership;
+-   database-enforced Revision/Proof tenant consistency;
+-   nullable Proof.currentRevision;
+-   database-enforced same-Proof currentRevision integrity;
+-   historical Customer/Proof deletion semantics with recipient
+    snapshots and `SetNull`;
+-   ProofResponse and its exact-Revision/tenant integrity;
+-   approved-response approval-statement CHECK constraint;
+-   ProofActivity;
+-   ProofDispatch;
+-   supporting enums for the implemented response/activity/dispatch
+    models;
+-   Prisma runtime PostgreSQL adapter;
+-   server-only database utility;
+-   database-focused integration tests for the implemented Phase 1
+    invariants.
 
-Remaining:
+Completion verification included:
 
-- finish dedicated integration-test database safety using `TEST_DATABASE_URL`;
-- verify the dedicated test target before destructive integration tests run;
-- verify migration status against the dedicated test database;
-- run the 16 database integration tests against the dedicated test database;
-- prove the destructive-test guard rejects `TEST_DATABASE_URL == DATABASE_URL`;
-- run the final Phase 1 quality gate;
-- perform the final Phase 1 documentation/merge checkpoint.
+-   dedicated destructive integration-test database through
+    `TEST_DATABASE_URL`;
+-   fail-closed guard against `TEST_DATABASE_URL == DATABASE_URL`;
+-   migration verification against the dedicated test target;
+-   database integration suite against the dedicated test database;
+-   full Phase 1 quality gate;
+-   documentation checkpoint and merge into `main`.
 
-No application proof workflow yet.
+No application proof workflow was added during Phase 1.
 
-## PHASE 2 — Identity and Tenant Foundation
+## PHASE 2 --- Identity and Tenant Foundation
 
-Tasks:
+**Status: COMPLETE --- pending documentation commit and merge to
+`main`**
 
-- Auth0;
-- User synchronization/resolution;
-- Organization creation behavior;
-- Membership behavior;
-- initial organization creation;
-- organization resolver;
-- authorization helpers;
-- role enforcement;
-- authenticated `/app` shell;
-- tenant-isolation tests.
+Completed:
 
-Critical milestone:
+-   Auth0 OIDC Authorization Code Flow with PKCE;
+-   server-side authorization transaction handling with state, nonce,
+    and PKCE verifier;
+-   signed React Router application session;
+-   Auth0 `sub` → local User synchronization/resolution;
+-   authenticated-user guard;
+-   Organization onboarding;
+-   transactional Organization + OWNER Membership creation;
+-   server-generated organization slug and collision handling;
+-   Membership lookup;
+-   Organization resolver;
+-   server-side role enforcement;
+-   authenticated `/app` shell;
+-   tenant-scoped Customer access helper;
+-   cross-tenant Customer isolation integration tests;
+-   deterministic OIDC test configuration with no live Auth0 dependency
+    in the normal automated suite;
+-   full Phase 2 quality gate;
+-   real Auth0/browser onboarding smoke test;
+-   database verification of the resulting Organization and OWNER
+    Membership.
+
+Critical milestone achieved:
 
 > Tenant isolation works before proof functionality exists.
 
-The underlying User/Organization/Membership tables already exist from Phase 1. This phase makes them operational.
+Current staged architectural limitation:
 
----
+> The active Organization is temporarily the first Membership returned
+> for the authenticated User. This is acceptable for the current
+> one-organization onboarding stage, but it is not the permanent
+> multi-organization selection mechanism.
 
-## PHASE 3 — Core Domain
+Phase closeout:
+
+``` text
+finish canonical documentation
+→ final verification if needed
+→ commit and push phase-2-auth
+→ merge phase-2-auth into main
+→ begin Phase 3 from clean main
+```
+
+------------------------------------------------------------------------
+
+## PHASE 3 --- Core Domain
 
 Build:
 
-- Customer behavior;
-- Proof behavior;
-- Revision behavior;
-- ProofResponse behavior;
-- ProofActivity behavior;
-- ProofDispatch behavior;
-- state-machine domain logic;
-- revision allocation logic;
-- domain invariants.
+-   Customer behavior;
+-   Proof behavior;
+-   Revision behavior;
+-   ProofResponse behavior;
+-   ProofActivity behavior;
+-   ProofDispatch behavior;
+-   state-machine domain logic;
+-   revision allocation logic;
+-   domain invariants.
 
 Write domain tests before elaborate UI.
 
 The underlying tables should already exist from Phase 1.
 
----
+------------------------------------------------------------------------
 
-## PHASE 4 — Secure Uploads
+## PHASE 4 --- Secure Uploads
 
 Build:
 
-- S3 configuration;
-- server-created object paths;
-- revision allocation integration;
-- presigned direct upload;
-- upload finalization;
-- object verification;
-- integrity/hash handling;
-- orphan cleanup.
+-   S3 configuration;
+-   server-created object paths;
+-   revision allocation integration;
+-   presigned direct upload;
+-   upload finalization;
+-   object verification;
+-   integrity/hash handling;
+-   orphan cleanup.
 
 Milestone:
 
 > Shop can create a proof and securely attach an immutable revision.
 
----
+------------------------------------------------------------------------
 
-## PHASE 5 — Internal Proof Workflow
-
-Build:
-
-- dashboard shell;
-- proof list;
-- new proof;
-- proof detail;
-- customer creation;
-- revision history;
-- state display.
-
----
-
-## PHASE 6 — Public Review
+## PHASE 5 --- Internal Proof Workflow
 
 Build:
 
-- secure review-token generation;
-- hashed-token storage;
-- public review route;
-- PDF.js;
-- image preview;
-- shop branding;
-- checklist;
-- responsive/mobile UI.
+-   dashboard shell;
+-   proof list;
+-   new proof;
+-   proof detail;
+-   customer creation;
+-   revision history;
+-   state display.
+
+------------------------------------------------------------------------
+
+## PHASE 6 --- Public Review
+
+Build:
+
+-   secure review-token generation;
+-   hashed-token storage;
+-   public review route;
+-   PDF.js;
+-   image preview;
+-   shop branding;
+-   checklist;
+-   responsive/mobile UI.
 
 Milestone:
 
 > Customer can securely review a proof without creating an account.
 
----
+------------------------------------------------------------------------
 
-## PHASE 7 — Request Changes
+## PHASE 7 --- Request Changes
 
 Build:
 
-- required comments;
-- revision validation;
-- transactional response;
-- state transition;
-- activity timeline;
-- shop notification.
+-   required comments;
+-   revision validation;
+-   transactional response;
+-   state transition;
+-   activity timeline;
+-   shop notification.
 
 Milestone:
 
 > First complete revision loop works.
 
----
+------------------------------------------------------------------------
 
-## PHASE 8 — Approval
+## PHASE 8 --- Approval
 
 Most security-sensitive product phase.
 
 Build:
 
-- approval confirmation;
-- typed responder identity;
-- database transaction;
-- row/state validation;
-- stale-revision protection;
-- snapshotting;
-- review fingerprint;
-- idempotency;
-- approved-state locking.
+-   approval confirmation;
+-   typed responder identity;
+-   database transaction;
+-   row/state validation;
+-   stale-revision protection;
+-   snapshotting;
+-   review fingerprint;
+-   idempotency;
+-   approved-state locking.
 
 Milestone:
 
 > Exact revision can be reliably approved.
 
----
+------------------------------------------------------------------------
 
-## PHASE 9 — Email
-
-Build:
-
-- SendGrid templates;
-- dispatch abstraction;
-- retry behavior;
-- proof-ready email;
-- revision-ready email;
-- change-request email;
-- approval notification;
-- approval confirmation.
-
----
-
-## PHASE 10 — Operational Dashboard
+## PHASE 9 --- Email
 
 Build:
 
-```text
+-   SendGrid templates;
+-   dispatch abstraction;
+-   retry behavior;
+-   proof-ready email;
+-   revision-ready email;
+-   change-request email;
+-   approval notification;
+-   approval confirmation.
+
+------------------------------------------------------------------------
+
+## PHASE 10 --- Operational Dashboard
+
+Build:
+
+``` text
 Awaiting Approval
 Changes Requested
 Approved Today
@@ -3445,85 +3660,87 @@ Needs Attention
 
 Add:
 
-- filtering;
-- pagination;
-- manual reminder;
-- recent approvals.
+-   filtering;
+-   pagination;
+-   manual reminder;
+-   recent approvals.
 
----
+------------------------------------------------------------------------
 
-## PHASE 11 — Reminders
-
-Build:
-
-- scheduled jobs;
-- reminder eligibility;
-- 24/72-hour hypothesis;
-- retry logic;
-- approval/cancellation recheck.
-
----
-
-## PHASE 12 — Billing
+## PHASE 11 --- Reminders
 
 Build:
 
-- organization Stripe customer;
-- Checkout;
-- Billing Portal;
-- webhook verification;
-- subscription status;
-- centralized entitlements;
-- usage enforcement.
+-   scheduled jobs;
+-   reminder eligibility;
+-   24/72-hour hypothesis;
+-   retry logic;
+-   approval/cancellation recheck.
 
-Do not allow billing work to delay early customer validation unnecessarily.
+------------------------------------------------------------------------
 
----
-
-## PHASE 13 — Branding and Settings
+## PHASE 12 --- Billing
 
 Build:
 
-- business identity;
-- logo;
-- accent color;
-- default approval statement;
-- checklist defaults;
-- reply-to email.
+-   organization Stripe customer;
+-   Checkout;
+-   Billing Portal;
+-   webhook verification;
+-   subscription status;
+-   centralized entitlements;
+-   usage enforcement.
 
----
+Do not allow billing work to delay early customer validation
+unnecessarily.
 
-## PHASE 14 — Approval Record
+------------------------------------------------------------------------
+
+## PHASE 13 --- Branding and Settings
+
+Build:
+
+-   business identity;
+-   logo;
+-   accent color;
+-   default approval statement;
+-   checklist defaults;
+-   reply-to email.
+
+------------------------------------------------------------------------
+
+## PHASE 14 --- Approval Record
 
 Build downloadable approval-record PDF from authoritative data.
 
----
+------------------------------------------------------------------------
 
-## PHASE 15 — Security and Production Hardening
+## PHASE 15 --- Security and Production Hardening
 
 Complete:
 
-- security test suite;
-- rate limiting;
-- CSP;
-- CSRF/origin protections;
-- logging review;
-- secret rotation;
-- backup verification;
-- monitoring;
-- error tracking;
-- load testing;
-- accessibility review;
-- mobile review;
-- cross-browser review.
+-   security test suite;
+-   rate limiting;
+-   CSP;
+-   CSRF/origin protections;
+-   logging review;
+-   secret rotation;
+-   backup verification;
+-   monitoring;
+-   error tracking;
+-   load testing;
+-   accessibility review;
+-   mobile review;
+-   cross-browser review.
 
----
+------------------------------------------------------------------------
 
-## PHASE 16 — Initial Customer Launch
+## PHASE 16 --- Initial Customer Launch
 
 Goal:
 
-> Approximately 10 real businesses regularly sending actual customer proofs.
+> Approximately 10 real businesses regularly sending actual customer
+> proofs.
 
 The first success metric is not traffic.
 
@@ -3535,7 +3752,7 @@ It is:
 
 > **Real businesses trusting ApproveAProof with real proof approvals.**
 
----
+------------------------------------------------------------------------
 
 # 85. Go-to-Market Plan
 
@@ -3545,35 +3762,38 @@ Initial acquisition is founder-led direct outreach.
 
 Likely approach:
 
-1. identify local print shops;
-2. inspect existing workflow where possible;
-3. call or email;
-4. ask how artwork approval currently works;
-5. demonstrate ApproveAProof;
-6. get real proofs flowing through the system;
-7. observe friction;
-8. improve product based on actual use.
+1.  identify local print shops;
+2.  inspect existing workflow where possible;
+3.  call or email;
+4.  ask how artwork approval currently works;
+5.  demonstrate ApproveAProof;
+6.  get real proofs flowing through the system;
+7.  observe friction;
+8.  improve product based on actual use.
 
 Colorado provides a practical first market.
 
 Do not initially rely on:
 
-- SEO;
-- paid advertising;
-- broad content marketing;
-- viral growth.
+-   SEO;
+-   paid advertising;
+-   broad content marketing;
+-   viral growth.
 
----
+------------------------------------------------------------------------
 
 # 86. Sales Positioning
 
 Possible message:
 
-> **Still approving print proofs through email? ApproveAProof gives your customers one clear place to review the current version, request changes, or approve it for production—and gives your shop a record of exactly what they approved.**
+> **Still approving print proofs through email? ApproveAProof gives your
+> customers one clear place to review the current version, request
+> changes, or approve it for production---and gives your shop a record
+> of exactly what they approved.**
 
 This is positioning direction, not locked final marketing copy.
 
----
+------------------------------------------------------------------------
 
 # 87. Outsourced Sales
 
@@ -3581,30 +3801,30 @@ This is positioning direction, not locked final marketing copy.
 
 Do not outsource the sales process before founder-led outreach proves:
 
-- who buys;
-- why they buy;
-- objections;
-- demo flow;
-- pricing;
-- sales cycle.
+-   who buys;
+-   why they buy;
+-   objections;
+-   demo flow;
+-   pricing;
+-   sales cycle.
 
 Later possibilities:
 
-- contract salesperson;
-- Reddit-based sales contractor;
-- fixed customer-acquisition bounty;
-- first 2–3 months of revenue as commission.
+-   contract salesperson;
+-   Reddit-based sales contractor;
+-   fixed customer-acquisition bounty;
+-   first 2--3 months of revenue as commission.
 
 Avoid indefinite recurring commissions unless economically justified.
 
 Require:
 
-- lead tracking;
-- attribution;
-- clawback rules;
-- anti-spam requirements.
+-   lead tracking;
+-   attribution;
+-   clawback rules;
+-   anti-spam requirements.
 
----
+------------------------------------------------------------------------
 
 # 88. Domain Strategy
 
@@ -3612,19 +3832,19 @@ Require:
 
 Canonical marketing site:
 
-```text
+``` text
 approveaproof.com
 ```
 
 Application:
 
-```text
+``` text
 approveaproof.app
 ```
 
 Potential marketing architecture:
 
-```text
+``` text
 approveaproof.com/print-shops
 approveaproof.com/sign-shops
 approveaproof.com/screen-printing
@@ -3636,7 +3856,7 @@ Industry-specific domains may later redirect to these pages.
 
 Do not create separate products for each industry.
 
----
+------------------------------------------------------------------------
 
 # 89. Brand Decision
 
@@ -3648,26 +3868,27 @@ Brand:
 
 Advantages:
 
-- immediately explains the action;
-- memorable;
-- exact-match `.com` obtained/selected;
-- works beyond printing;
-- naturally describes iterative proofing;
-- does not imply that the first submitted design is necessarily final.
+-   immediately explains the action;
+-   memorable;
+-   exact-match `.com` obtained/selected;
+-   works beyond printing;
+-   naturally describes iterative proofing;
+-   does not imply that the first submitted design is necessarily final.
 
 Important caveat:
 
-The name is descriptive and may therefore have weaker trademark distinctiveness than an invented brand.
+The name is descriptive and may therefore have weaker trademark
+distinctiveness than an invented brand.
 
 Formal trademark clearance has not been performed.
 
----
+------------------------------------------------------------------------
 
 # 90. Important Product Language
 
 Prefer language such as:
 
-```text
+``` text
 Proof
 Revision
 Review
@@ -3681,7 +3902,7 @@ Approval Record
 
 Avoid confusing customers by using:
 
-```text
+``` text
 Final Design
 Final File
 Final Approval
@@ -3689,63 +3910,70 @@ Final Approval
 
 when the workflow may involve multiple revisions.
 
-The user specifically rejected naming centered around "FinalOK" for this reason.
+The user specifically rejected naming centered around "FinalOK" for this
+reason.
 
----
+------------------------------------------------------------------------
 
 # 91. Decision Log
 
-## D-001 — Rebuild instead of pivoting SmartLynx in place
+## D-001 --- Rebuild instead of pivoting SmartLynx in place
 
 **Decision:** Create a clean new repository.
 
-**Reason:** The visible product and domain architecture differ substantially from SmartLynx. Reusing the old schema/dashboard would introduce unnecessary baggage.
+**Reason:** The visible product and domain architecture differ
+substantially from SmartLynx. Reusing the old schema/dashboard would
+introduce unnecessary baggage.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-002 — Keep SmartLynx as reference
+## D-002 --- Keep SmartLynx as reference
 
 **Decision:** Do not delete SmartLynx.
 
-**Reason:** Existing implementations of Auth0, S3, SendGrid, Stripe, Prisma, and deployment remain useful references.
+**Reason:** Existing implementations of Auth0, S3, SendGrid, Stripe,
+Prisma, and deployment remain useful references.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-003 — Modular monolith
+## D-003 --- Modular monolith
 
 **Decision:** One application rather than microservices.
 
-**Reason:** Lower complexity, easier development, sufficient scalability.
+**Reason:** Lower complexity, easier development, sufficient
+scalability.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-004 — Single PostgreSQL database
+## D-004 --- Single PostgreSQL database
 
 **Decision:** Do not reproduce SmartLynx's second analytics database.
 
-**Reason:** Approval data is transactional business truth. One database simplifies correctness and operations.
+**Reason:** Approval data is transactional business truth. One database
+simplifies correctness and operations.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-005 — Organization-first tenancy
+## D-005 --- Organization-first tenancy
 
-**Decision:** Proofs, billing, branding, and customers belong to Organization.
+**Decision:** Proofs, billing, branding, and customers belong to
+Organization.
 
 **Reason:** Prevents difficult migration when shops add employees.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-006 — Immutable revisions
+## D-006 --- Immutable revisions
 
 **Decision:** Uploaded/sent revisions are never overwritten.
 
@@ -3753,9 +3981,9 @@ The user specifically rejected naming centered around "FinalOK" for this reason.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-007 — Approval references exact revision
+## D-007 --- Approval references exact revision
 
 **Decision:** ProofResponse points directly to Revision.
 
@@ -3763,49 +3991,54 @@ The user specifically rejected naming centered around "FinalOK" for this reason.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-008 — Private S3
+## D-008 --- Private S3
 
-**Decision:** Files remain private and are viewed using temporary signed URLs.
+**Decision:** Files remain private and are viewed using temporary signed
+URLs.
 
 **Reason:** Proof artwork may be commercially sensitive.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-009 — Hashed public review tokens
+## D-009 --- Hashed public review tokens
 
 **Decision:** Store hashes rather than raw bearer tokens.
 
-**Reason:** Database/log exposure should not automatically expose usable review links.
+**Reason:** Database/log exposure should not automatically expose usable
+review links.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-010 — Direct browser-to-S3 uploads
+## D-010 --- Direct browser-to-S3 uploads
 
-**Decision:** Application server authorizes uploads but does not carry normal file bytes.
+**Decision:** Application server authorizes uploads but does not carry
+normal file bytes.
 
-**Reason:** Better scalability, lower bandwidth cost, cleaner server architecture.
+**Reason:** Better scalability, lower bandwidth cost, cleaner server
+architecture.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-011 — Email failure cannot invalidate approval
+## D-011 --- Email failure cannot invalidate approval
 
 **Decision:** Approval commits independently of SendGrid.
 
-**Reason:** Customer decisions are more important than notification delivery.
+**Reason:** Customer decisions are more important than notification
+delivery.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-012 — Centralized entitlements
+## D-012 --- Centralized entitlements
 
 **Decision:** Plan checks live in one domain/service layer.
 
@@ -3813,124 +4046,142 @@ The user specifically rejected naming centered around "FinalOK" for this reason.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-013 — Initial file types
+## D-013 --- Initial file types
 
 **Decision:** Start with PDF/JPEG/PNG.
 
-**Reason:** Covers primary proof use cases while reducing active-content/security complexity.
+**Reason:** Covers primary proof use cases while reducing
+active-content/security complexity.
 
 **Status:** CURRENT PLAN
 
----
+------------------------------------------------------------------------
 
-## D-014 — Auth0 initially retained
+## D-014 --- Auth0 initially retained
 
-**Decision:** Use Auth0 rather than changing authentication technology during the product rebuild.
+**Decision:** Use Auth0 rather than changing authentication technology
+during the product rebuild.
 
-**Reason:** Proven knowledge from SmartLynx and authentication is not product differentiation.
+**Reason:** Proven knowledge from SmartLynx and authentication is not
+product differentiation.
 
 **Status:** CURRENT PLAN
 
----
+------------------------------------------------------------------------
 
-## D-015 — React Router Framework Mode
+## D-015 --- React Router Framework Mode
 
-**Decision:** New application scaffold uses current React Router Framework Mode rather than the legacy Remix 2 generator.
+**Decision:** New application scaffold uses current React Router
+Framework Mode rather than the legacy Remix 2 generator.
 
 **Reason:** Current framework direction for this architecture.
 
 **Status:** LOCKED unless a major technical issue appears.
 
----
+------------------------------------------------------------------------
 
-## D-016 — User controls Git workflow
+## D-016 --- User controls Git workflow
 
-**Decision:** Development collaboration uses copy/paste code into local VS Code.
+**Decision:** Development collaboration uses copy/paste code into local
+VS Code.
 
 **Workflow:**
 
-- ChatGPT provides architecture, review, instructions, and copy/paste-ready code.
-- User edits locally.
-- User runs commands.
-- User makes commits.
-- User pushes.
-- User controls deployments.
+-   ChatGPT provides architecture, review, instructions, and
+    copy/paste-ready code.
+-   User edits locally.
+-   User runs commands.
+-   User makes commits.
+-   User pushes.
+-   User controls deployments.
 
 **Status:** LOCKED workflow preference.
 
----
+------------------------------------------------------------------------
 
-## D-017 — Neon managed PostgreSQL
+## D-017 --- Neon managed PostgreSQL
 
-**Decision:** Use Neon as the managed PostgreSQL provider for ApproveAProof.
+**Decision:** Use Neon as the managed PostgreSQL provider for
+ApproveAProof.
 
 **Reason:**
 
-- independent managed PostgreSQL;
-- strong fit with Prisma;
-- serverless-friendly pooled connectivity;
-- scale-to-zero characteristics suitable for early usage;
-- database branching capabilities useful for future development workflows;
-- avoids unnecessary coupling of both ORM and database hosting to Prisma's ecosystem.
+-   independent managed PostgreSQL;
+-   strong fit with Prisma;
+-   serverless-friendly pooled connectivity;
+-   scale-to-zero characteristics suitable for early usage;
+-   database branching capabilities useful for future development
+    workflows;
+-   avoids unnecessary coupling of both ORM and database hosting to
+    Prisma's ecosystem.
 
-**Status:** LOCKED for current implementation unless a material operational issue appears.
+**Status:** LOCKED for current implementation unless a material
+operational issue appears.
 
----
+------------------------------------------------------------------------
 
-## D-018 — Prisma 7 stable line
+## D-018 --- Prisma 7 stable line
 
-**Decision:** Pin Prisma to stable `7.10.0` rather than using the Prisma 8 release candidate that npm exposed through its current `latest` tag during setup.
+**Decision:** Pin Prisma to stable `7.10.0` rather than using the Prisma
+8 release candidate that npm exposed through its current `latest` tag
+during setup.
 
-**Reason:** Do not build the core data layer on a release candidate without a compelling need.
+**Reason:** Do not build the core data layer on a release candidate
+without a compelling need.
 
 **Status:** LOCKED for the current development baseline.
 
----
+------------------------------------------------------------------------
 
-## D-019 — UUID primary keys
+## D-019 --- UUID primary keys
 
-**Decision:** Current foundational database models use PostgreSQL UUID IDs.
+**Decision:** Current foundational database models use PostgreSQL UUID
+IDs.
 
-**Reason:** Establish a consistent, database-native identifier strategy for tenant and domain records.
+**Reason:** Establish a consistent, database-native identifier strategy
+for tenant and domain records.
 
 **Status:** CURRENT IMPLEMENTATION
 
----
+------------------------------------------------------------------------
 
-## D-020 — Schema-first database development
+## D-020 --- Schema-first database development
 
-**Decision:** Prisma schema and migrations define the application database.
+**Decision:** Prisma schema and migrations define the application
+database.
 
 Normal workflow:
 
-```text
+``` text
 schema
 → validate
 → migrate
 → verify
 ```
 
-**Reason:** The ApproveAProof database is new and application-owned. Database introspection is not the normal source of truth.
+**Reason:** The ApproveAProof database is new and application-owned.
+Database introspection is not the normal source of truth.
 
 **Status:** LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-021 — Short-lived development branches
+## D-021 --- Short-lived development branches
 
-**Decision:** Keep `main` stable and develop coherent phases/features on short-lived branches.
+**Decision:** Keep `main` stable and develop coherent phases/features on
+short-lived branches.
 
 Current branch:
 
-```text
-phase-1-database
+``` text
+phase-2-auth
 ```
 
 At phase completion:
 
-```text
+``` text
 format
 → lint
 → typecheck
@@ -3941,25 +4192,30 @@ format
 
 **Status:** CURRENT WORKFLOW
 
----
+------------------------------------------------------------------------
 
-## D-022 — Documentation checkpoints
+## D-022 --- Documentation checkpoints
 
-**Decision:** Update canonical project documentation at major phase boundaries and meaningful mid-phase architectural checkpoints.
+**Decision:** Update canonical project documentation at major phase
+boundaries and meaningful mid-phase architectural checkpoints.
 
-**Reason:** Long development conversations should not be the only record of implementation state or next steps.
+**Reason:** Long development conversations should not be the only record
+of implementation state or next steps.
 
-The documentation should make it possible to resume development accurately in a new session without reconstructing important decisions from memory.
+The documentation should make it possible to resume development
+accurately in a new session without reconstructing important decisions
+from memory.
 
 **Status:** LOCKED workflow preference.
 
----
+------------------------------------------------------------------------
 
-## D-023 — ProofStatus operational state
+## D-023 --- ProofStatus operational state
 
-**Decision:** Represent Proof workflow state with the `ProofStatus` enum:
+**Decision:** Represent Proof workflow state with the `ProofStatus`
+enum:
 
-```text
+``` text
 DRAFT
 AWAITING_APPROVAL
 CHANGES_REQUESTED
@@ -3967,51 +4223,119 @@ APPROVED
 CANCELED
 ```
 
-**Reason:** Proof-level status is useful operational state while authoritative approval evidence remains a separate exact-Revision response record.
+**Reason:** Proof-level status is useful operational state while
+authoritative approval evidence remains a separate exact-Revision
+response record.
 
 **Status:** IMPLEMENTED / LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-024 — Explicit Revision tenant ownership
+## D-024 --- Explicit Revision tenant ownership
 
-**Decision:** Revision carries `organizationId` and the database enforces:
+**Decision:** Revision carries `organizationId` and the database
+enforces:
 
-```text
+``` text
 Revision(proofId, organizationId)
     → Proof(id, organizationId)
 ```
 
-**Reason:** Revision participates in security-sensitive operations. Direct tenant ownership makes scoped querying simpler while the composite foreign key prevents duplicated ownership data from drifting.
+**Reason:** Revision participates in security-sensitive operations.
+Direct tenant ownership makes scoped querying simpler while the
+composite foreign key prevents duplicated ownership data from drifting.
 
 **Status:** IMPLEMENTED / LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-025 — Database-enforced current Revision ownership
+## D-025 --- Database-enforced current Revision ownership
 
-**Decision:** `Proof.currentRevisionId` is nullable and the database enforces:
+**Decision:** `Proof.currentRevisionId` is nullable and the database
+enforces:
 
-```text
+``` text
 Proof(id, currentRevisionId)
     → Revision(proofId, id)
 ```
 
-**Reason:** A plain `currentRevisionId → Revision.id` foreign key could allow a Proof to point to another Proof's Revision. The composite relationship makes that invalid state impossible at the database layer.
+**Reason:** A plain `currentRevisionId → Revision.id` foreign key could
+allow a Proof to point to another Proof's Revision. The composite
+relationship makes that invalid state impossible at the database layer.
 
 **Status:** IMPLEMENTED / LOCKED
 
----
+------------------------------------------------------------------------
 
-## D-026 — Development Playbook
+## D-026 --- Development Playbook
 
-**Decision:** Maintain `DEVELOPMENT_PLAYBOOK.md` as the canonical authority for development method, verification discipline, migration inspection, testing philosophy, Git checkpoints, and collaboration workflow.
+**Decision:** Maintain `DEVELOPMENT_PLAYBOOK.md` as the canonical
+authority for development method, verification discipline, migration
+inspection, testing philosophy, Git checkpoints, and collaboration
+workflow.
 
-**Reason:** Product strategy and system architecture should not be overloaded with procedural development rules. A dedicated playbook preserves the working method that has emerged during implementation.
+**Reason:** Product strategy and system architecture should not be
+overloaded with procedural development rules. A dedicated playbook
+preserves the working method that has emerged during implementation.
 
 **Status:** LOCKED workflow preference.
 
----
+------------------------------------------------------------------------
+
+## D-027 --- Server-side Auth0 OIDC flow
+
+**Decision:** Use Auth0 through the standard OIDC Authorization Code
+Flow with PKCE via `openid-client`, with React Router server
+loaders/actions and signed cookie sessions forming the application
+authentication boundary.
+
+**Reason:** ApproveAProof is a server-rendered Framework Mode
+application. Authentication and authorization decisions should remain
+server-owned rather than depending on a browser SPA SDK as the
+authoritative boundary.
+
+**Status:** IMPLEMENTED / LOCKED
+
+------------------------------------------------------------------------
+
+## D-028 --- Local application identity
+
+**Decision:** Resolve Auth0's stable `sub` into `User.auth0Subject` and
+store the local User ID in the signed application session.
+
+**Reason:** Auth0 owns authentication identity; PostgreSQL owns
+ApproveAProof users, memberships, organizations, roles, and resource
+authorization.
+
+**Status:** IMPLEMENTED / LOCKED
+
+------------------------------------------------------------------------
+
+## D-029 --- Transactional organization onboarding
+
+**Decision:** Initial onboarding creates the Organization and the
+authenticated user's OWNER Membership in one database transaction.
+
+**Reason:** The application must not create an Organization without its
+founding ownership relationship or an OWNER Membership without its
+Organization.
+
+**Status:** IMPLEMENTED / LOCKED
+
+------------------------------------------------------------------------
+
+## D-030 --- Deterministic OIDC tests
+
+**Decision:** Normal automated tests inject deterministic OIDC
+configuration and do not depend on live Auth0 discovery/network access.
+
+**Reason:** The test suite should be reproducible, fast, and independent
+of external Auth0 availability while real Auth0 behavior is verified
+separately through browser smoke testing.
+
+**Status:** IMPLEMENTED / CURRENT TESTING STANDARD
+
+------------------------------------------------------------------------
 
 # 92. Development Collaboration Protocol
 
@@ -4021,12 +4345,12 @@ To reduce mistakes:
 
 We should establish:
 
-1. what we are building;
-2. why;
-3. files affected;
-4. security implications;
-5. database implications;
-6. tests required.
+1.  what we are building;
+2.  why;
+3.  files affected;
+4.  security implications;
+5.  database implications;
+6.  tests required.
 
 ### During implementation
 
@@ -4034,7 +4358,8 @@ Prefer small coherent changes.
 
 Proceed one file or one tightly related step at a time when practical.
 
-Do not dump many unrelated files or architectural changes into one instruction.
+Do not dump many unrelated files or architectural changes into one
+instruction.
 
 After each meaningful step, verify it before proceeding.
 
@@ -4042,7 +4367,7 @@ After each meaningful step, verify it before proceeding.
 
 Verify appropriate checks such as:
 
-```text
+``` text
 npm run format
 npm run lint
 npm run typecheck
@@ -4058,24 +4383,26 @@ Every phase boundary does.
 
 The user controls:
 
-```text
+``` text
 commits
 pushes
 merges
 deployments
 ```
 
-ChatGPT should proactively identify good commit points but should not assume a commit has occurred until the user confirms it.
+ChatGPT should proactively identify good commit points but should not
+assume a commit has occurred until the user confirms it.
 
 The canonical detailed workflow is maintained in:
 
-```text
+``` text
 DEVELOPMENT_PLAYBOOK.md
 ```
 
-This Master Plan records the existence and purpose of that workflow; the Playbook owns its procedural details.
+This Master Plan records the existence and purpose of that workflow; the
+Playbook owns its procedural details.
 
----
+------------------------------------------------------------------------
 
 # 93. Commit Philosophy
 
@@ -4085,7 +4412,7 @@ Prefer meaningful checkpoints.
 
 Examples:
 
-```text
+``` text
 chore: establish ApproveAProof project foundation
 
 chore: initialize Prisma database tooling
@@ -4109,13 +4436,13 @@ Avoid giant commits containing multiple unrelated architectural phases.
 
 Current Phase 1 database work follows this pattern.
 
----
+------------------------------------------------------------------------
 
 # 94. Definition of MVP
 
 ApproveAProof is MVP-ready when this works reliably:
 
-```text
+``` text
 Shop logs in.
 
 Shop creates customer.
@@ -4163,13 +4490,13 @@ Shop can see who approved it and when.
 
 If this experience is excellent, the application is sellable.
 
----
+------------------------------------------------------------------------
 
 # 95. Success Criteria
 
 Early success is not:
 
-```text
+``` text
 10,000 visitors
 1,000 free accounts
 SEO ranking
@@ -4178,7 +4505,7 @@ social followers
 
 Early success is:
 
-```text
+``` text
 10 businesses
 regularly sending
 real customer proofs
@@ -4187,14 +4514,14 @@ through ApproveAProof
 
 From those customers we learn:
 
-- what is confusing;
-- what is missing;
-- what saves time;
-- what prevents mistakes;
-- what they will pay for;
-- what adjacent features are genuinely valuable.
+-   what is confusing;
+-   what is missing;
+-   what saves time;
+-   what prevents mistakes;
+-   what they will pay for;
+-   what adjacent features are genuinely valuable.
 
----
+------------------------------------------------------------------------
 
 # 96. Product Development Rule
 
@@ -4206,11 +4533,12 @@ When choosing between:
 
 and:
 
-> making the core approval workflow clearer, faster, safer, and more reliable
+> making the core approval workflow clearer, faster, safer, and more
+> reliable
 
 choose the second until customers prove otherwise.
 
----
+------------------------------------------------------------------------
 
 # 97. Security Development Rule
 
@@ -4220,7 +4548,7 @@ Security is not a final launch phase.
 
 Every feature must consider:
 
-```text
+``` text
 authentication
 authorization
 tenant isolation
@@ -4236,19 +4564,21 @@ failure behavior
 
 Security hardening occurs throughout development.
 
-Phase 15 is verification and reinforcement, not the first time security is considered.
+Phase 15 is verification and reinforcement, not the first time security
+is considered.
 
----
+------------------------------------------------------------------------
 
 # 98. Scalability Development Rule
 
 ## LOCKED
 
-Design data boundaries and asynchronous work so scaling remains possible.
+Design data boundaries and asynchronous work so scaling remains
+possible.
 
 Do not prematurely introduce:
 
-```text
+``` text
 microservices
 Redis
 Kafka
@@ -4261,21 +4591,21 @@ without demonstrated need.
 
 Scalable simplicity is preferred to speculative complexity.
 
----
+------------------------------------------------------------------------
 
 # 99. Current Working Checkpoint
 
-**Date:** September 14, 2026
+**Date:** September 17, 2026
 
 Repository:
 
-```text
+``` text
 Created and active
 ```
 
 Framework:
 
-```text
+``` text
 React Router Framework Mode
 React 19
 TypeScript
@@ -4285,13 +4615,13 @@ Tailwind
 
 Application foundation:
 
-```text
+``` text
 Phase 0 complete
 ```
 
 Database:
 
-```text
+``` text
 Neon PostgreSQL configured
 Prisma 7.10.0 configured
 Connectivity verified
@@ -4300,7 +4630,7 @@ Schema-first migration workflow operational
 
 Implemented database models:
 
-```text
+``` text
 Organization
 User
 Membership
@@ -4314,7 +4644,7 @@ ProofDispatch
 
 Implemented enums:
 
-```text
+``` text
 MembershipRole
 ProofStatus
 ProofResponseType
@@ -4325,7 +4655,7 @@ ProofDispatchStatus
 
 Implemented integrity relationships include:
 
-```text
+``` text
 Revision(proofId, organizationId)
     → Proof(id, organizationId)
 
@@ -4333,146 +4663,171 @@ Proof(id, currentRevisionId)
     → Revision(proofId, id)
 ```
 
-This means Revision tenant ownership and current-Revision same-Proof ownership are enforced by PostgreSQL rather than left only to application convention.
+This means Revision tenant ownership and current-Revision same-Proof
+ownership are enforced by PostgreSQL rather than left only to
+application convention.
 
-Current Phase 1 slices have passed the full quality gate when checkpointed and have been committed/pushed to:
-
-```text
-phase-1-database
-```
+Phase 1 is complete and was merged into `main`.
 
 Authentication:
 
-```text
-Not yet implemented
-Planned for Phase 2
+``` text
+Auth0 OIDC Authorization Code Flow with PKCE implemented
+Signed React Router application session implemented
+Auth0 subject resolves to local User
+Authenticated /app shell implemented
 ```
 
 S3:
 
-```text
+``` text
 Not yet implemented
 Planned for Phase 4
 ```
 
 Stripe:
 
-```text
+``` text
 Not yet implemented
 Planned for Phase 12
 ```
 
 SendGrid:
 
-```text
+``` text
 Not yet implemented
 Planned for Phase 9
 ```
 
 Current phase:
 
-```text
-PHASE 1 — DATABASE
-IN PROGRESS
+``` text
+PHASE 2 — IDENTITY AND TENANT FOUNDATION
+COMPLETE — pending documentation commit and merge to main
 ```
 
 Canonical development method:
 
-```text
+``` text
 DEVELOPMENT_PLAYBOOK.md
 ```
 
 # 100. DEVELOPMENT RESUME POINT
 
-## Start here after the September 14, 2026 documentation checkpoint.
+## Start here after the September 17, 2026 Phase 2 documentation checkpoint.
 
 Do not repeat completed Phase 0 setup.
 
-Do not recreate or redesign the implemented Phase 1 relational models and constraints without an explicit architecture reason.
+Do not redesign the completed Phase 1 relational foundation or Phase 2
+identity/tenant foundation without an explicit architectural reason.
 
 Do not run `prisma db pull` as the normal workflow.
 
-### Implemented since the previous documentation checkpoint
+### Implemented in Phase 2
 
-```text
-Customer deletion/history semantics
-Proof recipient snapshots
+``` text
+Auth0 OIDC Authorization Code Flow with PKCE
+signed React Router application sessions
+Auth0 sub → local User resolution/synchronization
+authenticated-user guard
+Organization onboarding
+transactional Organization + OWNER Membership creation
+organization slug generation and collision handling
+Membership lookup
+Organization resolver
+server-side role enforcement
+authenticated /app shell
+tenant-scoped Customer lookup
+cross-tenant Customer isolation tests
+deterministic OIDC test configuration
+```
+
+Phase 2 automated verification reached:
+
+``` text
+20 test files passed
+70 tests passed
+format passed
+lint passed
+typecheck passed
+build passed
+```
+
+The real browser smoke test also verified:
+
+``` text
+unauthenticated /app
+→ Auth0 login
+→ callback
+→ /app
+→ no Membership
+→ /app/onboarding
+→ create Organization
+→ create OWNER Membership
+→ /app workspace
+```
+
+Prisma Studio confirmed the Organization and OWNER Membership were
+persisted for the authenticated local User.
+
+### Immediate next repository action
+
+After this documentation checkpoint is synchronized:
+
+``` text
+commit documentation
+push phase-2-auth
+run final verification if the documentation/code state requires it
+merge phase-2-auth into main
+confirm main is clean and current
+```
+
+Do not begin Phase 3 on `phase-2-auth`.
+
+### Phase 3 starting task
+
+Begin a fresh Phase 3 branch from updated `main`.
+
+Build the core domain behavior around the already-existing database
+models:
+
+``` text
+Customer
+Proof
+Revision
 ProofResponse
-approved-response approval-statement CHECK constraint
 ProofActivity
 ProofDispatch
-Prisma runtime PostgreSQL adapter
-server-only database utility
-database-oriented integration tests
 ```
 
-The database integration suite currently contains 16 tests covering the implemented Phase 1 invariants, including recipient-history preservation, exact ProofResponse Revision ownership, the approval-statement requirement, ProofDispatch Revision ownership, deletion/evidence behavior, uniqueness constraints, current-Revision integrity, and rejection of cross-tenant Proof → Customer assignment.
+Priorities include:
 
-### Immediate next development task
-
-Finish the dedicated integration-test database safety slice:
-
-```text
-confirm DATABASE_URL and TEST_DATABASE_URL resolve to different Neon hosts
-target the test database explicitly for migration verification
-run all 16 database integration tests against TEST_DATABASE_URL
-prove the destructive-test equality guard fails closed
-run the full Phase 1 quality gate
+``` text
+tenant-scoped service boundaries
+Proof state-machine behavior
+server-controlled revision allocation
+domain invariants
+transaction boundaries
+tests before elaborate UI
 ```
 
-The remaining high-value constraints/index review is already complete.
+Preserve the central invariant:
 
-Do not add speculative schema fields merely to make Phase 1 look more complete.
+> **An approval always belongs to exactly one immutable revision.**
 
-Before declaring Phase 1 complete, confirm:
+Important carry-forward limitation:
 
-```text
-schema validates
-all intended migrations apply cleanly
-Neon is synchronized
-tenant ownership paths are deliberate
-approval references an exact Revision
-historical Customer deletion preserves Proof recipient history
-approved ProofResponses require the approval statement snapshot
-ProofActivity remains operational history rather than approval evidence
-ProofDispatch cannot reference a Revision from another Proof
-revision numbering constraint exists
-current revision cannot cross Proof ownership
-Revision tenant ownership cannot drift from Proof ownership
-runtime Prisma/PostgreSQL database access is server-only
-database integrity tests pass
-remaining important indexes/constraints have been reviewed
-```
-
-Then run the complete phase gate:
-
-```bash
-npm run format
-npm run lint
-npm run typecheck
-npm run test
-npm run build
-```
-
-Only after the Phase 1 completion criteria pass should:
-
-```text
-phase-1-database
-```
-
-be merged into:
-
-```text
-main
-```
-
-Then begin Phase 2.
+> `requireOrganization()` currently resolves the first Membership.
+> Before the product supports meaningful multi-organization use, replace
+> this temporary rule with an explicit active-organization selection
+> mechanism.
 
 Follow `DEVELOPMENT_PLAYBOOK.md` throughout.
 
 # 101. Questions We Intentionally Have Not Answered Yet
 
-These are not blockers unless they intersect the current implementation step.
+These are not blockers unless they intersect the current implementation
+step.
 
 ### Pricing
 
@@ -4526,26 +4881,27 @@ Future possibility.
 
 Future possibility.
 
-None of these questions justify skipping the current database-design sequence.
+None of these questions justify skipping the current roadmap sequence.
 
----
+------------------------------------------------------------------------
 
 # 102. Questions to Ask During Customer Validation
 
 Once the product can be demonstrated, ask shops:
 
-1. How do customers approve proofs today?
-2. Who sends the proof?
-3. What file format do you normally send?
-4. How many revisions does a typical job require?
-5. What exactly counts as approval in your shop?
-6. Have you ever had a disagreement about what was approved?
-7. Do customers usually review proofs on phones or computers?
-8. How long do approvals typically take?
-9. Do you manually follow up when someone hasn't approved?
+1.  How do customers approve proofs today?
+2.  Who sends the proof?
+3.  What file format do you normally send?
+4.  How many revisions does a typical job require?
+5.  What exactly counts as approval in your shop?
+6.  Have you ever had a disagreement about what was approved?
+7.  Do customers usually review proofs on phones or computers?
+8.  How long do approvals typically take?
+9.  Do you manually follow up when someone hasn't approved?
 10. Who needs to know when approval arrives?
 11. Do multiple people ever need to approve?
-12. Do you need the customer's signature, or simply a clear documented approval?
+12. Do you need the customer's signature, or simply a clear documented
+    approval?
 13. How long do you keep proof records?
 14. What software already runs the shop?
 15. What would make you unwilling to add another tool?
@@ -4555,25 +4911,26 @@ Do not lead customers toward features we want to build.
 
 Listen for repeated problems.
 
----
+------------------------------------------------------------------------
 
 # 103. Long-Term Product Test
 
 Before adding any major feature, ask:
 
-> **Does this make the journey from "proof ready" to "safe to produce" materially better?**
+> **Does this make the journey from "proof ready" to "safe to produce"
+> materially better?**
 
 If yes, investigate.
 
 If not, it probably belongs outside ApproveAProof.
 
----
+------------------------------------------------------------------------
 
 # 104. Canonical Architecture Summary
 
 The system can ultimately be reduced to this:
 
-```text
+``` text
                     ORGANIZATION
                          │
                     ┌────┴────┐
@@ -4601,7 +4958,7 @@ The system can ultimately be reduced to this:
 
 Infrastructure:
 
-```text
+``` text
 React Router / React / TypeScript
                 │
                 ▼
@@ -4614,7 +4971,7 @@ React Router / React / TypeScript
 
 Security boundary:
 
-```text
+``` text
 User
  ↓ authentication
 Membership
@@ -4626,7 +4983,7 @@ Resource
 
 Public review boundary:
 
-```text
+``` text
 Random Token
      ↓
 SHA-256 lookup
@@ -4640,7 +4997,7 @@ Short-lived S3 access
 
 Approval integrity:
 
-```text
+``` text
 Customer decision
        +
 Exact Revision
@@ -4658,11 +5015,12 @@ ProofResponse
 
 That is ApproveAProof.
 
----
+------------------------------------------------------------------------
 
 # 105. The Ten Rules
 
-If this document becomes too long to reread during development, remember these ten rules.
+If this document becomes too long to reread during development, remember
+these ten rules.
 
 ### 1. A proof is not a file.
 
@@ -4678,7 +5036,8 @@ Never merely mark a proof "approved."
 
 ### 4. The server owns truth.
 
-Never trust browser-provided ownership, storage identity, plan state, revision identity, or timestamps.
+Never trust browser-provided ownership, storage identity, plan state,
+revision identity, or timestamps.
 
 ### 5. Tenant isolation is mandatory.
 
@@ -4690,11 +5049,13 @@ Use secure bearer review tokens and temporary S3 access.
 
 ### 7. Customer decisions are transactional.
 
-Email, analytics, and notifications cannot determine whether approval succeeded.
+Email, analytics, and notifications cannot determine whether approval
+succeeded.
 
 ### 8. Keep the infrastructure boring.
 
-PostgreSQL + S3 + one application is enough until reality proves otherwise.
+PostgreSQL + S3 + one application is enough until reality proves
+otherwise.
 
 ### 9. Do not build a print MIS.
 
@@ -4704,13 +5065,24 @@ Fix proof approval exceptionally well.
 
 > **This customer approved this exact revision at this exact time.**
 
----
+------------------------------------------------------------------------
 
 # END OF CURRENT MASTER PLAN
 
-**Current checkpoint:** Phase 0 is complete. Phase 1 Database is in progress on `phase-1-database`. The core relational models through `ProofDispatch`, historical Proof recipient preservation, the Proof → Customer tenant-integrity trigger, the Prisma/PostgreSQL runtime database utility, and 16 database integration tests are implemented. The tenant-integrity migration was committed and pushed after its migration directory was explicitly staged.
+**Current checkpoint:** Phase 0 and Phase 1 are complete. Phase 2
+Identity and Tenant Foundation is functionally complete on
+`phase-2-auth`. Auth0/OIDC authentication, signed application sessions,
+local User resolution, Organization onboarding, OWNER Membership
+creation, organization/role resolution, authenticated `/app`,
+deterministic auth tests, and tenant-scoped Customer isolation are
+implemented and verified. The Phase 2 automated suite passes 20 test
+files / 70 tests, and the real Auth0/browser onboarding flow has been
+smoke-tested successfully.
 
-**Next action:** Finish dedicated integration-test database safety with `TEST_DATABASE_URL`, verify the test target and migrations, run all 16 database integration tests against it, prove the destructive-test guard fails closed, then run the full Phase 1 quality gate.
+**Next action:** Complete this documentation checkpoint, commit and push
+the documentation on `phase-2-auth`, perform any final required
+verification, then merge `phase-2-auth` into `main`. Begin Phase 3 from
+a fresh branch off the updated `main`.
 
 **Development method:** Follow `DEVELOPMENT_PLAYBOOK.md`.
 
