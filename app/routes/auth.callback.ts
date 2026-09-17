@@ -29,7 +29,7 @@ export async function loader({ request }: { request: Request }) {
   setAuthenticatedUserId(session, user.id);
   clearAuthorizationTransaction(session);
 
-  return redirect("/", {
+  return redirect("/app", {
     headers: {
       "Set-Cookie": await commitSession(session),
     },
