@@ -1,9 +1,6 @@
 import type { MembershipRole } from "../../../generated/prisma/client";
 
-import {
-  requireOrganization,
-  type OrganizationContext,
-} from "./require-organization.server";
+import { requireOrganization, type OrganizationContext } from "./require-organization.server";
 
 const ROLE_LEVEL: Record<MembershipRole, number> = {
   MEMBER: 1,
@@ -17,10 +14,7 @@ export async function requireRole(
 ): Promise<OrganizationContext> {
   const context = await requireOrganization(request);
 
-  if (
-    ROLE_LEVEL[context.membership.role] <
-    ROLE_LEVEL[minimumRole]
-  ) {
+  if (ROLE_LEVEL[context.membership.role] < ROLE_LEVEL[minimumRole]) {
     throw new Response("Forbidden", {
       status: 403,
     });

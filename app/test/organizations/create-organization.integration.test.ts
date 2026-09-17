@@ -54,14 +54,10 @@ describe("createOrganizationForUser", () => {
       slug: TEST_SLUG,
     });
 
-    expect(result.organization.name).toBe(
-      "Integration Test Print Shop",
-    );
+    expect(result.organization.name).toBe("Integration Test Print Shop");
     expect(result.organization.slug).toBe(TEST_SLUG);
 
-    expect(result.membership.organizationId).toBe(
-      result.organization.id,
-    );
+    expect(result.membership.organizationId).toBe(result.organization.id);
     expect(result.membership.userId).toBe(user.id);
     expect(result.membership.role).toBe("OWNER");
 
@@ -79,8 +75,6 @@ describe("createOrganizationForUser", () => {
 
     expect(storedMembership).not.toBeNull();
     expect(storedMembership?.role).toBe("OWNER");
-    expect(storedMembership?.organization.id).toBe(
-      result.organization.id,
-    );
+    expect(storedMembership?.organization.id).toBe(result.organization.id);
   });
 });

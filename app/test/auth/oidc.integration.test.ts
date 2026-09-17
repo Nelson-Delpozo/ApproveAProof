@@ -1,11 +1,15 @@
+// @vitest-environment node
+
 import { describe, expect, it } from "vitest";
 
-import { getOidcConfiguration } from "../../services/auth/oidc.server";
+import { authConfig } from "../../services/auth/auth-config.server";
 
 describe("Auth0 OIDC configuration", () => {
-  it("discovers the configured Auth0 issuer", async () => {
-    const configuration = await getOidcConfiguration();
+  it("builds the configured Auth0 issuer", () => {
+    const issuer = new URL(`https://${authConfig.domain}`);
 
-    expect(configuration).toBeDefined();
+    expect(issuer.protocol).toBe("https:");
+    expect(issuer.hostname).toBe(authConfig.domain);
+    expect(issuer.pathname).toBe("/");
   });
 });

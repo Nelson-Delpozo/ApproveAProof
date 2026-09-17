@@ -1,9 +1,7 @@
 import { db } from "../../lib/db.server";
 import { createOrganizationSlug } from "./organization-slug";
 
-export async function createAvailableOrganizationSlug(
-  name: string,
-): Promise<string> {
+export async function createAvailableOrganizationSlug(name: string): Promise<string> {
   const baseSlug = createOrganizationSlug(name);
 
   if (!baseSlug) {
@@ -28,9 +26,7 @@ export async function createAvailableOrganizationSlug(
     },
   });
 
-  const existingSlugs = new Set(
-    existingOrganizations.map((organization) => organization.slug),
-  );
+  const existingSlugs = new Set(existingOrganizations.map((organization) => organization.slug));
 
   if (!existingSlugs.has(baseSlug)) {
     return baseSlug;

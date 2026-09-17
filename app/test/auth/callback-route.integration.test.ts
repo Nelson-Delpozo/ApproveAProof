@@ -20,9 +20,7 @@ describe("authentication callback route", () => {
       const response = error as Response;
 
       expect(response.status).toBe(400);
-      expect(await response.text()).toBe(
-        "Missing authentication transaction",
-      );
+      expect(await response.text()).toBe("Missing authentication transaction");
     }
   });
 });

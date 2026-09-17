@@ -1,7 +1,4 @@
-import type {
-  Membership,
-  Organization,
-} from "../../../generated/prisma/client";
+import type { Membership, Organization } from "../../../generated/prisma/client";
 
 import { db } from "../../lib/db.server";
 

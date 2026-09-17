@@ -43,9 +43,7 @@ describe("authentication session", () => {
 
     const setCookie = await destroySession(session);
 
-    expect(setCookie).toContain(
-      "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-    );
+    expect(setCookie).toContain("Expires=Thu, 01 Jan 1970 00:00:00 GMT");
   });
 
   it("stores and clears the authorization transaction", async () => {
@@ -78,4 +76,4 @@ describe("authentication session", () => {
 
     expect(getAuthenticatedUserId(restoredSession)).toBe("test-user-id");
   });
-}); 
+});

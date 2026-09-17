@@ -1,8 +1,4 @@
-import type {
-  Membership,
-  Organization,
-  User,
-} from "../../../generated/prisma/client";
+import type { Membership, Organization, User } from "../../../generated/prisma/client";
 import { redirect } from "react-router";
 
 import { requireUser } from "../auth/require-user.server";
@@ -14,9 +10,7 @@ export type OrganizationContext = {
   membership: Membership;
 };
 
-export async function requireOrganization(
-  request: Request,
-): Promise<OrganizationContext> {
+export async function requireOrganization(request: Request): Promise<OrganizationContext> {
   const user = await requireUser(request);
   const memberships = await getUserMemberships(user.id);
 

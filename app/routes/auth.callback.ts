@@ -22,10 +22,7 @@ export async function loader({ request }: { request: Request }) {
 
   const callbackUrl = new URL(request.url);
 
-  const identity = await processAuthorizationCallback(
-    callbackUrl,
-    transaction,
-  );
+  const identity = await processAuthorizationCallback(callbackUrl, transaction);
 
   const user = await resolveAuthenticatedUser(identity);
 

@@ -8,8 +8,7 @@ export async function createAuthorizationRequest() {
   const configuration = await getOidcConfiguration();
 
   const codeVerifier = oidc.randomPKCECodeVerifier();
-  const codeChallenge =
-    await oidc.calculatePKCECodeChallenge(codeVerifier);
+  const codeChallenge = await oidc.calculatePKCECodeChallenge(codeVerifier);
   const state = oidc.randomState();
   const nonce = oidc.randomNonce();
 

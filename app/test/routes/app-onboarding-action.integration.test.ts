@@ -70,9 +70,7 @@ describe("app onboarding action", () => {
     await db.$disconnect();
   });
 
-  async function createAuthenticatedRequest(
-    organizationName: string,
-  ) {
+  async function createAuthenticatedRequest(organizationName: string) {
     const session = await getSession();
     setAuthenticatedUserId(session, userId);
 
@@ -81,22 +79,17 @@ describe("app onboarding action", () => {
     const formData = new FormData();
     formData.set("organizationName", organizationName);
 
-    return new Request(
-      "http://localhost:5173/app/onboarding",
-      {
-        method: "POST",
-        headers: {
-          Cookie: cookie,
-        },
-        body: formData,
+    return new Request("http://localhost:5173/app/onboarding", {
+      method: "POST",
+      headers: {
+        Cookie: cookie,
       },
-    );
+      body: formData,
+    });
   }
 
   it("creates an organization and OWNER membership", async () => {
-    const request = await createAuthenticatedRequest(
-      "Onboarding Action Integration Test",
-    );
+    const request = await createAuthenticatedRequest("Onboarding Action Integration Test");
 
     try {
       await action(createActionArgs(request));
@@ -117,9 +110,7 @@ describe("app onboarding action", () => {
     });
 
     expect(organization).not.toBeNull();
-    expect(organization?.name).toBe(
-      "Onboarding Action Integration Test",
-    );
+    expect(organization?.name).toBe("Onboarding Action Integration Test");
 
     const membership = await db.membership.findUnique({
       where: {
@@ -168,9 +159,7 @@ describe("app onboarding action", () => {
       },
     });
 
-    const request = await createAuthenticatedRequest(
-      "Another Organization",
-    );
+    const request = await createAuthenticatedRequest("Another Organization");
 
     try {
       await action(createActionArgs(request));

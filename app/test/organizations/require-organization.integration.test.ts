@@ -109,9 +109,7 @@ describe("requireOrganization", () => {
       const response = error as Response;
 
       expect(response.status).toBe(302);
-      expect(response.headers.get("Location")).toBe(
-        "/app/onboarding",
-      );
+      expect(response.headers.get("Location")).toBe("/app/onboarding");
     }
   });
 

@@ -98,14 +98,10 @@ describe("getUserMemberships", () => {
 
     expect(memberships).toHaveLength(2);
 
-    expect(memberships[0].organization.id).toBe(
-      firstOrganization.id,
-    );
+    expect(memberships[0].organization.id).toBe(firstOrganization.id);
     expect(memberships[0].role).toBe("OWNER");
 
-    expect(memberships[1].organization.id).toBe(
-      secondOrganization.id,
-    );
+    expect(memberships[1].organization.id).toBe(secondOrganization.id);
     expect(memberships[1].role).toBe("MEMBER");
   });
 });

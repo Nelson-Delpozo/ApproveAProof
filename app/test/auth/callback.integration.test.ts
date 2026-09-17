@@ -16,8 +16,6 @@ describe("authentication callback processing", () => {
       nonce: "expected-nonce",
     };
 
-    await expect(
-      processAuthorizationCallback(callbackUrl, transaction),
-    ).rejects.toThrow();
+    await expect(processAuthorizationCallback(callbackUrl, transaction)).rejects.toThrow();
   });
 });

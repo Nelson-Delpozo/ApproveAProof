@@ -2,10 +2,7 @@ import type { User } from "../../../generated/prisma/client";
 import { redirect } from "react-router";
 
 import { db } from "../../lib/db.server";
-import {
-  getAuthenticatedUserId,
-  getSession,
-} from "./session.server";
+import { getAuthenticatedUserId, getSession } from "./session.server";
 
 export async function requireUser(request: Request): Promise<User> {
   const session = await getSession(request.headers.get("Cookie"));

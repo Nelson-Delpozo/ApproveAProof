@@ -1,13 +1,9 @@
-import {
-  useLoaderData,
-  type LoaderFunctionArgs,
-} from "react-router";
+import { useLoaderData, type LoaderFunctionArgs } from "react-router";
 
 import { requireOrganization } from "../services/organizations/require-organization.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { user, organization, membership } =
-    await requireOrganization(request);
+  const { user, organization, membership } = await requireOrganization(request);
 
   return {
     user: {
@@ -27,8 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function App() {
-  const { user, organization, membership } =
-    useLoaderData<typeof loader>();
+  const { user, organization, membership } = useLoaderData<typeof loader>();
 
   return (
     <main>

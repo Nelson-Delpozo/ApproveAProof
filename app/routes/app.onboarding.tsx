@@ -26,9 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return null;
 }
 
-export async function action({
-  request,
-}: ActionFunctionArgs): Promise<ActionData | Response> {
+export async function action({ request }: ActionFunctionArgs): Promise<ActionData | Response> {
   const user = await requireUser(request);
   const memberships = await getUserMemberships(user.id);
 
@@ -39,10 +37,7 @@ export async function action({
   const formData = await request.formData();
   const organizationName = formData.get("organizationName");
 
-  if (
-    typeof organizationName !== "string" ||
-    organizationName.trim().length === 0
-  ) {
+  if (typeof organizationName !== "string" || organizationName.trim().length === 0) {
     return {
       error: "Organization name is required.",
     };
@@ -82,15 +77,10 @@ export default function OrganizationOnboarding() {
     <main>
       <h1>Create your organization</h1>
 
-      <p>
-        Set up the organization that will own your proofs, customers,
-        and revisions.
-      </p>
+      <p>Set up the organization that will own your proofs, customers, and revisions.</p>
 
       <Form method="post">
-        <label htmlFor="organizationName">
-          Organization name
-        </label>
+        <label htmlFor="organizationName">Organization name</label>
 
         <input
           id="organizationName"
@@ -101,9 +91,7 @@ export default function OrganizationOnboarding() {
           autoComplete="organization"
         />
 
-        {actionData?.error ? (
-          <p role="alert">{actionData.error}</p>
-        ) : null}
+        {actionData?.error ? <p role="alert">{actionData.error}</p> : null}
 
         <button type="submit">Create organization</button>
       </Form>

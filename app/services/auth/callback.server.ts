@@ -15,16 +15,12 @@ export async function processAuthorizationCallback(
 ): Promise<AuthenticatedIdentity> {
   const configuration = await getOidcConfiguration();
 
-  const tokens = await oidc.authorizationCodeGrant(
-    configuration,
-    callbackUrl,
-    {
-      pkceCodeVerifier: transaction.codeVerifier,
-      expectedState: transaction.state,
-      expectedNonce: transaction.nonce,
-      idTokenExpected: true,
-    },
-  );
+  const tokens = await oidc.authorizationCodeGrant(configuration, callbackUrl, {
+    pkceCodeVerifier: transaction.codeVerifier,
+    expectedState: transaction.state,
+    expectedNonce: transaction.nonce,
+    idTokenExpected: true,
+  });
 
   const claims = tokens.claims();
 

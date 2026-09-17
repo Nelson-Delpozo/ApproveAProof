@@ -76,10 +76,7 @@ describe("requireUser", () => {
   it("redirects when the session references a nonexistent user", async () => {
     const session = await getSession();
 
-    setAuthenticatedUserId(
-      session,
-      "00000000-0000-0000-0000-000000000000",
-    );
+    setAuthenticatedUserId(session, "00000000-0000-0000-0000-000000000000");
 
     const cookie = await commitSession(session);
 

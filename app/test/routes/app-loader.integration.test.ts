@@ -107,9 +107,7 @@ describe("app loader", () => {
       const response = error as Response;
 
       expect(response.status).toBe(302);
-      expect(response.headers.get("Location")).toBe(
-        "/app/onboarding",
-      );
+      expect(response.headers.get("Location")).toBe("/app/onboarding");
     }
   });
 
@@ -137,9 +135,7 @@ describe("app loader", () => {
     expect(result.user.email).toBe(TEST_EMAIL);
 
     expect(result.organization.id).toBe(organization.id);
-    expect(result.organization.name).toBe(
-      "App Loader Test Organization",
-    );
+    expect(result.organization.name).toBe("App Loader Test Organization");
     expect(result.organization.slug).toBe(TEST_SLUG);
 
     expect(result.membership.role).toBe("OWNER");

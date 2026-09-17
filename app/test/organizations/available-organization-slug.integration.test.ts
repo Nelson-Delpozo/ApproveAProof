@@ -31,9 +31,7 @@ describe("createAvailableOrganizationSlug", () => {
   });
 
   it("returns the base slug when it is available", async () => {
-    const slug = await createAvailableOrganizationSlug(
-      "Available Slug Integration Test",
-    );
+    const slug = await createAvailableOrganizationSlug("Available Slug Integration Test");
 
     expect(slug).toBe(TEST_SLUG_PREFIX);
   });
@@ -56,9 +54,7 @@ describe("createAvailableOrganizationSlug", () => {
       ],
     });
 
-    const slug = await createAvailableOrganizationSlug(
-      "Available Slug Integration Test",
-    );
+    const slug = await createAvailableOrganizationSlug("Available Slug Integration Test");
 
     expect(slug).toBe(`${TEST_SLUG_PREFIX}-4`);
   });
@@ -77,17 +73,13 @@ describe("createAvailableOrganizationSlug", () => {
       ],
     });
 
-    const slug = await createAvailableOrganizationSlug(
-      "Available Slug Integration Test",
-    );
+    const slug = await createAvailableOrganizationSlug("Available Slug Integration Test");
 
     expect(slug).toBe(`${TEST_SLUG_PREFIX}-2`);
   });
 
   it("rejects a name that cannot produce a valid slug", async () => {
-    await expect(
-      createAvailableOrganizationSlug("!!!"),
-    ).rejects.toThrow(
+    await expect(createAvailableOrganizationSlug("!!!")).rejects.toThrow(
       "Organization name cannot produce a valid slug",
     );
   });

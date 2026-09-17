@@ -72,14 +72,11 @@ describe("app onboarding loader", () => {
 
     const cookie = await commitSession(session);
 
-    const request = new Request(
-      "http://localhost:5173/app/onboarding",
-      {
-        headers: {
-          Cookie: cookie,
-        },
+    const request = new Request("http://localhost:5173/app/onboarding", {
+      headers: {
+        Cookie: cookie,
       },
-    );
+    });
 
     const result = await loader(createLoaderArgs(request));
 
@@ -87,9 +84,7 @@ describe("app onboarding loader", () => {
   });
 
   it("redirects an unauthenticated user to login", async () => {
-    const request = new Request(
-      "http://localhost:5173/app/onboarding",
-    );
+    const request = new Request("http://localhost:5173/app/onboarding");
 
     try {
       await loader(createLoaderArgs(request));
@@ -125,14 +120,11 @@ describe("app onboarding loader", () => {
 
     const cookie = await commitSession(session);
 
-    const request = new Request(
-      "http://localhost:5173/app/onboarding",
-      {
-        headers: {
-          Cookie: cookie,
-        },
+    const request = new Request("http://localhost:5173/app/onboarding", {
+      headers: {
+        Cookie: cookie,
       },
-    );
+    });
 
     try {
       await loader(createLoaderArgs(request));

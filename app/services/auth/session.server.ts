@@ -29,14 +29,10 @@ export function setAuthorizationTransaction(
 export function getAuthorizationTransaction(
   session: Awaited<ReturnType<typeof getSession>>,
 ): AuthorizationTransaction | undefined {
-  return session.get(AUTH_TRANSACTION_KEY) as
-    | AuthorizationTransaction
-    | undefined;
+  return session.get(AUTH_TRANSACTION_KEY) as AuthorizationTransaction | undefined;
 }
 
-export function clearAuthorizationTransaction(
-  session: Awaited<ReturnType<typeof getSession>>,
-) {
+export function clearAuthorizationTransaction(session: Awaited<ReturnType<typeof getSession>>) {
   session.unset(AUTH_TRANSACTION_KEY);
 }
 
