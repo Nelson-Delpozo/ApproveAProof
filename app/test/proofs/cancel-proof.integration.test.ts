@@ -5,9 +5,30 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { ProofStatus } from "../../../generated/prisma/client";
 import { db } from "../../lib/db.server";
 import { cancelProofForOrganization } from "../../services/proofs/proof.server";
+import { createRevisionForProof } from "../../services/proofs/revision.server";
 
 const ORG_A_SLUG = "cancel-proof-org-a";
 const ORG_B_SLUG = "cancel-proof-org-b";
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+
+  return { promise, resolve };
+}
+
+function revisionInput(suffix: string) {
+  return {
+    fileKey: `proofs/test-${suffix}.pdf`,
+    fileName: `test-${suffix}.pdf`,
+    fileType: "application/pdf",
+    fileSize: 1024,
+    fileHash: `sha256-test-${suffix}`,
+  };
+}
 
 describe("cancelProofForOrganization", () => {
   beforeEach(async () => {
@@ -32,39 +53,38 @@ describe("cancelProofForOrganization", () => {
     await db.$disconnect();
   });
 
-  it.each([
-    ProofStatus.DRAFT,
-    ProofStatus.AWAITING_APPROVAL,
-    ProofStatus.CHANGES_REQUESTED,
-  ])("cancels an owned Proof from %s", async (status) => {
-    const organization = await db.organization.create({
-      data: {
-        name: "Cancel Proof Organization A",
-        slug: ORG_A_SLUG,
-      },
-    });
+  it.each([ProofStatus.DRAFT, ProofStatus.AWAITING_APPROVAL, ProofStatus.CHANGES_REQUESTED])(
+    "cancels an owned Proof from %s",
+    async (status) => {
+      const organization = await db.organization.create({
+        data: {
+          name: "Cancel Proof Organization A",
+          slug: ORG_A_SLUG,
+        },
+      });
 
-    const proof = await db.proof.create({
-      data: {
-        organizationId: organization.id,
-        recipientName: "Customer A",
-        title: "Cancelable Proof",
-        status,
-      },
-    });
+      const proof = await db.proof.create({
+        data: {
+          organizationId: organization.id,
+          recipientName: "Customer A",
+          title: "Cancelable Proof",
+          status,
+        },
+      });
 
-    const result = await cancelProofForOrganization(organization.id, proof.id);
+      const result = await cancelProofForOrganization(organization.id, proof.id);
 
-    expect(result.status).toBe(ProofStatus.CANCELED);
+      expect(result.status).toBe(ProofStatus.CANCELED);
 
-    const persistedProof = await db.proof.findUniqueOrThrow({
-      where: {
-        id: proof.id,
-      },
-    });
+      const persistedProof = await db.proof.findUniqueOrThrow({
+        where: {
+          id: proof.id,
+        },
+      });
 
-    expect(persistedProof.status).toBe(ProofStatus.CANCELED);
-  });
+      expect(persistedProof.status).toBe(ProofStatus.CANCELED);
+    },
+  );
 
   it("does not allow another organization to cancel the Proof", async () => {
     const organizationA = await db.organization.create({
@@ -89,9 +109,7 @@ describe("cancelProofForOrganization", () => {
       },
     });
 
-    await expect(
-      cancelProofForOrganization(organizationB.id, proof.id),
-    ).rejects.toThrow();
+    await expect(cancelProofForOrganization(organizationB.id, proof.id)).rejects.toThrow();
 
     const persistedProof = await db.proof.findUniqueOrThrow({
       where: {
@@ -121,9 +139,7 @@ describe("cancelProofForOrganization", () => {
         },
       });
 
-      await expect(
-        cancelProofForOrganization(organization.id, proof.id),
-      ).rejects.toThrow();
+      await expect(cancelProofForOrganization(organization.id, proof.id)).rejects.toThrow();
 
       const persistedProof = await db.proof.findUniqueOrThrow({
         where: {
@@ -134,4 +150,139 @@ describe("cancelProofForOrganization", () => {
       expect(persistedProof.status).toBe(status);
     },
   );
+
+  it("rejects cancellation when a competing transaction commits APPROVED first", async () => {
+    const organization = await db.organization.create({
+      data: {
+        name: "Cancel Proof Organization A",
+        slug: ORG_A_SLUG,
+      },
+    });
+
+    const proof = await db.proof.create({
+      data: {
+        organizationId: organization.id,
+        recipientName: "Customer A",
+        title: "Concurrent Approval Proof",
+        status: ProofStatus.DRAFT,
+      },
+    });
+
+    const lockAcquired = deferred<void>();
+    const releaseLock = deferred<void>();
+
+    const competingTransaction = db.$transaction(
+      async (tx) => {
+        await tx.$queryRaw`
+            SELECT "id"
+            FROM "Proof"
+            WHERE "id" = ${proof.id}::uuid
+              AND "organizationId" = ${organization.id}::uuid
+            FOR UPDATE
+          `;
+
+        lockAcquired.resolve();
+
+        await releaseLock.promise;
+
+        await tx.proof.update({
+          where: {
+            id: proof.id,
+            organizationId: organization.id,
+          },
+          data: {
+            status: ProofStatus.APPROVED,
+          },
+        });
+      },
+      {
+        timeout: 15000,
+      },
+    );
+
+    await lockAcquired.promise;
+
+    const cancellationResult = cancelProofForOrganization(organization.id, proof.id).then(
+      (value) => ({ succeeded: true as const, value }),
+      (error: unknown) => ({ succeeded: false as const, error }),
+    );
+
+    releaseLock.resolve();
+
+    await competingTransaction;
+
+    const result = await cancellationResult;
+
+    expect(result.succeeded).toBe(false);
+
+    if (!result.succeeded) {
+      expect(result.error).toBeInstanceOf(Error);
+      expect((result.error as Error).message).toBe(
+        "Proof cannot be canceled from status APPROVED.",
+      );
+    }
+
+    const persistedProof = await db.proof.findUniqueOrThrow({
+      where: {
+        id: proof.id,
+      },
+    });
+
+    expect(persistedProof.status).toBe(ProofStatus.APPROVED);
+  }, 20000);
+
+  it("rejects Revision creation after cancellation wins the lifecycle decision", async () => {
+    const organization = await db.organization.create({
+      data: {
+        name: "Cancel Proof Organization A",
+        slug: ORG_A_SLUG,
+      },
+    });
+
+    const proof = await db.proof.create({
+      data: {
+        organizationId: organization.id,
+        recipientName: "Customer A",
+        title: "Canceled Revision Proof",
+        status: ProofStatus.DRAFT,
+      },
+    });
+
+    const originalRevision = await createRevisionForProof(
+      organization.id,
+      proof.id,
+      revisionInput("before-cancellation"),
+    );
+
+    const canceledProof = await cancelProofForOrganization(organization.id, proof.id);
+
+    expect(canceledProof.status).toBe(ProofStatus.CANCELED);
+    expect(canceledProof.currentRevisionId).toBe(originalRevision.id);
+
+    await expect(
+      createRevisionForProof(organization.id, proof.id, revisionInput("after-cancellation")),
+    ).rejects.toThrow("Cannot create a Revision when Proof status is CANCELED.");
+
+    const persistedProof = await db.proof.findUniqueOrThrow({
+      where: {
+        id: proof.id,
+      },
+    });
+
+    const persistedRevisions = await db.revision.findMany({
+      where: {
+        proofId: proof.id,
+        organizationId: organization.id,
+      },
+      orderBy: {
+        number: "asc",
+      },
+    });
+
+    expect(persistedProof.status).toBe(ProofStatus.CANCELED);
+    expect(persistedProof.currentRevisionId).toBe(originalRevision.id);
+    expect(persistedRevisions).toHaveLength(1);
+    expect(persistedRevisions[0].id).toBe(originalRevision.id);
+    expect(persistedRevisions[0].number).toBe(1);
+  }, 20000);
 });

@@ -3,6 +3,12 @@ import { ProofStatus, type Proof } from "../../../generated/prisma/client";
 import { db } from "../../lib/db.server";
 import { canTransitionProofStatus } from "./proof-lifecycle";
 
+type LockedProof = {
+  id: string;
+  organizationId: string;
+  status: ProofStatus;
+};
+
 export async function getProofForOrganization(
   organizationId: string,
   proofId: string,
@@ -19,22 +25,33 @@ export async function cancelProofForOrganization(
   organizationId: string,
   proofId: string,
 ): Promise<Proof> {
-  const proof = await getProofForOrganization(organizationId, proofId);
+  return db.$transaction(async (tx) => {
+    const proofs = await tx.$queryRaw<LockedProof[]>`
+      SELECT "id", "organizationId", "status"
+      FROM "Proof"
+      WHERE "id" = ${proofId}::uuid
+        AND "organizationId" = ${organizationId}::uuid
+      FOR UPDATE
+    `;
 
-  if (!proof) {
-    throw new Error("Proof not found.");
-  }
+    const proof = proofs[0];
 
-  if (!canTransitionProofStatus(proof.status, ProofStatus.CANCELED)) {
-    throw new Error(`Proof cannot be canceled from status ${proof.status}.`);
-  }
+    if (!proof) {
+      throw new Error("Proof not found.");
+    }
 
-  return db.proof.update({
-    where: {
-      id: proof.id,
-    },
-    data: {
-      status: ProofStatus.CANCELED,
-    },
+    if (!canTransitionProofStatus(proof.status, ProofStatus.CANCELED)) {
+      throw new Error(`Proof cannot be canceled from status ${proof.status}.`);
+    }
+
+    return tx.proof.update({
+      where: {
+        id: proof.id,
+        organizationId: proof.organizationId,
+      },
+      data: {
+        status: ProofStatus.CANCELED,
+      },
+    });
   });
 }
