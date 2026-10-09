@@ -1,6 +1,7 @@
-import type { Revision } from "../../../generated/prisma/client";
+import { ProofStatus, type Revision } from "../../../generated/prisma/client";
 
 import { db } from "../../lib/db.server";
+import { canTransitionProofStatus } from "./proof-lifecycle";
 
 type CreateRevisionInput = {
   fileKey: string;
@@ -13,6 +14,7 @@ type CreateRevisionInput = {
 type LockedProof = {
   id: string;
   organizationId: string;
+  status: ProofStatus;
 };
 
 export async function createRevisionForProof(
@@ -22,7 +24,7 @@ export async function createRevisionForProof(
 ): Promise<Revision> {
   return db.$transaction(async (tx) => {
     const proofs = await tx.$queryRaw<LockedProof[]>`
-      SELECT "id", "organizationId"
+      SELECT "id", "organizationId", "status"
       FROM "Proof"
       WHERE "id" = ${proofId}::uuid
         AND "organizationId" = ${organizationId}::uuid
@@ -33,6 +35,22 @@ export async function createRevisionForProof(
 
     if (!proof) {
       throw new Error("Proof not found.");
+    }
+
+    if (
+      proof.status !== ProofStatus.DRAFT &&
+      proof.status !== ProofStatus.CHANGES_REQUESTED
+    ) {
+      throw new Error(
+        `Cannot create a Revision when Proof status is ${proof.status}.`,
+      );
+    }
+
+    if (
+      proof.status === ProofStatus.CHANGES_REQUESTED &&
+      !canTransitionProofStatus(proof.status, ProofStatus.DRAFT)
+    ) {
+      throw new Error("Proof cannot transition to DRAFT.");
     }
 
     const latestRevision = await tx.revision.findFirst({
@@ -50,7 +68,7 @@ export async function createRevisionForProof(
 
     const nextRevisionNumber = (latestRevision?.number ?? 0) + 1;
 
-    return tx.revision.create({
+    const revision = await tx.revision.create({
       data: {
         organizationId: proof.organizationId,
         proofId: proof.id,
@@ -62,5 +80,18 @@ export async function createRevisionForProof(
         fileHash: input.fileHash,
       },
     });
+
+    await tx.proof.update({
+      where: {
+        id: proof.id,
+        organizationId: proof.organizationId,
+      },
+      data: {
+        currentRevisionId: revision.id,
+        status: ProofStatus.DRAFT,
+      },
+    });
+
+    return revision;
   });
-} 
+}
