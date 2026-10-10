@@ -5,11 +5,10 @@ agreements, verification discipline, and implementation workflow\
 **Project:** ApproveAProof\
 **Status:** Active\
 **Established:** September 12, 2026\
-**Current development phase:** Phase 2 --- Identity and Tenant
-Foundation complete; Phase 3 next\
-**Current development branch:** `phase-2-auth`
+**Current development phase:** Phase 3 --- Core Domain complete and merged; Phase 4 --- Secure Uploads next\
+**Repository baseline:** `main` after Phase 3 merge; documentation reconciliation in progress
 
-------------------------------------------------------------------------
+---
 
 # 1. Purpose
 
@@ -17,7 +16,7 @@ This document defines **how ApproveAProof is built**.
 
 The other canonical project documents answer different questions:
 
-``` text
+```text
 APPROVEAPROOF_MASTER_PLAN.md
     → What are we building and why?
 
@@ -34,15 +33,15 @@ during development.
 
 It should prevent:
 
--   large unverified implementation jumps;
--   accidental architectural drift;
--   unsafe database migrations;
--   losing track of commit boundaries;
--   treating generated code or SQL as automatically correct;
--   mixing unrelated changes into one checkpoint;
--   relying on conversation memory for development procedure;
--   weakening security or integrity for convenience;
--   silently changing previously locked decisions.
+- large unverified implementation jumps;
+- accidental architectural drift;
+- unsafe database migrations;
+- losing track of commit boundaries;
+- treating generated code or SQL as automatically correct;
+- mixing unrelated changes into one checkpoint;
+- relying on conversation memory for development procedure;
+- weakening security or integrity for convenience;
+- silently changing previously locked decisions.
 
 When this document conflicts with a more specific locked product or
 architecture invariant, the product/architecture invariant wins.
@@ -50,7 +49,7 @@ architecture invariant, the product/architecture invariant wins.
 When the development method itself changes deliberately, update this
 document.
 
-------------------------------------------------------------------------
+---
 
 # 2. Core Development Principle
 
@@ -63,7 +62,7 @@ Do not optimize for the largest amount of code written in one session.
 
 Optimize for:
 
-``` text
+```text
 clarity
 correctness
 verification
@@ -76,14 +75,14 @@ data integrity
 A smaller change that can be understood and proven is preferable to a
 larger change that merely appears faster.
 
-------------------------------------------------------------------------
+---
 
 # 3. Decision Hierarchy
 
 When engineering concerns compete, use this hierarchy as a strong
 default:
 
-``` text
+```text
 1. Core product invariant
 2. Security / tenant isolation
 3. Data integrity
@@ -107,7 +106,7 @@ when it makes a cross-tenant or cross-Proof invalid state impossible.
 Developer convenience is not a sufficient reason to weaken a core
 invariant.
 
-------------------------------------------------------------------------
+---
 
 # 4. Three Architecture Questions
 
@@ -129,7 +128,7 @@ For important domain and persistence decisions, repeatedly ask:
 
 These questions are especially important for:
 
-``` text
+```text
 Proof
 Revision
 ProofResponse
@@ -141,7 +140,7 @@ dispatch
 billing/entitlements
 ```
 
-------------------------------------------------------------------------
+---
 
 # 5. Server Owns Truth
 
@@ -151,7 +150,7 @@ The server determines authoritative values.
 
 Never trust the browser to authoritatively choose:
 
-``` text
+```text
 organization ownership
 resource ownership
 subscription entitlement
@@ -168,7 +167,7 @@ Identifiers supplied by the browser identify requested resources.
 
 They do not prove authorization.
 
-------------------------------------------------------------------------
+---
 
 # 6. Prefer Structural Integrity
 
@@ -177,7 +176,7 @@ prefer database enforcement over a comment or developer convention.
 
 Preferred:
 
-``` text
+```text
 foreign keys
 composite foreign keys
 unique constraints
@@ -189,7 +188,7 @@ database triggers when a critical invariant cannot be represented cleanly by Pri
 
 over:
 
-``` text
+```text
 "remember to check this in every route"
 ```
 
@@ -198,7 +197,7 @@ cannot be fully expressed relationally.
 
 Database constraints and application logic should reinforce each other.
 
-------------------------------------------------------------------------
+---
 
 # 7. Do Not Overbuild
 
@@ -209,7 +208,7 @@ eventually need it.
 
 Examples not to introduce without demonstrated need:
 
-``` text
+```text
 microservices
 Redis
 Kafka
@@ -222,13 +221,13 @@ speculative abstraction frameworks
 
 Use the simplest architecture that preserves the required invariants.
 
-------------------------------------------------------------------------
+---
 
 # 8. Development Slice Workflow
 
 For each meaningful implementation slice, use this sequence:
 
-``` text
+```text
 Understand current state
         ↓
 State the invariant / goal
@@ -262,13 +261,13 @@ Next slice
 
 Do not skip directly from "code written" to "done."
 
-------------------------------------------------------------------------
+---
 
 # 9. Before Significant Implementation
 
 Before changing code or schema, establish:
 
-``` text
+```text
 What are we changing?
 
 Why are we changing it?
@@ -292,7 +291,7 @@ For a small obvious edit, this may take only a few sentences.
 
 For a security-sensitive or data-model decision, make it explicit.
 
-------------------------------------------------------------------------
+---
 
 # 10. Verification Checkpoint
 
@@ -302,7 +301,7 @@ A **verification checkpoint** means:
 
 Examples:
 
-``` text
+```text
 Prisma schema validates
 migration SQL is correct
 migration applies successfully
@@ -318,7 +317,7 @@ A verification checkpoint is not automatically a commit checkpoint.
 If the implementation is still incomplete as a coherent unit, verify it
 and continue.
 
-------------------------------------------------------------------------
+---
 
 # 11. Commit Checkpoint
 
@@ -329,7 +328,7 @@ A **commit checkpoint** means:
 
 Before recommending a commit:
 
-``` text
+```text
 implementation is complete for the slice
 appropriate verification passed
 generated artifacts were inspected
@@ -346,7 +345,7 @@ and recommend a concise commit message.
 
 The user controls the actual:
 
-``` text
+```text
 git add
 git commit
 git push
@@ -354,7 +353,7 @@ git push
 
 Never assume a commit or push occurred until the user confirms it.
 
-------------------------------------------------------------------------
+---
 
 # 12. Phase Checkpoint
 
@@ -362,7 +361,7 @@ A **phase checkpoint** is stronger than a commit checkpoint.
 
 Before a phase is considered complete:
 
-``` text
+```text
 phase completion criteria are satisfied
 all intended migrations are applied
 database/environment state is verified
@@ -375,31 +374,26 @@ phase branch is ready for merge
 
 Only then should the phase branch be merged into `main`.
 
-------------------------------------------------------------------------
+---
 
 # 13. Git Philosophy
 
 `main` represents stable tested code.
 
-Development occurs on coherent feature/phase branches.
+Development occurs on coherent feature/phase branches. Phases 0–3 are
+complete and merged into `main`. The Phase 3 branch was
+`phase-3-core-domain`; it is historical, not the current development branch.
+Determine the current branch using Git rather than this document.
 
-Current branch:
-
-``` text
-phase-2-auth
-```
-
-Phase 1 was completed and merged into `main`.
-
-The current Phase 2 branch is being finalized through documentation and
-verification before it is merged into `main`. Phase 3 should begin from
-a fresh branch off updated `main`.
+The current documentation reconciliation is separate from feature work.
+After its verification and merge, begin Phase 4 on a fresh branch from
+updated `main`.
 
 Prefer commits that answer one clear question.
 
 Good:
 
-``` text
+```text
 feat: add proof status workflow state
 feat: enforce revision organization ownership
 feat: enforce current revision integrity
@@ -407,7 +401,7 @@ feat: enforce current revision integrity
 
 Avoid:
 
-``` text
+```text
 update stuff
 database changes
 misc fixes
@@ -416,7 +410,7 @@ big phase work
 
 Avoid giant commits spanning unrelated concerns.
 
-------------------------------------------------------------------------
+---
 
 # 14. Staging Discipline
 
@@ -424,7 +418,7 @@ Do not blindly stage the entire working tree.
 
 Before committing:
 
-``` bash
+```bash
 git status
 git diff
 ```
@@ -435,14 +429,14 @@ This matters because formatting tools may touch unrelated files.
 
 For example:
 
-``` text
+```text
 schema change
 migration
 ```
 
 may be the intended feature while:
 
-``` text
+```text
 Markdown
 configuration formatting
 ```
@@ -452,7 +446,7 @@ is incidental.
 Separate unrelated formatting changes into their own commit or restore
 them when appropriate.
 
-------------------------------------------------------------------------
+---
 
 # 15. Formatter Awareness
 
@@ -463,7 +457,7 @@ feature commit.
 
 After formatting:
 
-``` bash
+```bash
 git status
 git diff
 ```
@@ -474,35 +468,51 @@ Formatting-only changes may be committed separately when useful.
 
 Do not let incidental formatting obscure the semantic feature diff.
 
-------------------------------------------------------------------------
+---
 
 # 16. Quality Gates
 
 The complete project quality gate is:
 
-``` bash
-npm run format
+```bash
+npm run format:check
 npm run lint
 npm run typecheck
 npm run test
+npm run test:integration
 npm run build
 ```
 
+`npm run format:check` verifies formatting without rewriting files.
+Use `npm run format` only when intending to apply Prettier changes;
+inspect the resulting diff before staging.
+
+`npm run test` deliberately excludes `*.integration.test.ts`.
+`npm run test:integration` invokes `script/test-integration.mjs`,
+which checks the dedicated test-database boundary before running the
+database integration suite. Never run destructive integration tests
+against the application database.
+
 Use the full gate:
 
-``` text
+```text
 at phase boundaries
 before important merge points
 after meaningful cross-cutting changes
 when explicitly establishing a durable checkpoint
 ```
 
-Not every tiny edit requires all five commands.
+Not every tiny edit requires all six commands. Use targeted checks
+during incremental work, then the full gate when warranted. For a
+documentation-only branch, at minimum check formatting and inspect the
+diff; decide whether the other checks need rerunning based on the changes.
 
-Use targeted checks during incremental work, then the full gate when the
-slice or phase warrants it.
+Phase 3's recorded final checkpoint: 4 files / 15 tests in the default
+suite, 28 files / 171 tests in the guarded integration suite; lint,
+typecheck, and build passed. These are historical results, not claims
+about the documentation branch.
 
-------------------------------------------------------------------------
+---
 
 # 17. Database Development Philosophy
 
@@ -512,7 +522,7 @@ Normal development is schema-first.
 
 Do not use:
 
-``` text
+```text
 prisma db pull
 ```
 
@@ -525,13 +535,13 @@ generated it.
 
 Treat generated migration SQL as a proposal that must be understood.
 
-------------------------------------------------------------------------
+---
 
 # 18. Database Migration Workflow
 
 For nontrivial schema changes, prefer:
 
-``` text
+```text
 edit schema
         ↓
 npx prisma format
@@ -557,7 +567,7 @@ commit schema + migration together
 
 Typical command pattern:
 
-``` bash
+```bash
 npx prisma format
 npx prisma validate
 npx prisma migrate dev --name <migration_name> --create-only
@@ -565,13 +575,13 @@ npx prisma migrate dev --name <migration_name> --create-only
 
 Inspect:
 
-``` text
+```text
 prisma/migrations/<timestamp>_<migration_name>/migration.sql
 ```
 
 Then apply:
 
-``` bash
+```bash
 npx prisma migrate dev
 npx prisma migrate status
 ```
@@ -580,13 +590,13 @@ Do not mechanically use `--create-only` for every trivial migration if
 it adds no value, but default toward inspection when constraints,
 existing data, referential actions, or destructive changes are involved.
 
-------------------------------------------------------------------------
+---
 
 # 19. Existing Data Must Be Considered
 
 Before applying a migration, ask:
 
-``` text
+```text
 Are rows already present?
 
 Will a new NOT NULL column fail?
@@ -605,14 +615,14 @@ Does migration ordering temporarily weaken integrity?
 Never design only for an empty database unless the database is actually
 disposable and that assumption is explicit.
 
-------------------------------------------------------------------------
+---
 
 # 20. Safe Backfill Pattern
 
 When adding a required field to a table that may already contain rows, a
 common safe pattern is:
 
-``` text
+```text
 1. add column nullable
 2. backfill from authoritative existing data
 3. verify/backfill implicitly through NOT NULL
@@ -622,13 +632,13 @@ common safe pattern is:
 
 Example already used in ApproveAProof:
 
-``` text
+```text
 Revision.organizationId
 ```
 
 was:
 
-``` text
+```text
 added nullable
 backfilled from Proof.organizationId
 made NOT NULL
@@ -637,7 +647,7 @@ protected with foreign keys
 
 This preserved existing Revision records while strengthening the model.
 
-------------------------------------------------------------------------
+---
 
 # 21. Migration Ordering
 
@@ -648,7 +658,7 @@ avoid unnecessary windows where no protection exists.
 
 Example pattern:
 
-``` text
+```text
 add/backfill required data
 prepare supporting candidate key/index
 prepare replacement relationship
@@ -660,7 +670,7 @@ The goal is not merely for the final schema to be correct.
 
 The transition should also be safe.
 
-------------------------------------------------------------------------
+---
 
 # 22. Applied Migrations Are Historical Records
 
@@ -675,7 +685,7 @@ Migration history should reflect what actually happened.
 Exceptions require an explicit development-environment reason and should
 not be casual.
 
-------------------------------------------------------------------------
+---
 
 # 23. Prisma Is a Tool, Not the Architecture
 
@@ -684,7 +694,7 @@ logically redundant from a pure relational perspective.
 
 Example already encountered:
 
-``` text
+```text
 UNIQUE (Proof.id, Proof.currentRevisionId)
 UNIQUE (Revision.proofId, Revision.id)
 ```
@@ -694,7 +704,7 @@ though primary-key uniqueness already exists.
 
 When Prisma requires such structures:
 
-``` text
+```text
 understand why
 confirm PostgreSQL semantics
 document the reason when non-obvious
@@ -703,13 +713,13 @@ accept the requirement if it preserves the intended invariant
 
 Do not contort the domain merely to make the ORM look simpler.
 
-------------------------------------------------------------------------
+---
 
 # 24. Referential Actions Are Domain Decisions
 
 Do not choose:
 
-``` text
+```text
 Cascade
 Restrict
 SetNull
@@ -722,7 +732,7 @@ Ask what deletion/update means to the business record.
 
 Examples:
 
-``` text
+```text
 Organization deletion
 Customer cleanup
 Proof deletion
@@ -735,7 +745,7 @@ Historical evidence should generally resist casual deletion.
 
 Referential actions must be evaluated together when cycles exist.
 
-------------------------------------------------------------------------
+---
 
 # 25. Composite Ownership Pattern
 
@@ -744,7 +754,7 @@ they materially prevent invalid relationships.
 
 Current examples:
 
-``` text
+```text
 Revision(proofId, organizationId)
     → Proof(id, organizationId)
 ```
@@ -755,7 +765,7 @@ This means:
 
 And:
 
-``` text
+```text
 Proof(id, currentRevisionId)
     → Revision(proofId, id)
 ```
@@ -766,7 +776,7 @@ This means:
 
 These are examples of the project's preference for structural integrity.
 
-------------------------------------------------------------------------
+---
 
 # 25A. Database Triggers for ORM Gaps
 
@@ -775,7 +785,7 @@ correctly.
 
 A PostgreSQL trigger is acceptable when:
 
-``` text
+```text
 the invariant is important
 the database can enforce it reliably
 Prisma cannot represent the required referential behavior cleanly
@@ -785,13 +795,13 @@ integration tests cover both rejection and valid lifecycle behavior
 
 Phase 1 example:
 
-``` text
+```text
 Proof.customerId → Customer.id uses SetNull on Customer deletion
 ```
 
 while PostgreSQL insert/update triggers enforce:
 
-``` text
+```text
 Proof.organizationId == Customer.organizationId
 ```
 
@@ -800,7 +810,7 @@ for every non-null Customer reference.
 This preserves historical Proof recipient data while making cross-tenant
 Customer assignment invalid at the database layer.
 
-------------------------------------------------------------------------
+---
 
 # 26. Nullable Does Not Mean Weak
 
@@ -808,7 +818,7 @@ A nullable field can be the correct domain model.
 
 Example:
 
-``` text
+```text
 Proof.currentRevisionId
 ```
 
@@ -823,7 +833,7 @@ The composite foreign key answers that question.
 Do not use `NOT NULL` merely because it feels stricter when the
 lifecycle legitimately includes an absent state.
 
-------------------------------------------------------------------------
+---
 
 # 27. Operational State vs. Evidence
 
@@ -831,7 +841,7 @@ Do not confuse current workflow state with historical evidence.
 
 Example:
 
-``` text
+```text
 Proof.status = APPROVED
 ```
 
@@ -841,7 +851,7 @@ It is not, by itself, proof of what was approved.
 
 Authoritative evidence belongs in:
 
-``` text
+```text
 ProofResponse
     ↓
 exact Revision
@@ -850,7 +860,7 @@ exact Revision
 This distinction should influence schema, APIs, UI, tests, and future
 reporting.
 
-------------------------------------------------------------------------
+---
 
 # 28. Immutable History Bias
 
@@ -859,7 +869,7 @@ ordinary APIs should not silently rewrite it.
 
 Prefer:
 
-``` text
+```text
 new Revision
 new Response
 new Activity
@@ -870,7 +880,7 @@ over mutation of historical evidence.
 
 This principle applies to:
 
-``` text
+```text
 revision artifact
 revision number
 file hash
@@ -882,7 +892,7 @@ responder identity
 occurredAt
 ```
 
-------------------------------------------------------------------------
+---
 
 # 29. Testing Philosophy
 
@@ -890,7 +900,7 @@ Tests should protect meaningful behavior and invariants.
 
 Prioritize:
 
-``` text
+```text
 domain state transitions
 tenant isolation
 database constraints
@@ -906,20 +916,20 @@ over low-value snapshot coverage.
 
 A test is valuable when it makes a future regression difficult.
 
-------------------------------------------------------------------------
+---
 
 # 30. Test Both Success and Rejection
 
 For an important invariant, test:
 
-``` text
+```text
 the valid state succeeds
 the invalid state fails
 ```
 
 Example for current Revision integrity:
 
-``` text
+```text
 Proof with null currentRevisionId succeeds
 same-Proof Revision succeeds
 cross-Proof Revision fails
@@ -927,14 +937,14 @@ cross-Proof Revision fails
 
 Example for tenant ownership:
 
-``` text
+```text
 Revision with matching Proof organization succeeds
 Revision with mismatched organization fails
 ```
 
 Security tests that only test the happy path are incomplete.
 
-------------------------------------------------------------------------
+---
 
 # 31. Phase 1 Database Test Baseline
 
@@ -943,7 +953,7 @@ tests**.
 
 It covers:
 
-``` text
+```text
 Revision organization must match owning Proof organization
 Proof currentRevision may be null
 Proof currentRevision may reference its own Revision
@@ -974,7 +984,7 @@ Security is not deferred to a final hardening phase.
 
 For every feature, consider:
 
-``` text
+```text
 authentication
 authorization
 tenant isolation
@@ -991,7 +1001,7 @@ failure behavior
 The later security phase verifies and strengthens work that should
 already be security-conscious.
 
-------------------------------------------------------------------------
+---
 
 # 33. Tenant-Scoped Query Rule
 
@@ -1000,13 +1010,13 @@ alone when ownership matters.
 
 Bad conceptual pattern:
 
-``` text
+```text
 find Proof where id = suppliedId
 ```
 
 Preferred conceptual pattern:
 
-``` text
+```text
 find Proof where
   id = suppliedId
   AND organizationId = authorizedOrganizationId
@@ -1017,7 +1027,7 @@ boundary easier to express.
 
 Knowing a valid UUID never grants access.
 
-------------------------------------------------------------------------
+---
 
 # 34. Failure Behavior Matters
 
@@ -1027,7 +1037,7 @@ When designing a workflow, ask:
 
 Examples:
 
-``` text
+```text
 database commit succeeds, SendGrid fails
 S3 upload succeeds, finalization fails
 browser retries approval
@@ -1041,7 +1051,7 @@ effects.
 Use transactions, idempotency, and outbox-style records where
 appropriate.
 
-------------------------------------------------------------------------
+---
 
 # 35. External Services Are Not Transaction Coordinators
 
@@ -1051,7 +1061,7 @@ synchronously.
 
 Example:
 
-``` text
+```text
 approval transaction commits
         ↓
 ProofDispatch PENDING exists
@@ -1061,7 +1071,7 @@ email happens afterward
 
 If email fails, approval remains valid.
 
-------------------------------------------------------------------------
+---
 
 # 36. Avoid Speculative Fields
 
@@ -1069,7 +1079,7 @@ Do not add fields simply because they may eventually be useful.
 
 Before adding a field, ask:
 
-``` text
+```text
 What behavior needs it now?
 
 What lifecycle does it have?
@@ -1089,7 +1099,7 @@ Does it create a security boundary?
 
 A smaller deliberate schema is better than a broad speculative one.
 
-------------------------------------------------------------------------
+---
 
 # 37. Avoid Premature Abstraction
 
@@ -1098,7 +1108,7 @@ sufficient.
 
 Prefer concrete domain language:
 
-``` text
+```text
 Proof
 Revision
 ProofResponse
@@ -1109,7 +1119,7 @@ over generic abstractions whose value has not been demonstrated.
 
 Refactor when repeated behavior becomes real.
 
-------------------------------------------------------------------------
+---
 
 # 38. Thin Route Rule
 
@@ -1119,7 +1129,7 @@ They should not own the entire business architecture.
 
 Preferred flow:
 
-``` text
+```text
 route
   ↓
 validate
@@ -1136,7 +1146,7 @@ response
 State transitions, approval integrity, tenant authorization, and storage
 rules belong in reusable server/domain logic.
 
-------------------------------------------------------------------------
+---
 
 # 39. Server-Only Boundary Rule
 
@@ -1144,7 +1154,7 @@ Secrets and privileged infrastructure must remain server-only.
 
 Examples:
 
-``` text
+```text
 database client
 DATABASE_URL
 AWS credentials
@@ -1159,7 +1169,7 @@ Use deliberate `.server.ts` modules and dependency flow.
 A filename convention helps communicate intent but does not replace
 architectural review.
 
-------------------------------------------------------------------------
+---
 
 # 40. Copy/Paste Precision
 
@@ -1169,7 +1179,7 @@ Instructions should therefore optimize for safe copy/paste.
 
 Prefer:
 
-``` text
+```text
 exact replacement block
 clear filename
 clear location
@@ -1182,13 +1192,13 @@ easy to duplicate accidentally.
 When replacing a complete Prisma model or enum, clearly say whether the
 block:
 
-``` text
+```text
 replaces
 ```
 
 or:
 
-``` text
+```text
 is added beside
 ```
 
@@ -1197,13 +1207,13 @@ existing code.
 If a paste error occurs, diagnose the actual schema before layering more
 changes on top.
 
-------------------------------------------------------------------------
+---
 
 # 41. One Coherent Step at a Time
 
 When practical:
 
-``` text
+```text
 one schema concern
 one model
 one migration
@@ -1220,13 +1230,13 @@ slice because neither makes sense independently.
 
 The unit is coherence, not file count.
 
-------------------------------------------------------------------------
+---
 
 # 42. Do Not Continue Through an Unexpected Error
 
 If a command produces an unexpected error:
 
-``` text
+```text
 stop
 read the error
 inspect current state
@@ -1241,7 +1251,7 @@ An error is information about the current system state.
 
 Use it.
 
-------------------------------------------------------------------------
+---
 
 # 43. Verify the Actual Diff
 
@@ -1251,7 +1261,7 @@ Do not rely on memory.
 
 Useful commands:
 
-``` bash
+```bash
 git status
 git diff
 git diff -- <specific-file>
@@ -1264,17 +1274,17 @@ Remember:
 
 Inspect untracked generated migration files directly, for example:
 
-``` bash
+```bash
 cat prisma/migrations/<migration>/migration.sql
 ```
 
-------------------------------------------------------------------------
+---
 
 # 44. Documentation Checkpoints
 
 Update canonical project documentation:
 
-``` text
+```text
 at phase boundaries
 and
 at meaningful mid-phase architecture checkpoints
@@ -1282,7 +1292,7 @@ at meaningful mid-phase architecture checkpoints
 
 A documentation checkpoint is warranted when:
 
-``` text
+```text
 a major invariant becomes implemented
 an open architecture decision becomes locked
 the resume point changes materially
@@ -1295,7 +1305,7 @@ Do not update documentation after every tiny edit.
 Do not wait so long that the documents describe a materially obsolete
 system.
 
-------------------------------------------------------------------------
+---
 
 # 45. Documentation Responsibilities
 
@@ -1305,7 +1315,7 @@ The three canonical documents have distinct responsibilities.
 
 Owns:
 
-``` text
+```text
 product definition
 scope
 roadmap
@@ -1319,7 +1329,7 @@ market/product direction
 
 Owns:
 
-``` text
+```text
 implemented technical architecture
 data model
 security architecture
@@ -1333,7 +1343,7 @@ technical resume point
 
 Owns:
 
-``` text
+```text
 development workflow
 verification checkpoints
 migration procedure
@@ -1348,13 +1358,13 @@ Avoid unnecessary duplication.
 
 Cross-reference the canonical owner instead.
 
-------------------------------------------------------------------------
+---
 
 # 46. Documentation Accuracy Rule
 
 Documentation should distinguish among:
 
-``` text
+```text
 IMPLEMENTED
 LOCKED
 CURRENT PLAN
@@ -1372,7 +1382,7 @@ implementation details.
 If documentation and repository state disagree, investigate and update
 the documentation rather than silently guessing.
 
-------------------------------------------------------------------------
+---
 
 # 47. Repository Is the Implementation Authority
 
@@ -1382,7 +1392,7 @@ The repository proves what is implemented.
 
 For exact details such as:
 
-``` text
+```text
 migration timestamp
 package version
 constraint name
@@ -1394,61 +1404,49 @@ prefer the repository when there is a discrepancy.
 
 Do not fabricate exact repository state from memory.
 
-------------------------------------------------------------------------
+---
 
 # 47A. Dedicated Integration-Test Database Safety
 
-Database integration tests are destructive.
-
-The test reset intentionally deletes database rows, so the suite must
-never depend on the ordinary development `DATABASE_URL`.
+Database integration tests are destructive. The test reset intentionally
+deletes database rows, so the suite must never depend on the ordinary
+development `DATABASE_URL`.
 
 Current implementation:
 
-``` text
+```text
 app/test/db/test-db.server.ts
+script/test-integration.mjs
 ```
 
-requires:
+The guarded command is:
 
-``` text
-TEST_DATABASE_URL
+```bash
+npm run test:integration
 ```
 
-and throws before test execution when:
-
-``` text
-TEST_DATABASE_URL === DATABASE_URL
-```
-
-The integration tests use this test-only client instead of the normal
-runtime database client.
-
-A separate Neon database/branch is used for integration tests.
-
-Verified Phase 1 safety baseline:
-
-``` text
-DATABASE_URL and TEST_DATABASE_URL resolve to different targets
-test database migration state verified
-all 16 database integration tests pass against TEST_DATABASE_URL
-equality guard proven to fail closed
-full Phase 1 quality gate passed
-```
+The test client requires `TEST_DATABASE_URL`, and the runner prevents
+execution when the test target is the same as `DATABASE_URL`. A separate
+Neon database/branch is used for integration testing.
 
 Before any destructive test run on a newly configured environment:
 
-``` text
+```text
 1. confirm DATABASE_URL and TEST_DATABASE_URL resolve to different database targets
 2. verify/apply migrations explicitly against TEST_DATABASE_URL
-3. run the integration suite
+3. use npm run test:integration
 4. periodically prove the equality guard fails closed
 ```
 
-Do not print database credentials while verifying targets. Comparing
-parsed host/database identifiers is preferred.
+Do not print database credentials while verifying targets. Compare
+parsed host/database identifiers instead.
 
-------------------------------------------------------------------------
+The Phase 1 baseline was 16 database tests. At the completed Phase 3
+checkpoint the guarded integration command passed 28 files / 171 tests.
+These counts are checkpoints, not a replacement for running the tests
+on the current branch.
+
+---
 
 # 48. Current Working Method
 
@@ -1457,7 +1455,7 @@ phases.
 
 Phase-specific work should preserve the same pattern:
 
-``` text
+```text
 inspect actual repository state
         ↓
 state the invariant / behavior
@@ -1498,12 +1496,12 @@ The production OIDC path remains real Auth0 discovery. Tests may use a
 deliberately test-only injected OIDC configuration, while real-provider
 behavior is verified separately through browser smoke testing.
 
-Phase 3 should continue this discipline for domain behavior:
-tenant-scoped service boundaries, transaction behavior, state
-transitions, and rejection paths should be proven before elaborate UI
-work.
+Phase 3 followed this discipline for tenant-scoped domain behavior,
+transaction boundaries, state transitions, and rejection paths. Phase 4
+should continue it for presigning, object verification, upload lifecycle,
+and unauthorized/mismatched uploads.
 
-------------------------------------------------------------------------
+---
 
 # 49. Lessons Captured From Phase 1 So Far
 
@@ -1517,7 +1515,7 @@ blindly.
 
 The migration was instead changed to:
 
-``` text
+```text
 add nullable
 backfill
 make NOT NULL
@@ -1571,7 +1569,7 @@ A test suite that resets database tables must use a dedicated test
 database. Test code now requires `TEST_DATABASE_URL`; target, migration,
 suite, and guard verification are the final active Phase 1 safety slice.
 
-------------------------------------------------------------------------
+---
 
 ### External identity tests should not depend on the network
 
@@ -1596,14 +1594,14 @@ Successful Auth0 login proves identity, not tenant authorization. Phase
 2 separately verifies local User resolution, Organization/Membership
 onboarding, role enforcement, and tenant-scoped resource access.
 
-------------------------------------------------------------------------
+---
 
 # 50. Current High-Level Decisions
 
-As of September 17, 2026, development should treat the following as
+As of October 10, 2026, development should treat the following as
 established unless explicitly revisited:
 
-``` text
+```text
 clean ApproveAProof repository
 SmartLynx frozen as reference
 React Router Framework Mode
@@ -1641,61 +1639,67 @@ server-side organization and role resolution
 tenant-scoped resource query boundaries
 deterministic automated tests for external identity infrastructure
 real-provider browser smoke testing as a separate verification layer
+Phase 3 tenant-scoped Proof and Revision services
+centralized Proof state machine
+server-controlled Revision numbering with Proof row locks
+transactional approval and change-request evidence
+restrictive historical deletion relationships
+separate guarded integration-test command
 ```
 
 Changing one of these requires an explicit reason.
 
-------------------------------------------------------------------------
+---
 
 # 51. Current Open High-Level Decisions
 
-Phase 1 and Phase 2 completion items are no longer open.
+Phases 0–3 are complete and merged into `main`. The immediate repository
+transition is:
 
-The immediate repository transition is:
-
-``` text
-finish canonical documentation
-commit and push phase-2-auth
-perform final verification if required
-merge phase-2-auth into main
-begin Phase 3 from a fresh branch off updated main
+```text
+finish reconciling the three canonical documents
+review documentation diff and run appropriate quality checks
+commit and push documentation reconciliation branch
+merge documentation branch into main
+begin Phase 4 from a fresh branch off updated main
 ```
 
-Phase 3 domain work includes deliberate decisions such as:
+Phase 4 --- Secure Uploads --- requires deliberate decisions about:
 
-``` text
-Proof state-transition service boundaries
-safe Revision allocation behavior
-ProofResponse transaction behavior
-ProofActivity creation boundaries
-ProofDispatch creation/idempotency behavior
-Revision lifecycle/status behavior
-tenant-scoped Customer/Proof/Revision service APIs
+```text
+private S3 bucket and least-privilege access
+server-controlled object keys and presigning
+entitlement and tenant checks
+file size/type and checksum policy
+uploaded-object verification and finalization
+immutable artifact lifecycle after customer presentation
+abandoned upload cleanup
 ```
 
-One known Phase 2 limitation remains deliberate:
+Phase 3 deliberately did not implement actual S3 uploads or file-byte
+verification. `createRevisionForProof()` currently accepts file metadata.
+`submitProofForApproval()` creates a PENDING dispatch, not delivered email.
 
-``` text
-requireOrganization() currently resolves the first Membership
+Carry-forward gaps to handle in their appropriate phases:
+
+```text
+approval retry idempotency semantics
+CHANGE_REQUEST_NOTIFICATION dispatch on change requests
+first-Membership Organization selection before multi-org support
+public review-token authorization and delivery processing
 ```
-
-That is acceptable for the current single-organization onboarding stage,
-but explicit active-organization selection must replace it before
-meaningful multi-organization behavior is introduced.
 
 Later open questions remain in the Master Plan and Technical
-Architecture Specification.
+Architecture Specification. Do not solve unrelated future questions
+merely to make this list shorter.
 
-Do not solve unrelated future questions merely to make this list
-shorter.
-
-------------------------------------------------------------------------
+---
 
 # 52. Definition of Done for a Development Slice
 
 A normal slice is done when:
 
-``` text
+```text
 the intended invariant/behavior is implemented
 the relevant validation passes
 migration/generated artifacts were inspected where applicable
@@ -1709,7 +1713,7 @@ the user committed/pushed if they chose to do so
 
 "Code exists" is not the definition of done.
 
-------------------------------------------------------------------------
+---
 
 # 53. Phase Completion Baseline
 
@@ -1718,7 +1722,7 @@ standard.
 
 Phase 1 completion included:
 
-``` text
+```text
 deliberate relational foundation
 database constraints and tenant integrity
 runtime Prisma/PostgreSQL adapter
@@ -1732,7 +1736,7 @@ merge-ready phase branch
 
 Phase 2 followed the same standard and added:
 
-``` text
+```text
 Auth0 OIDC/PKCE authentication
 signed application sessions
 local User resolution
@@ -1747,17 +1751,35 @@ full quality gate passing
 documentation checkpoint
 ```
 
+Phase 3 followed the same verification discipline and added:
+
+```text
+tenant-scoped Proof and Revision domain services
+centralized Proof state transitions
+serialized Revision numbering under Proof row locks
+transactional approval and change-request evidence
+historical deletion protections
+28 integration files / 171 tests passing via guarded runner
+4 non-integration files / 15 tests passing
+lint, typecheck, and build passing
+merged Phase 3 feature branch
+```
+
+The Phase 3 feature was merged before the separate canonical-document
+reconciliation. Treat that documentation work as an explicit follow-up,
+not as proof that documentation was already current at merge time.
+
 A phase is complete only when its intended behavior is implemented,
 appropriately tested, manually/integrationally verified where necessary,
 documented, and ready to merge into stable `main`.
 
-------------------------------------------------------------------------
+---
 
 # 54. Collaboration Contract
 
 The development collaboration model is:
 
-``` text
+```text
 ChatGPT
     → architecture
     → design comparison
@@ -1784,7 +1806,7 @@ reports it.
 
 The user remains in control of the repository.
 
-------------------------------------------------------------------------
+---
 
 # 55. Final Development Rules
 
@@ -1830,29 +1852,25 @@ The system exists to establish:
 
 > **This customer approved this exact revision at this exact time.**
 
-------------------------------------------------------------------------
+---
 
 # END OF DEVELOPMENT PLAYBOOK
 
-**Current checkpoint:** September 17, 2026. Phase 1 is complete and
-merged into `main`. Phase 2 Identity and Tenant Foundation is
-functionally complete on `phase-2-auth`.
+**Current checkpoint:** October 10, 2026. Phases 0–3 are complete and
+merged into `main`. Phase 3 delivered tenant-scoped Core Domain
+services, a state machine, server-controlled Revision numbering,
+transactional customer decisions, and restrictive historical deletion
+constraints.
 
-**Phase 2 verification:** Auth0 OIDC/PKCE login, signed sessions, local
-User resolution, Organization onboarding, transactional OWNER Membership
-creation, organization/role resolution, authenticated `/app`,
-deterministic OIDC testing, and tenant-scoped Customer isolation are
-implemented. The automated suite passes 20 test files / 70 tests, the
-full quality gate passes, and the real Auth0/browser onboarding flow has
-been verified through persisted Organization and OWNER Membership
-records.
+**Phase 3 verification:** 28 integration files / 171 tests through
+`npm run test:integration`; 4 files / 15 tests through `npm run test`;
+lint, typecheck, and build passed at the Phase 3 checkpoint.
 
-**Immediate next development concern:** Finish this documentation
-checkpoint, commit and push the documentation on `phase-2-auth`, perform
-any final required verification, then merge `phase-2-auth` into `main`.
+**Immediate next development concern:** Finish reconciliation of the
+three canonical documents on a dedicated documentation branch. Review
+the diff, run appropriate checks, commit/push, and merge into `main`.
 
-**Then:** Confirm `main` is current and clean, create a fresh Phase 3
-branch from updated `main`, and begin Core Domain work using the same
-small-step, targeted-verification, tenant-isolation-first discipline.
-
-**Do not begin Phase 3 on `phase-2-auth`.**
+**Then:** Start Phase 4 --- Secure Uploads --- from an updated, clean
+`main`, preserving the existing domain invariants and one-coherent-step
+working method. Do not mistake Phase 3's file-metadata persistence or
+PENDING dispatch records for completed S3 uploads or email delivery.
