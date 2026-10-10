@@ -466,7 +466,7 @@ describe("database invariants", () => {
     ).rejects.toThrow();
   });
 
-  it("allows deleting a proof with a current revision when no evidence references that revision", async () => {
+  it("prevents deletion of a proof with a revision even when no response evidence exists", async () => {
     const organization = await createOrganization("Organization", "organization");
 
     const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
@@ -490,26 +490,29 @@ describe("database invariants", () => {
       },
     });
 
-    await db.proof.delete({
+    await expect(
+      db.proof.delete({
+        where: {
+          id: proof.id,
+        },
+      }),
+    ).rejects.toThrow();
+
+    const preservedProof = await db.proof.findUniqueOrThrow({
       where: {
         id: proof.id,
       },
     });
 
-    const deletedProof = await db.proof.findUnique({
-      where: {
-        id: proof.id,
-      },
-    });
-
-    const deletedRevision = await db.revision.findUnique({
+    const preservedRevision = await db.revision.findUniqueOrThrow({
       where: {
         id: revision.id,
       },
     });
 
-    expect(deletedProof).toBeNull();
-    expect(deletedRevision).toBeNull();
+    expect(preservedProof.currentRevisionId).toBe(revision.id);
+    expect(preservedRevision.proofId).toBe(proof.id);
+    expect(preservedRevision.organizationId).toBe(organization.id);
   });
 
   it("prevents deletion of a proof when approval evidence references one of its revisions", async () => {
@@ -568,5 +571,189 @@ describe("database invariants", () => {
         "Cross-tenant Proof",
       ),
     ).rejects.toThrow();
+  });
+
+  it("prevents deletion of an organization that owns a proof", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Historical Proof",
+    );
+
+    await expect(
+      db.organization.delete({
+        where: {
+          id: organization.id,
+        },
+      }),
+    ).rejects.toThrow();
+
+    const preservedOrganization = await db.organization.findUniqueOrThrow({
+      where: {
+        id: organization.id,
+      },
+    });
+
+    const preservedProof = await db.proof.findUniqueOrThrow({
+      where: {
+        id: proof.id,
+      },
+    });
+
+    expect(preservedOrganization.id).toBe(organization.id);
+    expect(preservedProof.organizationId).toBe(organization.id);
+  });
+
+  it("prevents deletion of a proof that has activity history", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof With Activity",
+    );
+
+    const activity = await db.proofActivity.create({
+      data: {
+        organizationId: organization.id,
+        proofId: proof.id,
+        type: "PROOF_CREATED",
+      },
+    });
+
+    await expect(
+      db.proof.delete({
+        where: {
+          id: proof.id,
+        },
+      }),
+    ).rejects.toThrow();
+
+    const preservedProof = await db.proof.findUniqueOrThrow({
+      where: {
+        id: proof.id,
+      },
+    });
+
+    const preservedActivity = await db.proofActivity.findUniqueOrThrow({
+      where: {
+        id: activity.id,
+      },
+    });
+
+    expect(preservedProof.organizationId).toBe(organization.id);
+    expect(preservedActivity.proofId).toBe(proof.id);
+    expect(preservedActivity.organizationId).toBe(organization.id);
+  });
+
+  it("prevents deletion of a proof that has dispatch history", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof With Dispatch",
+    );
+
+    const revision = await createRevision(organization.id, proof.id, 1);
+
+    const dispatch = await db.proofDispatch.create({
+      data: {
+        organizationId: organization.id,
+        proofId: proof.id,
+        revisionId: revision.id,
+        type: "INITIAL_PROOF",
+        recipientName: "Customer",
+        recipientEmail: "customer@example.com",
+      },
+    });
+
+    await expect(
+      db.proof.delete({
+        where: {
+          id: proof.id,
+        },
+      }),
+    ).rejects.toThrow();
+
+    const preservedProof = await db.proof.findUniqueOrThrow({
+      where: {
+        id: proof.id,
+      },
+    });
+
+    const preservedDispatch = await db.proofDispatch.findUniqueOrThrow({
+      where: {
+        id: dispatch.id,
+      },
+    });
+
+    expect(preservedProof.organizationId).toBe(organization.id);
+    expect(preservedDispatch.proofId).toBe(proof.id);
+    expect(preservedDispatch.revisionId).toBe(revision.id);
+  });
+
+  it("documents that an unreferenced noncurrent revision is not protected by foreign keys", async () => {
+    const organization = await createOrganization("Organization", "organization");
+
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
+
+    const proof = await createProof(
+      organization.id,
+      customer.id,
+      customer.name,
+      "customer@example.com",
+      "Proof With Revision History",
+    );
+
+    const firstRevision = await createRevision(organization.id, proof.id, 1);
+
+    const secondRevision = await createRevision(organization.id, proof.id, 2);
+
+    await db.proof.update({
+      where: {
+        id: proof.id,
+      },
+      data: {
+        currentRevisionId: secondRevision.id,
+      },
+    });
+
+    // Known v1 limitation:
+    // Foreign keys protect revisions referenced by other records, but do
+    // not prevent direct deletion of an unreferenced noncurrent revision.
+    // Production domain services must never expose this deletion operation.
+    await db.revision.delete({
+      where: {
+        id: firstRevision.id,
+      },
+    });
+
+    const remainingRevisions = await db.revision.findMany({
+      where: {
+        proofId: proof.id,
+        organizationId: organization.id,
+      },
+      orderBy: {
+        number: "asc",
+      },
+    });
+
+    expect(remainingRevisions).toHaveLength(1);
+    expect(remainingRevisions[0].id).toBe(secondRevision.id);
   });
 });
