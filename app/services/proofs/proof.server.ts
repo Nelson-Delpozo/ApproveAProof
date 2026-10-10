@@ -1,4 +1,9 @@
-import { ProofStatus, type Proof } from "../../../generated/prisma/client";
+
+import {
+  ProofActivityType,
+  ProofStatus,
+  type Proof,
+} from "../../../generated/prisma/client";
 
 import { db } from "../../lib/db.server";
 import { canTransitionProofStatus } from "./proof-lifecycle";
@@ -44,7 +49,7 @@ export async function cancelProofForOrganization(
       throw new Error(`Proof cannot be canceled from status ${proof.status}.`);
     }
 
-    return tx.proof.update({
+    const canceledProof = await tx.proof.update({
       where: {
         id: proof.id,
         organizationId: proof.organizationId,
@@ -53,5 +58,15 @@ export async function cancelProofForOrganization(
         status: ProofStatus.CANCELED,
       },
     });
+
+    await tx.proofActivity.create({
+      data: {
+        organizationId: proof.organizationId,
+        proofId: proof.id,
+        type: ProofActivityType.PROOF_CANCELED,
+      },
+    });
+
+    return canceledProof;
   });
 }
