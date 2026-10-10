@@ -1,5 +1,4 @@
-
- // @vitest-environment node
+// @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { cleanupTestOrganizations } from "../helpers/cleanup-test-organizations";
@@ -50,8 +49,7 @@ async function createSubmittedProof(options?: {
     data: {
       organizationId: organization.id,
       recipientName: "Customer A",
-      recipientEmail:
-        options?.recipientEmail ?? "customer-a@approveaproof.test",
+      recipientEmail: options?.recipientEmail ?? "customer-a@approveaproof.test",
       title: "Approval Integration Test",
     },
   });
@@ -80,10 +78,7 @@ async function createSubmittedProof(options?: {
       },
       data: {
         status: options.dispatchStatus,
-        sentAt:
-          options.dispatchStatus === ProofDispatchStatus.SENT
-            ? new Date()
-            : null,
+        sentAt: options.dispatchStatus === ProofDispatchStatus.SENT ? new Date() : null,
       },
     });
   }
@@ -105,31 +100,30 @@ function approvalInput(revisionId: string) {
 }
 
 async function approvalRecords(proofId: string) {
-  const [proof, responses, activities, confirmations] =
-    await Promise.all([
-      db.proof.findUniqueOrThrow({
-        where: {
-          id: proofId,
-        },
-      }),
-      db.proofResponse.findMany({
-        where: {
-          proofId,
-        },
-      }),
-      db.proofActivity.findMany({
-        where: {
-          proofId,
-          type: ProofActivityType.PROOF_APPROVED,
-        },
-      }),
-      db.proofDispatch.findMany({
-        where: {
-          proofId,
-          type: ProofDispatchType.APPROVAL_CONFIRMATION,
-        },
-      }),
-    ]);
+  const [proof, responses, activities, confirmations] = await Promise.all([
+    db.proof.findUniqueOrThrow({
+      where: {
+        id: proofId,
+      },
+    }),
+    db.proofResponse.findMany({
+      where: {
+        proofId,
+      },
+    }),
+    db.proofActivity.findMany({
+      where: {
+        proofId,
+        type: ProofActivityType.PROOF_APPROVED,
+      },
+    }),
+    db.proofDispatch.findMany({
+      where: {
+        proofId,
+        type: ProofDispatchType.APPROVAL_CONFIRMATION,
+      },
+    }),
+  ]);
 
   return {
     proof,
@@ -150,10 +144,9 @@ describe("approveProofForOrganization", () => {
   });
 
   it("atomically approves the current Revision and creates authoritative evidence", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const response = await approveProofForOrganization(
       organization.id,
@@ -204,10 +197,9 @@ describe("approveProofForOrganization", () => {
   });
 
   it("uses the sent dispatch recipient snapshot rather than mutable Proof recipient fields", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     await db.proof.update({
       where: {
@@ -219,19 +211,13 @@ describe("approveProofForOrganization", () => {
       },
     });
 
-    await approveProofForOrganization(
-      organization.id,
-      proof.id,
-      approvalInput(revision.id),
-    );
+    await approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id));
 
     const records = await approvalRecords(proof.id);
 
     expect(records.confirmations).toHaveLength(1);
     expect(records.confirmations[0].recipientName).toBe("Customer A");
-    expect(records.confirmations[0].recipientEmail).toBe(
-      "customer-a@approveaproof.test",
-    );
+    expect(records.confirmations[0].recipientEmail).toBe("customer-a@approveaproof.test");
   });
 
   it("rejects approval from another Organization without changing the Proof", async () => {
@@ -242,18 +228,12 @@ describe("approveProofForOrganization", () => {
     const otherOrganization = await createOrganization(ORG_B_SLUG);
 
     await expect(
-      approveProofForOrganization(
-        otherOrganization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
+      approveProofForOrganization(otherOrganization.id, proof.id, approvalInput(revision.id)),
     ).rejects.toThrow("Proof not found.");
 
     const records = await approvalRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
     expect(records.confirmations).toHaveLength(0);
@@ -264,41 +244,31 @@ describe("approveProofForOrganization", () => {
     ProofStatus.CHANGES_REQUESTED,
     ProofStatus.APPROVED,
     ProofStatus.CANCELED,
-  ])(
-    "rejects approval from %s without creating approval records",
-    async (status) => {
-      const { organization, proof, revision } =
-        await createSubmittedProof({
-          dispatchStatus: ProofDispatchStatus.SENT,
-        });
+  ])("rejects approval from %s without creating approval records", async (status) => {
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
-      await db.proof.update({
-        where: {
-          id: proof.id,
-        },
-        data: {
-          status,
-        },
-      });
+    await db.proof.update({
+      where: {
+        id: proof.id,
+      },
+      data: {
+        status,
+      },
+    });
 
-      await expect(
-        approveProofForOrganization(
-          organization.id,
-          proof.id,
-          approvalInput(revision.id),
-        ),
-      ).rejects.toThrow(
-        `Proof cannot be approved from status ${status}.`,
-      );
+    await expect(
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+    ).rejects.toThrow(`Proof cannot be approved from status ${status}.`);
 
-      const records = await approvalRecords(proof.id);
+    const records = await approvalRecords(proof.id);
 
-      expect(records.proof.status).toBe(status);
-      expect(records.responses).toHaveLength(0);
-      expect(records.activities).toHaveLength(0);
-      expect(records.confirmations).toHaveLength(0);
-    },
-  );
+    expect(records.proof.status).toBe(status);
+    expect(records.responses).toHaveLength(0);
+    expect(records.activities).toHaveLength(0);
+    expect(records.confirmations).toHaveLength(0);
+  });
 
   it("rejects a stale Revision rather than silently approving the current Revision", async () => {
     const organization = await createOrganization();
@@ -338,23 +308,13 @@ describe("approveProofForOrganization", () => {
     });
 
     await expect(
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(oldRevision.id),
-      ),
-    ).rejects.toThrow(
-      "Approval Revision does not match the current Revision.",
-    );
+      approveProofForOrganization(organization.id, proof.id, approvalInput(oldRevision.id)),
+    ).rejects.toThrow("Approval Revision does not match the current Revision.");
 
     const records = await approvalRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
-    expect(records.proof.currentRevisionId).toBe(
-      currentRevision.id,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
+    expect(records.proof.currentRevisionId).toBe(currentRevision.id);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
     expect(records.confirmations).toHaveLength(0);
@@ -381,20 +341,12 @@ describe("approveProofForOrganization", () => {
     );
 
     await expect(
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(otherRevision.id),
-      ),
-    ).rejects.toThrow(
-      "Approval Revision does not match the current Revision.",
-    );
+      approveProofForOrganization(organization.id, proof.id, approvalInput(otherRevision.id)),
+    ).rejects.toThrow("Approval Revision does not match the current Revision.");
 
     const records = await approvalRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
   });
 
@@ -407,38 +359,25 @@ describe("approveProofForOrganization", () => {
       label: "failed",
       status: ProofDispatchStatus.FAILED,
     },
-  ])(
-    "rejects approval when the submission dispatch is $label",
-    async ({ status }) => {
-      const { organization, proof, revision } =
-        await createSubmittedProof({
-          dispatchStatus: status,
-        });
+  ])("rejects approval when the submission dispatch is $label", async ({ status }) => {
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: status,
+    });
 
-      await expect(
-        approveProofForOrganization(
-          organization.id,
-          proof.id,
-          approvalInput(revision.id),
-        ),
-      ).rejects.toThrow(
-        "Approval Revision has no completed submission dispatch.",
-      );
+    await expect(
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+    ).rejects.toThrow("Approval Revision has no completed submission dispatch.");
 
-      const records = await approvalRecords(proof.id);
+    const records = await approvalRecords(proof.id);
 
-      expect(records.proof.status).toBe(
-        ProofStatus.AWAITING_APPROVAL,
-      );
-      expect(records.responses).toHaveLength(0);
-      expect(records.activities).toHaveLength(0);
-      expect(records.confirmations).toHaveLength(0);
-    },
-  );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
+    expect(records.responses).toHaveLength(0);
+    expect(records.activities).toHaveLength(0);
+    expect(records.confirmations).toHaveLength(0);
+  });
 
   it("rejects a SENT dispatch without a sentAt timestamp", async () => {
-    const { organization, proof, revision, dispatch } =
-      await createSubmittedProof();
+    const { organization, proof, revision, dispatch } = await createSubmittedProof();
 
     await db.proofDispatch.update({
       where: {
@@ -451,28 +390,19 @@ describe("approveProofForOrganization", () => {
     });
 
     await expect(
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
-    ).rejects.toThrow(
-      "Approval Revision has no completed submission dispatch.",
-    );
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+    ).rejects.toThrow("Approval Revision has no completed submission dispatch.");
 
     const records = await approvalRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
     expect(records.confirmations).toHaveLength(0);
   });
 
   it("rejects a SENT dispatch of the wrong type", async () => {
-    const { organization, proof, revision, dispatch } =
-      await createSubmittedProof();
+    const { organization, proof, revision, dispatch } = await createSubmittedProof();
 
     await db.proofDispatch.update({
       where: {
@@ -486,30 +416,21 @@ describe("approveProofForOrganization", () => {
     });
 
     await expect(
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
-    ).rejects.toThrow(
-      "Approval Revision has no completed submission dispatch.",
-    );
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+    ).rejects.toThrow("Approval Revision has no completed submission dispatch.");
 
     const records = await approvalRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
     expect(records.confirmations).toHaveLength(0);
   });
 
   it("rejects an invalid confirmation recipient before creating approval evidence", async () => {
-    const { organization, proof, revision, dispatch } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision, dispatch } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     await db.proofDispatch.update({
       where: {
@@ -521,20 +442,12 @@ describe("approveProofForOrganization", () => {
     });
 
     await expect(
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
-    ).rejects.toThrow(
-      "Approval confirmation recipient email is invalid.",
-    );
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+    ).rejects.toThrow("Approval confirmation recipient email is invalid.");
 
     const records = await approvalRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
     expect(records.confirmations).toHaveLength(0);
@@ -554,37 +467,29 @@ describe("approveProofForOrganization", () => {
       },
     },
   ])("rejects a $label", async ({ input }) => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     await expect(
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        {
-          ...approvalInput(revision.id),
-          ...input,
-        },
-      ),
+      approveProofForOrganization(organization.id, proof.id, {
+        ...approvalInput(revision.id),
+        ...input,
+      }),
     ).rejects.toThrow();
 
     const records = await approvalRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
     expect(records.confirmations).toHaveLength(0);
   });
 
   it("rejects a duplicate approval without creating duplicate records", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const firstResponse = await approveProofForOrganization(
       organization.id,
@@ -593,14 +498,8 @@ describe("approveProofForOrganization", () => {
     );
 
     await expect(
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
-    ).rejects.toThrow(
-      "Proof cannot be approved from status APPROVED.",
-    );
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+    ).rejects.toThrow("Proof cannot be approved from status APPROVED.");
 
     const records = await approvalRecords(proof.id);
 
@@ -612,31 +511,18 @@ describe("approveProofForOrganization", () => {
   });
 
   it("allows only one of two concurrent approvals to succeed", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const results = await Promise.allSettled([
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
     ]);
 
-    const successes = results.filter(
-      (result) => result.status === "fulfilled",
-    );
+    const successes = results.filter((result) => result.status === "fulfilled");
 
-    const failures = results.filter(
-      (result) => result.status === "rejected",
-    );
+    const failures = results.filter((result) => result.status === "rejected");
 
     expect(successes).toHaveLength(1);
     expect(failures).toHaveLength(1);
@@ -650,40 +536,25 @@ describe("approveProofForOrganization", () => {
   });
 
   it("serializes approval and cancellation so only one terminal state wins", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const results = await Promise.allSettled([
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        approvalInput(revision.id),
-      ),
-      cancelProofForOrganization(
-        organization.id,
-        proof.id,
-      ),
+      approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
+      cancelProofForOrganization(organization.id, proof.id),
     ]);
 
-    const successes = results.filter(
-      (result) => result.status === "fulfilled",
-    );
+    const successes = results.filter((result) => result.status === "fulfilled");
 
-    const failures = results.filter(
-      (result) => result.status === "rejected",
-    );
+    const failures = results.filter((result) => result.status === "rejected");
 
     expect(successes).toHaveLength(1);
     expect(failures).toHaveLength(1);
 
     const records = await approvalRecords(proof.id);
 
-    expect([
-      ProofStatus.APPROVED,
-      ProofStatus.CANCELED,
-    ]).toContain(records.proof.status);
+    expect([ProofStatus.APPROVED, ProofStatus.CANCELED]).toContain(records.proof.status);
 
     if (records.proof.status === ProofStatus.APPROVED) {
       expect(records.responses).toHaveLength(1);
@@ -697,16 +568,11 @@ describe("approveProofForOrganization", () => {
   });
 
   it("preserves existing Revision metadata after approval", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
-    await approveProofForOrganization(
-      organization.id,
-      proof.id,
-      approvalInput(revision.id),
-    );
+    await approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id));
 
     const persistedRevision = await db.revision.findUniqueOrThrow({
       where: {
@@ -718,10 +584,9 @@ describe("approveProofForOrganization", () => {
   });
 
   it("rolls back all approval writes when confirmation dispatch insertion fails", async () => {
-    const { organization, proof, revision, dispatch } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision, dispatch } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const rollbackRecipient = "rollback-fixture@approveaproof.test";
 
@@ -756,11 +621,7 @@ describe("approveProofForOrganization", () => {
       `;
 
       await expect(
-        approveProofForOrganization(
-          organization.id,
-          proof.id,
-          approvalInput(revision.id),
-        ),
+        approveProofForOrganization(organization.id, proof.id, approvalInput(revision.id)),
       ).rejects.toThrow();
 
       const records = await approvalRecords(proof.id);

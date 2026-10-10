@@ -1,12 +1,8 @@
-
 // @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-import {
-  ProofActivityType,
-  ProofStatus,
-} from "../../../generated/prisma/client";
+import { ProofActivityType, ProofStatus } from "../../../generated/prisma/client";
 import { db } from "../../lib/db.server";
 import { createRevisionForProof } from "../../services/proofs/revision.server";
 import { cleanupTestOrganizations } from "../helpers/cleanup-test-organizations";
@@ -24,10 +20,7 @@ function revisionInput(suffix: string) {
   };
 }
 
-async function getRevisionCreatedActivities(
-  organizationId: string,
-  proofId: string,
-) {
+async function getRevisionCreatedActivities(organizationId: string, proofId: string) {
   return db.proofActivity.findMany({
     where: {
       organizationId,
@@ -81,10 +74,7 @@ describe("createRevisionForProof", () => {
     expect(persistedProof.currentRevisionId).toBe(revision.id);
     expect(persistedProof.status).toBe(ProofStatus.DRAFT);
 
-    const activities = await getRevisionCreatedActivities(
-      organization.id,
-      proof.id,
-    );
+    const activities = await getRevisionCreatedActivities(organization.id, proof.id);
 
     expect(activities).toHaveLength(1);
   });
@@ -146,10 +136,7 @@ describe("createRevisionForProof", () => {
       "sha256-test-sequential-3",
     ]);
 
-    const activities = await getRevisionCreatedActivities(
-      organization.id,
-      proof.id,
-    );
+    const activities = await getRevisionCreatedActivities(organization.id, proof.id);
 
     expect(activities).toHaveLength(3);
   });
@@ -178,11 +165,7 @@ describe("createRevisionForProof", () => {
     });
 
     await expect(
-      createRevisionForProof(
-        organizationB.id,
-        proof.id,
-        revisionInput("cross-tenant"),
-      ),
+      createRevisionForProof(organizationB.id, proof.id, revisionInput("cross-tenant")),
     ).rejects.toThrow();
 
     const revisions = await db.revision.findMany({
@@ -196,12 +179,8 @@ describe("createRevisionForProof", () => {
     expect(persistedProof.currentRevisionId).toBeNull();
     expect(persistedProof.status).toBe(ProofStatus.DRAFT);
 
-    expect(
-      await getRevisionCreatedActivities(organizationA.id, proof.id),
-    ).toHaveLength(0);
-    expect(
-      await getRevisionCreatedActivities(organizationB.id, proof.id),
-    ).toHaveLength(0);
+    expect(await getRevisionCreatedActivities(organizationA.id, proof.id)).toHaveLength(0);
+    expect(await getRevisionCreatedActivities(organizationB.id, proof.id)).toHaveLength(0);
   });
 
   it("allocates distinct sequential numbers and records both concurrent Revision activities", async () => {
@@ -221,21 +200,11 @@ describe("createRevisionForProof", () => {
     });
 
     const revisions = await Promise.all([
-      createRevisionForProof(
-        organization.id,
-        proof.id,
-        revisionInput("concurrent-1"),
-      ),
-      createRevisionForProof(
-        organization.id,
-        proof.id,
-        revisionInput("concurrent-2"),
-      ),
+      createRevisionForProof(organization.id, proof.id, revisionInput("concurrent-1")),
+      createRevisionForProof(organization.id, proof.id, revisionInput("concurrent-2")),
     ]);
 
-    expect(
-      revisions.map((revision) => revision.number).sort((a, b) => a - b),
-    ).toEqual([1, 2]);
+    expect(revisions.map((revision) => revision.number).sort((a, b) => a - b)).toEqual([1, 2]);
 
     const persistedRevisions = await db.revision.findMany({
       where: { proofId: proof.id },
@@ -250,9 +219,7 @@ describe("createRevisionForProof", () => {
     expect(persistedProof.currentRevisionId).toBe(persistedRevisions[1].id);
     expect(persistedProof.status).toBe(ProofStatus.DRAFT);
 
-    expect(
-      await getRevisionCreatedActivities(organization.id, proof.id),
-    ).toHaveLength(2);
+    expect(await getRevisionCreatedActivities(organization.id, proof.id)).toHaveLength(2);
   });
 
   it("creates a new current Revision, records its activity, and returns CHANGES_REQUESTED to DRAFT", async () => {
@@ -299,74 +266,62 @@ describe("createRevisionForProof", () => {
     expect(second.number).toBe(2);
     expect(persistedProof.currentRevisionId).toBe(second.id);
     expect(persistedProof.status).toBe(ProofStatus.DRAFT);
-    expect(persistedRevisions.map((revision) => revision.id)).toEqual([
-      first.id,
-      second.id,
-    ]);
+    expect(persistedRevisions.map((revision) => revision.id)).toEqual([first.id, second.id]);
 
-    expect(
-      await getRevisionCreatedActivities(organization.id, proof.id),
-    ).toHaveLength(2);
+    expect(await getRevisionCreatedActivities(organization.id, proof.id)).toHaveLength(2);
   });
 
-  it.each([
-    ProofStatus.AWAITING_APPROVAL,
-    ProofStatus.APPROVED,
-    ProofStatus.CANCELED,
-  ])("rejects creation from %s without changing existing data or activities", async (status) => {
-    const organization = await db.organization.create({
-      data: {
-        name: "Create Revision Organization A",
-        slug: ORG_A_SLUG,
-      },
-    });
+  it.each([ProofStatus.AWAITING_APPROVAL, ProofStatus.APPROVED, ProofStatus.CANCELED])(
+    "rejects creation from %s without changing existing data or activities",
+    async (status) => {
+      const organization = await db.organization.create({
+        data: {
+          name: "Create Revision Organization A",
+          slug: ORG_A_SLUG,
+        },
+      });
 
-    const proof = await db.proof.create({
-      data: {
-        organizationId: organization.id,
-        recipientName: "Customer A",
-        title: "Protected Revision Proof",
-      },
-    });
+      const proof = await db.proof.create({
+        data: {
+          organizationId: organization.id,
+          recipientName: "Customer A",
+          title: "Protected Revision Proof",
+        },
+      });
 
-    const original = await createRevisionForProof(
-      organization.id,
-      proof.id,
-      revisionInput("protected-original"),
-    );
-
-    await db.proof.update({
-      where: { id: proof.id },
-      data: { status },
-    });
-
-    const before = await db.proof.findUniqueOrThrow({
-      where: { id: proof.id },
-    });
-
-    await expect(
-      createRevisionForProof(
+      const original = await createRevisionForProof(
         organization.id,
         proof.id,
-        revisionInput(`rejected-${status}`),
-      ),
-    ).rejects.toThrow();
+        revisionInput("protected-original"),
+      );
 
-    const after = await db.proof.findUniqueOrThrow({
-      where: { id: proof.id },
-    });
-    const persistedRevisions = await db.revision.findMany({
-      where: { proofId: proof.id },
-    });
+      await db.proof.update({
+        where: { id: proof.id },
+        data: { status },
+      });
 
-    expect(after.currentRevisionId).toBe(original.id);
-    expect(after.status).toBe(status);
-    expect(after.updatedAt).toEqual(before.updatedAt);
-    expect(persistedRevisions).toHaveLength(1);
-    expect(persistedRevisions[0].id).toBe(original.id);
+      const before = await db.proof.findUniqueOrThrow({
+        where: { id: proof.id },
+      });
 
-    expect(
-      await getRevisionCreatedActivities(organization.id, proof.id),
-    ).toHaveLength(1);
-  });
+      await expect(
+        createRevisionForProof(organization.id, proof.id, revisionInput(`rejected-${status}`)),
+      ).rejects.toThrow();
+
+      const after = await db.proof.findUniqueOrThrow({
+        where: { id: proof.id },
+      });
+      const persistedRevisions = await db.revision.findMany({
+        where: { proofId: proof.id },
+      });
+
+      expect(after.currentRevisionId).toBe(original.id);
+      expect(after.status).toBe(status);
+      expect(after.updatedAt).toEqual(before.updatedAt);
+      expect(persistedRevisions).toHaveLength(1);
+      expect(persistedRevisions[0].id).toBe(original.id);
+
+      expect(await getRevisionCreatedActivities(organization.id, proof.id)).toHaveLength(1);
+    },
+  );
 });

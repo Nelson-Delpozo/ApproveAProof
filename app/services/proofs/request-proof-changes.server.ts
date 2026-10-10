@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 import {
@@ -20,9 +19,7 @@ const changeRequestInputSchema = z.object({
   comments: z.string().trim().min(1),
 });
 
-type RequestProofChangesInput = z.input<
-  typeof changeRequestInputSchema
->;
+type RequestProofChangesInput = z.input<typeof changeRequestInputSchema>;
 
 type LockedProof = {
   id: string;
@@ -57,15 +54,8 @@ export async function requestProofChangesForOrganization(
       throw new Error("Proof not found.");
     }
 
-    if (
-      !canTransitionProofStatus(
-        proof.status,
-        ProofStatus.CHANGES_REQUESTED,
-      )
-    ) {
-      throw new Error(
-        `Proof cannot request changes from status ${proof.status}.`,
-      );
+    if (!canTransitionProofStatus(proof.status, ProofStatus.CHANGES_REQUESTED)) {
+      throw new Error(`Proof cannot request changes from status ${proof.status}.`);
     }
 
     if (!proof.currentRevisionId) {
@@ -73,9 +63,7 @@ export async function requestProofChangesForOrganization(
     }
 
     if (validatedInput.revisionId !== proof.currentRevisionId) {
-      throw new Error(
-        "Change request Revision does not match the current Revision.",
-      );
+      throw new Error("Change request Revision does not match the current Revision.");
     }
 
     const revision = await tx.revision.findFirst({
@@ -99,10 +87,7 @@ export async function requestProofChangesForOrganization(
         proofId: proof.id,
         revisionId: revision.id,
         type: {
-          in: [
-            ProofDispatchType.INITIAL_PROOF,
-            ProofDispatchType.REVISION,
-          ],
+          in: [ProofDispatchType.INITIAL_PROOF, ProofDispatchType.REVISION],
         },
         status: ProofDispatchStatus.SENT,
         sentAt: {
@@ -118,9 +103,7 @@ export async function requestProofChangesForOrganization(
     });
 
     if (!sentDispatch) {
-      throw new Error(
-        "Change request Revision has no completed submission dispatch.",
-      );
+      throw new Error("Change request Revision has no completed submission dispatch.");
     }
 
     const response = await tx.proofResponse.create({

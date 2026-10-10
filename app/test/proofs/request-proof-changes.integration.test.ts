@@ -1,4 +1,3 @@
-
 // @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
@@ -50,9 +49,7 @@ async function createOrganization(slug = ORG_SLUG) {
   });
 }
 
-async function createSubmittedProof(options?: {
-  dispatchStatus?: ProofDispatchStatus;
-}) {
+async function createSubmittedProof(options?: { dispatchStatus?: ProofDispatchStatus }) {
   const organization = await createOrganization();
 
   const proof = await db.proof.create({
@@ -86,10 +83,7 @@ async function createSubmittedProof(options?: {
       where: { id: dispatch.id },
       data: {
         status: options.dispatchStatus,
-        sentAt:
-          options.dispatchStatus === ProofDispatchStatus.SENT
-            ? new Date()
-            : null,
+        sentAt: options.dispatchStatus === ProofDispatchStatus.SENT ? new Date() : null,
       },
     });
   }
@@ -98,28 +92,27 @@ async function createSubmittedProof(options?: {
 }
 
 async function changeRequestRecords(proofId: string) {
-  const [proof, responses, activities, notifications] =
-    await Promise.all([
-      db.proof.findUniqueOrThrow({
-        where: { id: proofId },
-      }),
-      db.proofResponse.findMany({
-        where: { proofId },
-        orderBy: { occurredAt: "asc" },
-      }),
-      db.proofActivity.findMany({
-        where: {
-          proofId,
-          type: ProofActivityType.CHANGES_REQUESTED,
-        },
-      }),
-      db.proofDispatch.findMany({
-        where: {
-          proofId,
-          type: ProofDispatchType.CHANGE_REQUEST_NOTIFICATION,
-        },
-      }),
-    ]);
+  const [proof, responses, activities, notifications] = await Promise.all([
+    db.proof.findUniqueOrThrow({
+      where: { id: proofId },
+    }),
+    db.proofResponse.findMany({
+      where: { proofId },
+      orderBy: { occurredAt: "asc" },
+    }),
+    db.proofActivity.findMany({
+      where: {
+        proofId,
+        type: ProofActivityType.CHANGES_REQUESTED,
+      },
+    }),
+    db.proofDispatch.findMany({
+      where: {
+        proofId,
+        type: ProofDispatchType.CHANGE_REQUEST_NOTIFICATION,
+      },
+    }),
+  ]);
 
   return { proof, responses, activities, notifications };
 }
@@ -135,10 +128,9 @@ describe("requestProofChangesForOrganization", () => {
   });
 
   it("atomically records a change request for the current Revision", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const response = await requestProofChangesForOrganization(
       organization.id,
@@ -161,9 +153,7 @@ describe("requestProofChangesForOrganization", () => {
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.CHANGES_REQUESTED,
-    );
+    expect(records.proof.status).toBe(ProofStatus.CHANGES_REQUESTED);
     expect(records.proof.currentRevisionId).toBe(revision.id);
     expect(records.responses).toHaveLength(1);
     expect(records.responses[0].id).toBe(response.id);
@@ -180,51 +170,36 @@ describe("requestProofChangesForOrganization", () => {
   });
 
   it("allows an omitted optional responder email", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
-    const { responderEmail: _unused, ...input } =
-      changeRequestInput(revision.id);
+    const { responderEmail: _unused, ...input } = changeRequestInput(revision.id);
 
-    const response = await requestProofChangesForOrganization(
-      organization.id,
-      proof.id,
-      input,
-    );
+    const response = await requestProofChangesForOrganization(organization.id, proof.id, input);
 
     expect(response.responderEmail).toBeNull();
     expect(response.responderName).toBe("Customer A");
-    expect(response.comments).toBe(
-      "Please increase the headline size.",
-    );
+    expect(response.comments).toBe("Please increase the headline size.");
   });
 
   it.each(["", " ", "\n\t  "])(
     "rejects blank comments (%j) without changing records",
     async (comments) => {
-      const { organization, proof, revision } =
-        await createSubmittedProof({
-          dispatchStatus: ProofDispatchStatus.SENT,
-        });
+      const { organization, proof, revision } = await createSubmittedProof({
+        dispatchStatus: ProofDispatchStatus.SENT,
+      });
 
       await expect(
-        requestProofChangesForOrganization(
-          organization.id,
-          proof.id,
-          {
-            ...changeRequestInput(revision.id),
-            comments,
-          },
-        ),
+        requestProofChangesForOrganization(organization.id, proof.id, {
+          ...changeRequestInput(revision.id),
+          comments,
+        }),
       ).rejects.toThrow();
 
       const records = await changeRequestRecords(proof.id);
 
-      expect(records.proof.status).toBe(
-        ProofStatus.AWAITING_APPROVAL,
-      );
+      expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
       expect(records.responses).toHaveLength(0);
       expect(records.activities).toHaveLength(0);
       expect(records.notifications).toHaveLength(0);
@@ -245,27 +220,20 @@ describe("requestProofChangesForOrganization", () => {
       changes: { revisionId: "not-a-uuid" },
     },
   ])("rejects a $label", async ({ changes }) => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     await expect(
-      requestProofChangesForOrganization(
-        organization.id,
-        proof.id,
-        {
-          ...changeRequestInput(revision.id),
-          ...changes,
-        },
-      ),
+      requestProofChangesForOrganization(organization.id, proof.id, {
+        ...changeRequestInput(revision.id),
+        ...changes,
+      }),
     ).rejects.toThrow();
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
   });
@@ -287,9 +255,7 @@ describe("requestProofChangesForOrganization", () => {
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
     expect(records.activities).toHaveLength(0);
   });
@@ -299,36 +265,30 @@ describe("requestProofChangesForOrganization", () => {
     ProofStatus.CHANGES_REQUESTED,
     ProofStatus.APPROVED,
     ProofStatus.CANCELED,
-  ])(
-    "rejects change requests from %s",
-    async (status) => {
-      const { organization, proof, revision } =
-        await createSubmittedProof({
-          dispatchStatus: ProofDispatchStatus.SENT,
-        });
+  ])("rejects change requests from %s", async (status) => {
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
-      await db.proof.update({
-        where: { id: proof.id },
-        data: { status },
-      });
+    await db.proof.update({
+      where: { id: proof.id },
+      data: { status },
+    });
 
-      await expect(
-        requestProofChangesForOrganization(
-          organization.id,
-          proof.id,
-          changeRequestInput(revision.id),
-        ),
-      ).rejects.toThrow(
-        `Proof cannot request changes from status ${status}.`,
-      );
+    await expect(
+      requestProofChangesForOrganization(
+        organization.id,
+        proof.id,
+        changeRequestInput(revision.id),
+      ),
+    ).rejects.toThrow(`Proof cannot request changes from status ${status}.`);
 
-      const records = await changeRequestRecords(proof.id);
+    const records = await changeRequestRecords(proof.id);
 
-      expect(records.proof.status).toBe(status);
-      expect(records.responses).toHaveLength(0);
-      expect(records.activities).toHaveLength(0);
-    },
-  );
+    expect(records.proof.status).toBe(status);
+    expect(records.responses).toHaveLength(0);
+    expect(records.activities).toHaveLength(0);
+  });
 
   it("rejects a stale Revision", async () => {
     const organization = await createOrganization();
@@ -373,18 +333,12 @@ describe("requestProofChangesForOrganization", () => {
         proof.id,
         changeRequestInput(oldRevision.id),
       ),
-    ).rejects.toThrow(
-      "Change request Revision does not match the current Revision.",
-    );
+    ).rejects.toThrow("Change request Revision does not match the current Revision.");
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
-    expect(records.proof.currentRevisionId).toBe(
-      currentRevision.id,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
+    expect(records.proof.currentRevisionId).toBe(currentRevision.id);
     expect(records.responses).toHaveLength(0);
   });
 
@@ -413,28 +367,20 @@ describe("requestProofChangesForOrganization", () => {
         proof.id,
         changeRequestInput(otherRevision.id),
       ),
-    ).rejects.toThrow(
-      "Change request Revision does not match the current Revision.",
-    );
+    ).rejects.toThrow("Change request Revision does not match the current Revision.");
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.AWAITING_APPROVAL,
-    );
+    expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
     expect(records.responses).toHaveLength(0);
   });
 
-  it.each([
-    ProofDispatchStatus.PENDING,
-    ProofDispatchStatus.FAILED,
-  ])(
+  it.each([ProofDispatchStatus.PENDING, ProofDispatchStatus.FAILED])(
     "rejects a %s submission dispatch",
     async (status) => {
-      const { organization, proof, revision } =
-        await createSubmittedProof({
-          dispatchStatus: status,
-        });
+      const { organization, proof, revision } = await createSubmittedProof({
+        dispatchStatus: status,
+      });
 
       await expect(
         requestProofChangesForOrganization(
@@ -442,23 +388,18 @@ describe("requestProofChangesForOrganization", () => {
           proof.id,
           changeRequestInput(revision.id),
         ),
-      ).rejects.toThrow(
-        "Change request Revision has no completed submission dispatch.",
-      );
+      ).rejects.toThrow("Change request Revision has no completed submission dispatch.");
 
       const records = await changeRequestRecords(proof.id);
 
-      expect(records.proof.status).toBe(
-        ProofStatus.AWAITING_APPROVAL,
-      );
+      expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
       expect(records.responses).toHaveLength(0);
       expect(records.activities).toHaveLength(0);
     },
   );
 
   it("rejects SENT dispatch without sentAt", async () => {
-    const { organization, proof, revision, dispatch } =
-      await createSubmittedProof();
+    const { organization, proof, revision, dispatch } = await createSubmittedProof();
 
     await db.proofDispatch.update({
       where: { id: dispatch.id },
@@ -474,14 +415,11 @@ describe("requestProofChangesForOrganization", () => {
         proof.id,
         changeRequestInput(revision.id),
       ),
-    ).rejects.toThrow(
-      "Change request Revision has no completed submission dispatch.",
-    );
+    ).rejects.toThrow("Change request Revision has no completed submission dispatch.");
   });
 
   it("rejects SENT dispatch of an ineligible type", async () => {
-    const { organization, proof, revision, dispatch } =
-      await createSubmittedProof();
+    const { organization, proof, revision, dispatch } = await createSubmittedProof();
 
     await db.proofDispatch.update({
       where: { id: dispatch.id },
@@ -498,16 +436,13 @@ describe("requestProofChangesForOrganization", () => {
         proof.id,
         changeRequestInput(revision.id),
       ),
-    ).rejects.toThrow(
-      "Change request Revision has no completed submission dispatch.",
-    );
+    ).rejects.toThrow("Change request Revision has no completed submission dispatch.");
   });
 
   it("rejects duplicate change requests without duplicate evidence", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const first = await requestProofChangesForOrganization(
       organization.id,
@@ -521,15 +456,11 @@ describe("requestProofChangesForOrganization", () => {
         proof.id,
         changeRequestInput(revision.id),
       ),
-    ).rejects.toThrow(
-      "Proof cannot request changes from status CHANGES_REQUESTED.",
-    );
+    ).rejects.toThrow("Proof cannot request changes from status CHANGES_REQUESTED.");
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.CHANGES_REQUESTED,
-    );
+    expect(records.proof.status).toBe(ProofStatus.CHANGES_REQUESTED);
     expect(records.responses).toHaveLength(1);
     expect(records.responses[0].id).toBe(first.id);
     expect(records.activities).toHaveLength(1);
@@ -537,10 +468,9 @@ describe("requestProofChangesForOrganization", () => {
   });
 
   it("allows only one of two concurrent change requests to succeed", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const results = await Promise.allSettled([
       requestProofChangesForOrganization(
@@ -555,27 +485,20 @@ describe("requestProofChangesForOrganization", () => {
       ),
     ]);
 
-    expect(
-      results.filter((result) => result.status === "fulfilled"),
-    ).toHaveLength(1);
-    expect(
-      results.filter((result) => result.status === "rejected"),
-    ).toHaveLength(1);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.CHANGES_REQUESTED,
-    );
+    expect(records.proof.status).toBe(ProofStatus.CHANGES_REQUESTED);
     expect(records.responses).toHaveLength(1);
     expect(records.activities).toHaveLength(1);
   });
 
   it("serializes approval against a competing change request", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const results = await Promise.allSettled([
       requestProofChangesForOrganization(
@@ -583,51 +506,35 @@ describe("requestProofChangesForOrganization", () => {
         proof.id,
         changeRequestInput(revision.id),
       ),
-      approveProofForOrganization(
-        organization.id,
-        proof.id,
-        {
-          revisionId: revision.id,
-          responderName: "Customer A",
-          responderEmail: "customer-a@approveaproof.test",
-        },
-      ),
+      approveProofForOrganization(organization.id, proof.id, {
+        revisionId: revision.id,
+        responderName: "Customer A",
+        responderEmail: "customer-a@approveaproof.test",
+      }),
     ]);
 
-    expect(
-      results.filter((result) => result.status === "fulfilled"),
-    ).toHaveLength(1);
-    expect(
-      results.filter((result) => result.status === "rejected"),
-    ).toHaveLength(1);
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
 
     const records = await changeRequestRecords(proof.id);
 
-    expect([
-      ProofStatus.CHANGES_REQUESTED,
-      ProofStatus.APPROVED,
-    ]).toContain(records.proof.status);
+    expect([ProofStatus.CHANGES_REQUESTED, ProofStatus.APPROVED]).toContain(records.proof.status);
 
     expect(records.responses).toHaveLength(1);
 
     if (records.proof.status === ProofStatus.CHANGES_REQUESTED) {
-      expect(records.responses[0].type).toBe(
-        ProofResponseType.CHANGES_REQUESTED,
-      );
+      expect(records.responses[0].type).toBe(ProofResponseType.CHANGES_REQUESTED);
       expect(records.activities).toHaveLength(1);
     } else {
-      expect(records.responses[0].type).toBe(
-        ProofResponseType.APPROVED,
-      );
+      expect(records.responses[0].type).toBe(ProofResponseType.APPROVED);
       expect(records.activities).toHaveLength(0);
     }
   });
 
   it("serializes cancellation against a competing change request", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const results = await Promise.allSettled([
       requestProofChangesForOrganization(
@@ -671,10 +578,9 @@ describe("requestProofChangesForOrganization", () => {
   });
 
   it("preserves historical responses through a revision cycle", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     const originalRevision = await db.revision.findUniqueOrThrow({
       where: { id: revision.id },
@@ -715,63 +621,42 @@ describe("requestProofChangesForOrganization", () => {
       },
     });
 
-    const secondResponse = await requestProofChangesForOrganization(
-      organization.id,
-      proof.id,
-      {
-        ...changeRequestInput(nextRevision.id),
-        comments: "Please adjust the footer.",
-      },
-    );
+    const secondResponse = await requestProofChangesForOrganization(organization.id, proof.id, {
+      ...changeRequestInput(nextRevision.id),
+      comments: "Please adjust the footer.",
+    });
 
     const records = await changeRequestRecords(proof.id);
 
-    expect(records.proof.status).toBe(
-      ProofStatus.CHANGES_REQUESTED,
-    );
+    expect(records.proof.status).toBe(ProofStatus.CHANGES_REQUESTED);
     expect(records.responses).toHaveLength(2);
-    expect(
-      records.responses.map((response) => response.id),
-    ).toEqual(
-      expect.arrayContaining([
-        firstResponse.id,
-        secondResponse.id,
-      ]),
+    expect(records.responses.map((response) => response.id)).toEqual(
+      expect.arrayContaining([firstResponse.id, secondResponse.id]),
     );
 
-    expect(
-      records.responses.find(
-        (response) => response.id === firstResponse.id,
-      ),
-    ).toMatchObject({
+    expect(records.responses.find((response) => response.id === firstResponse.id)).toMatchObject({
       revisionId: revision.id,
       comments: "Please increase the headline size.",
     });
 
-    expect(
-      records.responses.find(
-        (response) => response.id === secondResponse.id,
-      ),
-    ).toMatchObject({
+    expect(records.responses.find((response) => response.id === secondResponse.id)).toMatchObject({
       revisionId: nextRevision.id,
       comments: "Please adjust the footer.",
     });
 
     expect(records.activities).toHaveLength(2);
 
-    const persistedOriginalRevision =
-      await db.revision.findUniqueOrThrow({
-        where: { id: revision.id },
-      });
+    const persistedOriginalRevision = await db.revision.findUniqueOrThrow({
+      where: { id: revision.id },
+    });
 
     expect(persistedOriginalRevision).toEqual(originalRevision);
-    }, 15_000);
+  }, 15_000);
 
   it("rolls back response and status when activity insertion fails", async () => {
-    const { organization, proof, revision } =
-      await createSubmittedProof({
-        dispatchStatus: ProofDispatchStatus.SENT,
-      });
+    const { organization, proof, revision } = await createSubmittedProof({
+      dispatchStatus: ProofDispatchStatus.SENT,
+    });
 
     // This test-only trigger rejects CHANGES_REQUESTED activity
     // inserts. It is removed in finally.
@@ -808,9 +693,7 @@ describe("requestProofChangesForOrganization", () => {
 
       const records = await changeRequestRecords(proof.id);
 
-      expect(records.proof.status).toBe(
-        ProofStatus.AWAITING_APPROVAL,
-      );
+      expect(records.proof.status).toBe(ProofStatus.AWAITING_APPROVAL);
       expect(records.proof.currentRevisionId).toBe(revision.id);
       expect(records.responses).toHaveLength(0);
       expect(records.activities).toHaveLength(0);

@@ -466,14 +466,10 @@ describe("database invariants", () => {
     ).rejects.toThrow();
   });
 
-    it("prevents deletion of a proof with a revision even when no response evidence exists", async () => {
+  it("prevents deletion of a proof with a revision even when no response evidence exists", async () => {
     const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -577,17 +573,10 @@ describe("database invariants", () => {
     ).rejects.toThrow();
   });
 
-    it("prevents deletion of an organization that owns a proof", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+  it("prevents deletion of an organization that owns a proof", async () => {
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -621,17 +610,10 @@ describe("database invariants", () => {
     expect(preservedProof.organizationId).toBe(organization.id);
   });
 
-    it("prevents deletion of a proof that has activity history", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+  it("prevents deletion of a proof that has activity history", async () => {
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -674,17 +656,10 @@ describe("database invariants", () => {
     expect(preservedActivity.organizationId).toBe(organization.id);
   });
 
-    it("prevents deletion of a proof that has dispatch history", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+  it("prevents deletion of a proof that has dispatch history", async () => {
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -694,11 +669,7 @@ describe("database invariants", () => {
       "Proof With Dispatch",
     );
 
-    const revision = await createRevision(
-      organization.id,
-      proof.id,
-      1,
-    );
+    const revision = await createRevision(organization.id, proof.id, 1);
 
     const dispatch = await db.proofDispatch.create({
       data: {
@@ -736,17 +707,10 @@ describe("database invariants", () => {
     expect(preservedDispatch.revisionId).toBe(revision.id);
   });
 
-    it("documents that an unreferenced noncurrent revision is not protected by foreign keys", async () => {
-    const organization = await createOrganization(
-      "Organization",
-      "organization",
-    );
+  it("documents that an unreferenced noncurrent revision is not protected by foreign keys", async () => {
+    const organization = await createOrganization("Organization", "organization");
 
-    const customer = await createCustomer(
-      organization.id,
-      "Customer",
-      "customer@example.com",
-    );
+    const customer = await createCustomer(organization.id, "Customer", "customer@example.com");
 
     const proof = await createProof(
       organization.id,
@@ -756,17 +720,9 @@ describe("database invariants", () => {
       "Proof With Revision History",
     );
 
-    const firstRevision = await createRevision(
-      organization.id,
-      proof.id,
-      1,
-    );
+    const firstRevision = await createRevision(organization.id, proof.id, 1);
 
-    const secondRevision = await createRevision(
-      organization.id,
-      proof.id,
-      2,
-    );
+    const secondRevision = await createRevision(organization.id, proof.id, 2);
 
     await db.proof.update({
       where: {
@@ -777,7 +733,7 @@ describe("database invariants", () => {
       },
     });
 
-        // Known v1 limitation:
+    // Known v1 limitation:
     // Foreign keys protect revisions referenced by other records, but do
     // not prevent direct deletion of an unreferenced noncurrent revision.
     // Production domain services must never expose this deletion operation.

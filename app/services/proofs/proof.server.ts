@@ -1,9 +1,4 @@
-
-import {
-  ProofActivityType,
-  ProofStatus,
-  type Proof,
-} from "../../../generated/prisma/client";
+import { ProofActivityType, ProofStatus, type Proof } from "../../../generated/prisma/client";
 
 import { db } from "../../lib/db.server";
 import { canTransitionProofStatus } from "./proof-lifecycle";

@@ -17,12 +17,7 @@ if (testDatabaseUrl === databaseUrl) {
 }
 
 const vitestPath = "./node_modules/vitest/vitest.mjs";
-const args = [
-  "run",
-  "--maxWorkers=1",
-  "--no-file-parallelism",
-  ...process.argv.slice(2),
-];
+const args = ["run", "--maxWorkers=1", "--no-file-parallelism", ...process.argv.slice(2)];
 
 const result = spawnSync(process.execPath, [vitestPath, ...args], {
   stdio: "inherit",

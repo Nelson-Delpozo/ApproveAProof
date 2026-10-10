@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 import {
@@ -13,8 +12,7 @@ import {
 import { db } from "../../lib/db.server";
 import { canTransitionProofStatus } from "./proof-lifecycle";
 
-const approvalStatement =
-  "I have reviewed this proof and approve this revision for production.";
+const approvalStatement = "I have reviewed this proof and approve this revision for production.";
 
 const approvalInputSchema = z.object({
   revisionId: z.uuid(),
@@ -61,15 +59,8 @@ export async function approveProofForOrganization(
       throw new Error("Proof not found.");
     }
 
-    if (
-      !canTransitionProofStatus(
-        proof.status,
-        ProofStatus.APPROVED,
-      )
-    ) {
-      throw new Error(
-        `Proof cannot be approved from status ${proof.status}.`,
-      );
+    if (!canTransitionProofStatus(proof.status, ProofStatus.APPROVED)) {
+      throw new Error(`Proof cannot be approved from status ${proof.status}.`);
     }
 
     if (!proof.currentRevisionId) {
@@ -77,9 +68,7 @@ export async function approveProofForOrganization(
     }
 
     if (validatedInput.revisionId !== proof.currentRevisionId) {
-      throw new Error(
-        "Approval Revision does not match the current Revision.",
-      );
+      throw new Error("Approval Revision does not match the current Revision.");
     }
 
     const revision = await tx.revision.findFirst({
@@ -103,10 +92,7 @@ export async function approveProofForOrganization(
         proofId: proof.id,
         revisionId: revision.id,
         type: {
-          in: [
-            ProofDispatchType.INITIAL_PROOF,
-            ProofDispatchType.REVISION,
-          ],
+          in: [ProofDispatchType.INITIAL_PROOF, ProofDispatchType.REVISION],
         },
         status: ProofDispatchStatus.SENT,
         sentAt: {
@@ -124,20 +110,13 @@ export async function approveProofForOrganization(
     });
 
     if (!sentDispatch) {
-      throw new Error(
-        "Approval Revision has no completed submission dispatch.",
-      );
+      throw new Error("Approval Revision has no completed submission dispatch.");
     }
 
-    const confirmationRecipientEmail =
-      sentDispatch.recipientEmail.trim();
+    const confirmationRecipientEmail = sentDispatch.recipientEmail.trim();
 
-    if (
-      !z.email().safeParse(confirmationRecipientEmail).success
-    ) {
-      throw new Error(
-        "Approval confirmation recipient email is invalid.",
-      );
+    if (!z.email().safeParse(confirmationRecipientEmail).success) {
+      throw new Error("Approval confirmation recipient email is invalid.");
     }
 
     const response = await tx.proofResponse.create({

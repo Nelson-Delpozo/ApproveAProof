@@ -1,4 +1,3 @@
-
 import type { PrismaClient } from "../../../generated/prisma/client";
 
 /**
@@ -25,9 +24,7 @@ export async function cleanupTestOrganizations(
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!testDatabaseUrl || !databaseUrl || databaseUrl !== testDatabaseUrl) {
-    throw new Error(
-      "Test organization cleanup requires DATABASE_URL to match TEST_DATABASE_URL.",
-    );
+    throw new Error("Test organization cleanup requires DATABASE_URL to match TEST_DATABASE_URL.");
   }
 
   await db.$transaction(async (tx) => {

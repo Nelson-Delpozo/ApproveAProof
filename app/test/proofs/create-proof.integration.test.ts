@@ -1,4 +1,3 @@
-
 // @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
@@ -144,11 +143,11 @@ describe("createProofForOrganization", () => {
   it("rejects a nonexistent Organization without creating an orphan Proof or activity", async () => {
     const missingOrganizationId = "00000000-0000-4000-8000-000000000002";
 
-    await expect(
-      createProofForOrganization(missingOrganizationId, validInput),
-    ).rejects.toThrow();
+    await expect(createProofForOrganization(missingOrganizationId, validInput)).rejects.toThrow();
 
     expect(await db.proof.count({ where: { organizationId: missingOrganizationId } })).toBe(0);
-    expect(await db.proofActivity.count({ where: { organizationId: missingOrganizationId } })).toBe(0);
+    expect(await db.proofActivity.count({ where: { organizationId: missingOrganizationId } })).toBe(
+      0,
+    );
   });
 });

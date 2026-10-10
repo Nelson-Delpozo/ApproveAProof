@@ -1,9 +1,4 @@
-
-import {
-  ProofActivityType,
-  ProofStatus,
-  type Revision,
-} from "../../../generated/prisma/client";
+import { ProofActivityType, ProofStatus, type Revision } from "../../../generated/prisma/client";
 
 import { db } from "../../lib/db.server";
 import { canTransitionProofStatus } from "./proof-lifecycle";
@@ -42,13 +37,8 @@ export async function createRevisionForProof(
       throw new Error("Proof not found.");
     }
 
-    if (
-      proof.status !== ProofStatus.DRAFT &&
-      proof.status !== ProofStatus.CHANGES_REQUESTED
-    ) {
-      throw new Error(
-        `Cannot create a Revision when Proof status is ${proof.status}.`,
-      );
+    if (proof.status !== ProofStatus.DRAFT && proof.status !== ProofStatus.CHANGES_REQUESTED) {
+      throw new Error(`Cannot create a Revision when Proof status is ${proof.status}.`);
     }
 
     if (
