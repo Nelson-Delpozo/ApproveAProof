@@ -1,6 +1,7 @@
 // @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { cleanupTestOrganizations } from "../helpers/cleanup-test-organizations";
 
 import {
   ProofDispatchStatus,
@@ -27,24 +28,11 @@ function revisionInput(suffix: string) {
 
 describe("submitProofForApproval", () => {
   beforeEach(async () => {
-    await db.organization.deleteMany({
-      where: {
-        slug: {
-          in: [ORG_SLUG, ORG_B_SLUG],
-        },
-      },
-    });
+    await cleanupTestOrganizations(db, [ORG_SLUG, ORG_B_SLUG]);
   });
 
   afterAll(async () => {
-    await db.organization.deleteMany({
-      where: {
-        slug: {
-          in: [ORG_SLUG, ORG_B_SLUG],
-        },
-      },
-    });
-
+    await cleanupTestOrganizations(db, [ORG_SLUG, ORG_B_SLUG]);
     await db.$disconnect();
   });
 

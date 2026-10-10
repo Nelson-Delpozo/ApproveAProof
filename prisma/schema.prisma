@@ -79,7 +79,7 @@ model Proof {
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   customer        Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
   revisions       Revision[]   @relation("ProofRevisions")
   currentRevision Revision?    @relation("ProofCurrentRevision", fields: [id, currentRevisionId], references: [proofId, id], onDelete: NoAction, onUpdate: NoAction)
@@ -106,9 +106,9 @@ model Revision {
   fileHash       String
   createdAt      DateTime @default(now())
 
-  proof           Proof           @relation("ProofRevisions", fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  proof           Proof           @relation("ProofRevisions", fields: [proofId, organizationId], references: [id, organizationId], onDelete: Restrict)
   currentForProof Proof?          @relation("ProofCurrentRevision")
-  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   responses       ProofResponse[]
 
   dispatches ProofDispatch[]
@@ -146,7 +146,7 @@ model ProofActivity {
   type           ProofActivityType
   createdAt      DateTime          @default(now())
 
-  proof Proof @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  proof Proof @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Restrict)
 
   @@index([organizationId])
   @@index([proofId])
@@ -168,7 +168,7 @@ model ProofDispatch {
   sentAt         DateTime?
   createdAt      DateTime            @default(now())
 
-  proof Proof @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Cascade)
+  proof Proof @relation(fields: [proofId, organizationId], references: [id, organizationId], onDelete: Restrict)
 
   revision Revision? @relation(fields: [organizationId, proofId, revisionId], references: [organizationId, proofId, id], onDelete: NoAction, onUpdate: NoAction)
 

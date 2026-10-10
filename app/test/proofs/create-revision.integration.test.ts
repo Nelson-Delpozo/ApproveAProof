@@ -9,6 +9,7 @@ import {
 } from "../../../generated/prisma/client";
 import { db } from "../../lib/db.server";
 import { createRevisionForProof } from "../../services/proofs/revision.server";
+import { cleanupTestOrganizations } from "../helpers/cleanup-test-organizations";
 
 const ORG_A_SLUG = "create-revision-org-a";
 const ORG_B_SLUG = "create-revision-org-b";
@@ -38,24 +39,11 @@ async function getRevisionCreatedActivities(
 
 describe("createRevisionForProof", () => {
   beforeEach(async () => {
-    await db.organization.deleteMany({
-      where: {
-        slug: {
-          in: [ORG_A_SLUG, ORG_B_SLUG],
-        },
-      },
-    });
+    await cleanupTestOrganizations(db, [ORG_A_SLUG, ORG_B_SLUG]);
   });
 
   afterAll(async () => {
-    await db.organization.deleteMany({
-      where: {
-        slug: {
-          in: [ORG_A_SLUG, ORG_B_SLUG],
-        },
-      },
-    });
-
+    await cleanupTestOrganizations(db, [ORG_A_SLUG, ORG_B_SLUG]);
     await db.$disconnect();
   });
 

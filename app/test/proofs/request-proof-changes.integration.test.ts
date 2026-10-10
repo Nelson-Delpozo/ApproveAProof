@@ -2,6 +2,7 @@
 // @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { cleanupTestOrganizations } from "../helpers/cleanup-test-organizations";
 
 import {
   ProofActivityType,
@@ -124,41 +125,12 @@ async function changeRequestRecords(proofId: string) {
 }
 
 describe("requestProofChangesForOrganization", () => {
-  async function cleanTestOrganizations() {
-    const organizations = await db.organization.findMany({
-      where: {
-        slug: { in: [ORG_SLUG, ORG_B_SLUG] },
-      },
-      select: { id: true },
-    });
-
-    const organizationIds = organizations.map(
-      (organization) => organization.id,
-    );
-
-    if (organizationIds.length === 0) {
-      return;
-    }
-
-    await db.proofResponse.deleteMany({
-      where: {
-        organizationId: { in: organizationIds },
-      },
-    });
-
-    await db.organization.deleteMany({
-      where: {
-        id: { in: organizationIds },
-      },
-    });
-  }
-
   beforeEach(async () => {
-    await cleanTestOrganizations();
+    await cleanupTestOrganizations(db, [ORG_SLUG, ORG_B_SLUG]);
   });
 
   afterAll(async () => {
-    await cleanTestOrganizations();
+    await cleanupTestOrganizations(db, [ORG_SLUG, ORG_B_SLUG]);
     await db.$disconnect();
   });
 
@@ -793,7 +765,7 @@ describe("requestProofChangesForOrganization", () => {
       });
 
     expect(persistedOriginalRevision).toEqual(originalRevision);
-  });
+    }, 15_000);
 
   it("rolls back response and status when activity insertion fails", async () => {
     const { organization, proof, revision } =

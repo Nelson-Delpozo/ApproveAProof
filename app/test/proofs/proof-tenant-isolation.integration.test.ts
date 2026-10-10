@@ -1,6 +1,7 @@
 // @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { cleanupTestOrganizations } from "../helpers/cleanup-test-organizations";
 
 import { db } from "../../lib/db.server";
 import { getProofForOrganization } from "../../services/proofs/proof.server";
@@ -10,24 +11,11 @@ const ORG_B_SLUG = "proof-tenant-isolation-org-b";
 
 describe("proof tenant isolation", () => {
   beforeEach(async () => {
-    await db.organization.deleteMany({
-      where: {
-        slug: {
-          in: [ORG_A_SLUG, ORG_B_SLUG],
-        },
-      },
-    });
+    await cleanupTestOrganizations(db, [ORG_A_SLUG, ORG_B_SLUG]);
   });
 
   afterAll(async () => {
-    await db.organization.deleteMany({
-      where: {
-        slug: {
-          in: [ORG_A_SLUG, ORG_B_SLUG],
-        },
-      },
-    });
-
+    await cleanupTestOrganizations(db, [ORG_A_SLUG, ORG_B_SLUG]);
     await db.$disconnect();
   });
 

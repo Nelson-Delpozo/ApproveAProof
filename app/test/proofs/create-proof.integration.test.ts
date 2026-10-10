@@ -6,6 +6,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { ProofActivityType, ProofStatus } from "../../../generated/prisma/client";
 import { db } from "../../lib/db.server";
 import { createProofForOrganization } from "../../services/proofs/create-proof.server";
+import { cleanupTestOrganizations } from "../helpers/cleanup-test-organizations";
 
 const ORG_A_SLUG = "create-proof-org-a";
 const ORG_B_SLUG = "create-proof-org-b";
@@ -24,15 +25,11 @@ const validInput = {
 
 describe("createProofForOrganization", () => {
   beforeEach(async () => {
-    await db.organization.deleteMany({
-      where: { slug: { in: [ORG_A_SLUG, ORG_B_SLUG] } },
-    });
+    await cleanupTestOrganizations(db, [ORG_A_SLUG, ORG_B_SLUG]);
   });
 
   afterAll(async () => {
-    await db.organization.deleteMany({
-      where: { slug: { in: [ORG_A_SLUG, ORG_B_SLUG] } },
-    });
+    await cleanupTestOrganizations(db, [ORG_A_SLUG, ORG_B_SLUG]);
     await db.$disconnect();
   });
 
