@@ -1,4 +1,9 @@
-import { ProofStatus, type Revision } from "../../../generated/prisma/client";
+
+import {
+  ProofActivityType,
+  ProofStatus,
+  type Revision,
+} from "../../../generated/prisma/client";
 
 import { db } from "../../lib/db.server";
 import { canTransitionProofStatus } from "./proof-lifecycle";
@@ -89,6 +94,14 @@ export async function createRevisionForProof(
       data: {
         currentRevisionId: revision.id,
         status: ProofStatus.DRAFT,
+      },
+    });
+
+    await tx.proofActivity.create({
+      data: {
+        organizationId: proof.organizationId,
+        proofId: proof.id,
+        type: ProofActivityType.REVISION_CREATED,
       },
     });
 

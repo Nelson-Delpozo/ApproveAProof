@@ -1,8 +1,12 @@
+
 // @vitest-environment node
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
-import { ProofStatus } from "../../../generated/prisma/client";
+import {
+  ProofActivityType,
+  ProofStatus,
+} from "../../../generated/prisma/client";
 import { db } from "../../lib/db.server";
 import { createRevisionForProof } from "../../services/proofs/revision.server";
 
@@ -17,6 +21,19 @@ function revisionInput(suffix: string) {
     fileSize: 1024,
     fileHash: `sha256-test-${suffix}`,
   };
+}
+
+async function getRevisionCreatedActivities(
+  organizationId: string,
+  proofId: string,
+) {
+  return db.proofActivity.findMany({
+    where: {
+      organizationId,
+      proofId,
+      type: ProofActivityType.REVISION_CREATED,
+    },
+  });
 }
 
 describe("createRevisionForProof", () => {
@@ -42,7 +59,7 @@ describe("createRevisionForProof", () => {
     await db.$disconnect();
   });
 
-  it("creates the first Revision as number 1 and makes it current", async () => {
+  it("creates the first Revision as number 1, makes it current, and records its activity", async () => {
     const organization = await db.organization.create({
       data: {
         name: "Create Revision Organization A",
@@ -75,9 +92,16 @@ describe("createRevisionForProof", () => {
 
     expect(persistedProof.currentRevisionId).toBe(revision.id);
     expect(persistedProof.status).toBe(ProofStatus.DRAFT);
+
+    const activities = await getRevisionCreatedActivities(
+      organization.id,
+      proof.id,
+    );
+
+    expect(activities).toHaveLength(1);
   });
 
-  it("allocates successive Revision numbers and preserves earlier revisions", async () => {
+  it("allocates successive Revision numbers, preserves earlier revisions, and records each activity", async () => {
     const organization = await db.organization.create({
       data: {
         name: "Create Revision Organization A",
@@ -133,9 +157,16 @@ describe("createRevisionForProof", () => {
       "sha256-test-sequential-2",
       "sha256-test-sequential-3",
     ]);
+
+    const activities = await getRevisionCreatedActivities(
+      organization.id,
+      proof.id,
+    );
+
+    expect(activities).toHaveLength(3);
   });
 
-  it("does not allow another organization to create a Revision for the Proof", async () => {
+  it("does not allow another organization to create a Revision or activity for the Proof", async () => {
     const organizationA = await db.organization.create({
       data: {
         name: "Create Revision Organization A",
@@ -176,9 +207,16 @@ describe("createRevisionForProof", () => {
     expect(revisions).toHaveLength(0);
     expect(persistedProof.currentRevisionId).toBeNull();
     expect(persistedProof.status).toBe(ProofStatus.DRAFT);
+
+    expect(
+      await getRevisionCreatedActivities(organizationA.id, proof.id),
+    ).toHaveLength(0);
+    expect(
+      await getRevisionCreatedActivities(organizationB.id, proof.id),
+    ).toHaveLength(0);
   });
 
-  it("allocates distinct sequential numbers and selects the last committed concurrent Revision", async () => {
+  it("allocates distinct sequential numbers and records both concurrent Revision activities", async () => {
     const organization = await db.organization.create({
       data: {
         name: "Create Revision Organization A",
@@ -223,9 +261,13 @@ describe("createRevisionForProof", () => {
     expect(persistedRevisions.map((revision) => revision.number)).toEqual([1, 2]);
     expect(persistedProof.currentRevisionId).toBe(persistedRevisions[1].id);
     expect(persistedProof.status).toBe(ProofStatus.DRAFT);
+
+    expect(
+      await getRevisionCreatedActivities(organization.id, proof.id),
+    ).toHaveLength(2);
   });
 
-  it("creates a new current Revision and returns CHANGES_REQUESTED to DRAFT", async () => {
+  it("creates a new current Revision, records its activity, and returns CHANGES_REQUESTED to DRAFT", async () => {
     const organization = await db.organization.create({
       data: {
         name: "Create Revision Organization A",
@@ -273,13 +315,17 @@ describe("createRevisionForProof", () => {
       first.id,
       second.id,
     ]);
+
+    expect(
+      await getRevisionCreatedActivities(organization.id, proof.id),
+    ).toHaveLength(2);
   });
 
   it.each([
     ProofStatus.AWAITING_APPROVAL,
     ProofStatus.APPROVED,
     ProofStatus.CANCELED,
-  ])("rejects creation from %s without changing existing data", async (status) => {
+  ])("rejects creation from %s without changing existing data or activities", async (status) => {
     const organization = await db.organization.create({
       data: {
         name: "Create Revision Organization A",
@@ -330,5 +376,9 @@ describe("createRevisionForProof", () => {
     expect(after.updatedAt).toEqual(before.updatedAt);
     expect(persistedRevisions).toHaveLength(1);
     expect(persistedRevisions[0].id).toBe(original.id);
+
+    expect(
+      await getRevisionCreatedActivities(organization.id, proof.id),
+    ).toHaveLength(1);
   });
 });
